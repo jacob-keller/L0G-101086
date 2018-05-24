@@ -1,0 +1,1 @@
+* automatically upload logs on a timer (like cron???)

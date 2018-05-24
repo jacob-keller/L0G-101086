@@ -1,0 +1,116 @@
+# URL for arcdps dll
+$arc_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
+# URL for the MD5 sum of arcdps dll
+$arc_md5_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
+# URL for the build templates plugin
+$templates_url = "https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll"
+# URL for the mechanics plugin for Arc DPS
+$mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll"
+# URL for the MD5 sum of the mechanics dll
+$mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
+
+# Path to store the Arc DPS dll
+$arc_path = "C:\Program Files (x86)\Guild Wars 2\d3d9.dll"
+# Path to store the templates dll
+$templates_path = "C:\Program Files (x86)\Guild Wars 2\d3d9_arcdps_buildtemplates.dll"
+# Path to store the mechanics dll
+$mechanics_path = "C:\Program Files (x86)\Guild Wars 2\d3d9_arcdps_mechanics.dll"
+
+# Store the dlls in both the top level and \bin64 to make Gw2 Launch Buddy happy
+$arc_bin_path = "C:\Program Files (x86)\Guild Wars 2\bin64\d3d9.dll"
+$templates_bin_path = "C:\Program Files (x86)\Guild Wars 2\bin64\d3d9_arcdps_buildtemplates.dll"
+$mechanics_bin_path = "C:\Program Files (x86)\Guild Wars 2\bin64\d3d9_arcdps_mechanics.dll"
+
+# Path to backup locations for the previous versions
+$arc_backup = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arc-d3d9.dll.back"
+$templates_backup = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\extension-d3d9_arcdps_buildtemplates.dll.back"
+$mechanics_backup = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\extension-d3d9_arcdps_mechanics.dll.back"
+
+$run_update = $false
+Write-Host "Checking ArcDPS MD5 Hash for changes"
+if ((Test-Path $arc_path) -and (Test-Path $templates_path)) {
+    $current_md5 = (Get-FileHash $arc_path -Algorithm MD5).Hash
+    Write-Host "arcdps: Current MD5 Hash: $current_md5"
+    $web_md5 = Invoke-WebRequest -URI $arc_md5_url -UseBasicParsing
+    # this file has the md5sum followed by a filename
+    $web_md5 = $web_md5.toString().trim().split(" ")[0].toUpper()
+    Write-Host "arcdps: Online MD5 Hash:  $web_md5"
+
+    if ($current_md5 -ne $web_md5) {
+        $run_update = $true
+    }
+} else {
+    $run_update = $true
+}
+
+if ($run_update -eq $false) {
+    Write-Host "Current version is up to date"
+} else {
+    # If we have a copy of ArcDPS, make a new backup before overwriting
+    if (Test-Path $arc_path) {
+        if (Test-Path $arc_backup) {
+            Remove-Item $arc_backup
+        }
+        Move-Item $arc_path $arc_backup
+    }
+
+    # Also backup the templates plugin
+    if (Test-Path $templates_path) {
+        if (Test-Path $templates_backup) {
+            Remove-Item $templates_backup
+        }
+        Move-Item $templates_path $templates_backup
+    }
+
+    # Remove the copy in bin64 as well
+    if (Test-Path $arc_bin_path) {
+        Remove-Item $arc_bin_path
+    }
+
+    Write-Host "Downloading new arcdps d3d9.dll"
+    Invoke-WebRequest -Uri $arc_url -UseBasicParsing -OutFile $arc_path
+    Copy-Item $arc_path $arc_bin_path
+    Write-Host "Downloading new arcdps d3d9_arcdps_build_templates.dll"
+    Invoke-WebRequest -Uri $templates_url -UseBasicParsing -OutFile $templates_path
+    Copy-Item $templates_path $templates_bin_path
+}
+
+$run_update = $false
+Write-Host "Checking d3d9_arcdps_mechanics.dll MD5 Hash for changes"
+if (Test-Path $mechanics_path) {
+    $current_md5 = (Get-FileHash $mechanics_path -Algorithm MD5).Hash
+    Write-Host "mechanics: Current MD5 Hash: $current_md5"
+    $web_md5 = Invoke-WebRequest -URI $mechanics_md5_url -UseBasicParsing
+    # file is just the md5sum, without a filename
+    $web_md5 = $web_md5.toString().trim().toUpper()
+    Write-Host "mechanics: Online MD5 Hash:  $web_md5"
+
+    if ($current_md5 -ne $web_md5) {
+        $run_update = $true
+    }
+} else {
+    $run_update = $true
+}
+
+if ($run_update -eq $false) {
+    Write-Host "Current d3d9_arcdps_mechanics.dll version is up to date"
+} else {
+    # If we have a copy of the mechanics dll, make a new backup before overwriting
+    if (Test-Path $mechanics_path) {
+        if (Test-Path $mechanics_backup) {
+            Remove-Item $mechanics_backup
+        }
+        Move-Item $mechanics_path $mechanics_backup
+    }
+
+    # Remove the copy in bin64 as well
+    if (Test-Path $mechanics_bin_path) {
+        Remove-Item $mechanics_bin_path
+    }
+
+    Write-Host "Downloading new d3d9_arcdps_mechanics.dll"
+    Invoke-WebRequest -Uri $mechanics_url -UseBasicParsing -OutFile $mechanics_path
+    Copy-Item $mechanics_path $mechanics_bin_path
+}
+
+Read-Host -Prompt "Press Enter to exit"

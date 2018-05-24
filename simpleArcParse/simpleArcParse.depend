@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1526883358 source:c:\users\administrator\documents\guild wars 2\addons\arcdps\simplearcparse\main.cpp
+	<iostream>
+	<fstream>
+	<string>
+	<cstring>
+	<cerrno>
+	<cctype>
+	<type_traits>
+
