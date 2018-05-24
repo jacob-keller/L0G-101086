@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+ * Copyright 2018 Jacob Keller. All rights reserved.
+ *
+ * Some structure definitions and names taken from https://www.deltaconnected.com/arcdps/evtc
+ */
 #include <iostream>
 #include <fstream>
 #include <string>

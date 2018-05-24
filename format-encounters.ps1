@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2018 Jacob Keller. All rights reserved.
+
+
 # Custom user-specific data
 #
 # Some of this scripts functionality depends on custom data which cannot be

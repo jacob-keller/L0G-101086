@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2018 Jacob Keller. All rights reserved.
+
 # URL for arcdps dll
 $arc_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
 # URL for the MD5 sum of arcdps dll

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2018 Jacob Keller. All rights reserved.
+
 # Path to the RestSharp dll
 #
 # This script depends on RestSharp (http://restsharp.org/) to setup it's Rest APIs, as the
