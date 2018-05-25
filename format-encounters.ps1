@@ -385,18 +385,30 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
         # characters very well, so we use @NAME@ replacement strings to represent
         # these characters, which we'll replace after calling ConvertTo-Json
         # See Convert-Payload for more details
-        $fields += [PSCustomObject]@{
-            # Each boss is just an emoji followed by the full name
-            name = "${emoji} **${name}**"
-            # We put both the dps.report link and gw2raidar link here. We separate them by a MIDDLE DOT
-            # unicode character, and we use markdown to format the URLs to include the URL as part of the
-            # hover-over text.
-            #
-            # Discord eats extra spaces, but doesn't recognize the "zero width" space character, so we
-            # insert that on an extra line in order to provide more spacing between elements
-            value = "[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${url} `"${url}`")`r`n@UNICODE-ZWS@"
-            # Where possible, we want discord to keep these on the same lines
-            inline = $true
+        #
+        # In some cases, we might reach here without a valid dps.report url. This
+        # may occur because gw2raidar might return a URL which we don't have local
+        # data for. In this case, just show the gw2raidar link alone.
+        if ($dps_report) {
+            $fields += [PSCustomObject]@{
+                # Each boss is just an emoji followed by the full name
+                name = "${emoji} **${name}**"
+                # We put both the dps.report link and gw2raidar link here. We separate them by a MIDDLE DOT
+                # unicode character, and we use markdown to format the URLs to include the URL as part of the
+                # hover-over text.
+                #
+                # Discord eats extra spaces, but doesn't recognize the "zero width" space character, so we
+                # insert that on an extra line in order to provide more spacing between elements
+                value = "[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${url} `"${url}`")`r`n@UNICODE-ZWS@"
+                # Where possible, we want discord to keep these on the same lines
+                inline = $true
+            }
+        } else {
+            $fields += [PSCustomObject]@{
+                name = "${emoji} **${name}**"
+                value = "[gw2raidar](${url} `"${url}`")`r`n@UNICODE-ZWS@"
+                inline = $true
+            }
         }
     }
 
