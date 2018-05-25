@@ -30,7 +30,7 @@ you may also find it on their [Github Download Page](https://github.com/restshar
 
 Nuget is available from their [website](https://www.nuget.org/downloads)
 
-### RestSharp.dll is not loading?
+##### RestSharp.dll is not loading?
 
 You may see an issue with loading the RestSharp.dll file, similar to the
 following exception:
