@@ -431,6 +431,7 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
         title = "$($config.guild_text) Wings: ${wings} | ${date}"
         color = 0xf9a825
         fields = $fields
+	footer = "Created by /u/platinummyr"
     }
     if ($thumbnail) {
         $data_object | Add-Member @{thumbnail=$thumbnail}
