@@ -36,6 +36,11 @@ Visual Studio should work, but I used
 compiler suite. I have a CodeBlocks project file included in the repository
 which should work out of the box.
 
+If you do not wish to bother compiling simpleArcParse, the [Github
+Release](https://github.com/jacob-keller/L0G-101086/releases) page can be used
+to download a precompiled binary of the program. You can download this and
+update the configuration to point to it instead of compiling yourself.
+
 ## Running
 
 To run the script, you should be able to right click each script and use "run
