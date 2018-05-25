@@ -118,6 +118,17 @@ subfolders as described in the comments of upload-logs.ps1
 It is not a complete parser and is intended only to run as efficiently as
 possible to generate the required minimal output.
 
+### configuration
+
+These scripts are configured using a simple JSON based file format in a file
+called "l0g-101086-config.json". The relevant variables should be well
+documented in each script file. The "l0g-101086-config.sample.json" is provided
+as a basic outline of what needs to be included. You *must* insert a gw2raidar
+token, and a webhook URL, and you probably want to update several of the paths.
+
+The scripts understand how to parse %UserProfile% in paths, but currently no
+other folder shorthands are supported.
+
 ### Questions?
 
 I'll probably respond to GitHub issues raised here, or you can find me on
