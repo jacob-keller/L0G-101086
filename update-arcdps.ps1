@@ -1,6 +1,47 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
 
+# Path to JSON-formatted configuration file
+$config_file = "l0g-101086-config.json"
+
+# Relevant customizable configuration fields
+
+# guildwars2_path
+#
+# Path to the Guild Wars 2 installation directory
+
+# dll_backup_path
+#
+# Path to a folder to store backups of the previous version of files
+
+$config = Get-Content -Raw -Path $config_file | ConvertFrom-Json
+
+# Allow path configurations to contain %UserProfile%, replacing them with the environment variable
+$config | Get-Member -Type NoteProperty | where { $config."$($_.Name)" -is [string] } | ForEach-Object {
+    $config."$($_.Name)" = ($config."$($_.Name)").replace("%UserProfile%", $env:USERPROFILE)
+}
+
+# Path to store the Arc DPS dll
+$arc_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9.dll"
+# Path to store the templates dll
+$templates_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_buildtemplates.dll"
+# Path to store the mechanics dll
+$mechanics_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_mechanics.dll"
+
+# Store the dlls in both the top level and \bin64 to make Gw2 Launch Buddy happy
+$arc_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9.dll"
+$templates_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_buildtemplates.dll"
+$mechanics_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_mechanics.dll"
+
+# Path to backup locations for the previous versions
+$arc_backup = Join-Path -Path $config.dll_backup_path -ChildPath "arc-d3d9.dll.back"
+$templates_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_buildtemplates.dll.back"
+$mechanics_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_mechanics.dll.back"
+
+#
+# URLs we need to fetch from
+#
+
 # URL for arcdps dll
 $arc_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
 # URL for the MD5 sum of arcdps dll
@@ -11,23 +52,6 @@ $templates_url = "https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_
 $mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll"
 # URL for the MD5 sum of the mechanics dll
 $mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
-
-# Path to store the Arc DPS dll
-$arc_path = "C:\Program Files (x86)\Guild Wars 2\d3d9.dll"
-# Path to store the templates dll
-$templates_path = "C:\Program Files (x86)\Guild Wars 2\d3d9_arcdps_buildtemplates.dll"
-# Path to store the mechanics dll
-$mechanics_path = "C:\Program Files (x86)\Guild Wars 2\d3d9_arcdps_mechanics.dll"
-
-# Store the dlls in both the top level and \bin64 to make Gw2 Launch Buddy happy
-$arc_bin_path = "C:\Program Files (x86)\Guild Wars 2\bin64\d3d9.dll"
-$templates_bin_path = "C:\Program Files (x86)\Guild Wars 2\bin64\d3d9_arcdps_buildtemplates.dll"
-$mechanics_bin_path = "C:\Program Files (x86)\Guild Wars 2\bin64\d3d9_arcdps_mechanics.dll"
-
-# Path to backup locations for the previous versions
-$arc_backup = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arc-d3d9.dll.back"
-$templates_backup = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\extension-d3d9_arcdps_buildtemplates.dll.back"
-$mechanics_backup = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\extension-d3d9_arcdps_mechanics.dll.back"
 
 $run_update = $false
 Write-Host "Checking ArcDPS MD5 Hash for changes"

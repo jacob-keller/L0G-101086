@@ -1,82 +1,81 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
 
+# Path to JSON-formatted configuration file
+$config_file = "l0g-101086-config.json"
 
-# Custom user-specific data
+# Relevant customizable configuration fields
 #
-# Some of this scripts functionality depends on custom data which cannot be
-# shared. This section describes each variable, hopefully with enough
-# information that you can fill it in yourself.
+# This script depends on some configuration which is meaningful
+# only to the invididual user, or is not sharable for security or
+# privacy concerns. This information is found in the JSON configuration
+# file. The "l0g-101086-config.sample.json" file can be used as a
+# basic reference to setup your own configuration
 
-# The discord map is a mapping of GW2 account names to discord user
-# ids. In order for them to display properly in the embeds, these
-# must be the internal ID used by discord. Usually you can find it
-# in discord by typing \@name (for example, "\@serenamyr#8942") into
-# a discord channel. You can also find it by right clicking on a chat
-# link and selecting "Copy ID" (enabled by the Developer Tools option
-# in the discord settings). The full format should be something similar
-# to "<@123456789012345>"
+# discord_map
 #
-# Extra entries can be added by putting them separated by semicolons.
-$discord_map = @{"Serena Sedai.3064"="<@119167866103791621>";}
-
-# Discord Webhook URL
+# The discord_map is a mapping of GW2 account names to discord user
+# ids. It should be a hash map keyed by the GW2 account name. The
+# discord user IDs are expected to be the full hiddden ID of the
+# player mention as shown by typing \@discord name (for example
+# "\@serenamyr#8942") into a discord channel. You can also find it
+# by enabling the Developer tools configuration in Discord and then
+# right clicking a player mention and selecting "Copy ID"
 #
-# This should contain the URL for a webhook to your discord server, as shown
-# in the webhooks page of the server settings.
-$discord_webhook = ""
+# This is expected to be a hash table
 
-# Path to the RestSharp dll
+# discord_webhook
 #
-# This script depends on RestSharp (http://restsharp.org/) to setup it's Rest APIs, as the
-# "Invoke-WebRequest" builtin isn't quite powerful enough.
+# This should contain  the URL for the discord webhook that this script
+# will talk to. It can be found in the webhooks configuration page of the
+# discord server. Anyone who has this link can submit content to the channel
+# so it is best to keep this private.
+
+# restsharp_path
 #
-# Set this to the complete path where you have downloaded RestSharp.
-$restsharp_path = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\RestSharp.dll"
+# This script relies on RestSharp (http://restsharp.org/) because the built in
+# "Invoke-WebRequest" was not able to work for all uses needed. This should
+# be the complete path to the RestSharp.dll as obtained from RestSharp's website.
 
-# gw2raidar API token
+# gw2raidar_token
 #
-# This script connects to gw2raidar to obtain a recent encounter list. To
-# authenticate properly, you need to setup this token. You can obtain it
-# by logging into gw2raidar.com and going to "https://www.gw2raidar.com/api/v2/swagger#/token"
-# This site should be able to generate a token for you which you can place in this string.
-$gw2raidar_token = ''
+# This is the token obtained from gw2raidar's API, in connection with your account.
+# It can be obtained through a webbrowser by logging into gw2raidar.com and visiting
+# "https://www.gw2raidar.com/api/v2/swagger#/token"
 
-# Set this to a glob string to match encounter tags if you raid with multiple groups
-# and do not want to include logs for separate groups. For example, setting this to
-# "*eV*" will match all encounters who's tages are LIKE *eV*
-$gw2raidar_tag = "*eV*"
-
-# Guild Name
-# This text will be inserted into the title for the discord post
-$guild = ""
-
-# folder containing json as sent to the webhook
+# gw2raidar_tag_glob
 #
-# This directory stores files which contain the JSON data that we
-# ultimately send to the discord webhook. It is useful for debugging purposes
-# since you can compare the JSON that we sent to what appears in discord.
-# If left empty, then we won't save any data.
-$encounters_dir = ""
+# Set this to a glob string which matches encounter tags. If you wish to match any
+# tags, or don't care about tags at all, set it to "*". Otherwise set it to a glob
+# which matches the tags you care about.
 
-# path to a file to store the last format time. By default
-# this is stored within the encounters directory above
-# but can be set to any valid path. This is used to prevent
-# searching for and re-posting old encounters every time the
-# script is run.
-$last_format_file = Join-Path -Path $encounters_dir -ChildPath "last_format_time.json"
+# guild_text
+#
+# This text is shown as part of the title of the webhook posts. Any text is suitable
+# but it was intended to be the guild tag, for example "[eV]"
 
+# discord_json_data
+#
+# Folder which will contain the complete JSON as sent to the webserver, for debug
+# purposes. May be set to the empty string, in which case this data will not be
+# saved.
+
+# last_format_file
+#
+# Complete path to a file which will store the last format time, used to prevent
+# reposting of previous logs. The file will be stored in JSON data.
+
+# extra_upload_data
+#
 # This script requires some extra data generated by upload-logs.ps1 and stored
 # in a particular location. This data is generated by the C++ simpleArcParse
 # utility, in addition to the upload-logs.ps1 script itself. It contains a series
 # of directories key'd off of the local evtc file name, and each folder hosts
 # JSON formatted data for the player accounts who participated, the success/failure
 # and the uploaded dps.report link if any.
-#
-# This must be set to the same value as in the upload-logs.ps1 script, otherwise
-# things will not function correctly.
-$upload_extras = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arcdps.uploadextras"
 
+# gw2raidar_start_map
+#
 # This script correlates gw2raidar links to the local evtc files (and thus the dps.report files)
 # by using the server start time associated with the log. It parses this data out using
 # simpleArcParse, which is a C++ program designed to read minimal data from evtc files.
@@ -86,17 +85,49 @@ $upload_extras = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\ar
 # after the start time of the encounter, and inside this, hosts a JSON data file which contains
 # the local evtc file name. This essenitally builds a mini-database for mapping gw2raidar
 # links back to local evtc files so we can obtain player names and the dps.report links
-#
-# This must be set to the same value as in the upload-logs.ps1 script, otherwise
-# things will not function correctly
-$start_map = "C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arcdps.startmap"
 
-# Guild Thumbnail
+# guild_thumbnail
 #
 # This is a link to an icon to show in the top right corner of the post as a thumbnail.
 # We use it as a Guild thumbnail image, but this could be anything. It is expected to
 # be a URL to an image file.
-$guild_thumbnail = ""
+
+# emoji_map
+#
+# The emoji data is a map which stores the specific discord ID that maps to the emoji
+# that you wish to display for each boss. This can be found by typing "\emoji" into
+# a discord channel, and should return a link similar to <emoji123456789> which you
+# need to place into a hash map keyed by the boss name.
+
+# debug_mode
+#
+# Enables debugging mode. This will disable checking the last_format_file, and will
+# output the JSON text to the console immediately instead of saving a file.
+#
+# It is useful to enable this during debugging so that you get immediate feedback,
+# and don't have to manually edit the last_format_file every time to allow the script
+# to find old encounters again. In general you should probably point your discord
+# webhook to a separate hidden channel so that you don't spam anyone else on the discord
+# server.
+
+$config = Get-Content -Raw -Path $config_file | ConvertFrom-Json
+
+# Allow path configurations to contain %UserProfile%, replacing them with the environment variable
+$config | Get-Member -Type NoteProperty | where { $config."$($_.Name)" -is [string] } | ForEach-Object {
+    $config."$($_.Name)" = ($config."$($_.Name)").replace("%UserProfile%", $env:USERPROFILE)
+}
+
+# We absolutely require a gw2raidar token
+if (-not $config.gw2raidar_token) {
+    Read-Host -Prompt "This script requires a gw2raidar authentication token. Press enter to exit"
+    exit
+}
+
+# This script makes no sense without a webhook URL
+if (-not $config.discord_webhook) {
+    Read-Host -Prompt "This script requires a discord webhook URL. Press enter to exit"
+    exit
+}
 
 # Convert UTC time into the local time zone
 Function ConvertFrom-UTC($utc) {
@@ -122,10 +153,10 @@ Function Get-Local-Players ($boss) {
         return $names
     }
 
-    $accounts = Get-Content -Raw -Path ([io.path]::combine($upload_extras, $boss.evtc, "accounts.json")) | ConvertFrom-Json
+    $accounts = Get-Content -Raw -Path ([io.path]::combine($config.extra_upload_data, $boss.evtc, "accounts.json")) | ConvertFrom-Json
     ForEach ($account in ($accounts | Sort)) {
-        if ($discord_map.ContainsKey($account)) {
-            $names += @($discord_map[$account])
+        if ($config.discord_map."$account") {
+            $names += @($config.discord_map."$account")
         } elseif ($account -ne "") {
             $names += @("_${account}_")
         }
@@ -140,18 +171,18 @@ Function Get-Local-DpsReport ($boss) {
         return ""
     }
 
-    $dps_json = [io.path]::combine($upload_extras, $boss.evtc, "dpsreport.json")
+    $dpsreport_json = [io.path]::combine($config.extra_upload_data, $boss.evtc, "dpsreport.json")
 
-    if (!(Test-Path -Path $dps_json)) {
+    if (!(Test-Path -Path $dpsreport_json)) {
         return ""
     }
 
-    $dps_report = Get-Content -Raw -Path $dps_json | ConvertFrom-Json
+    $dps_report = Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json
     return $dps_report.permalink
 }
 
 # Load RestSharp
-Add-Type -Path $restsharp_path
+Add-Type -Path $config.restsharp_path
 
 $gw2raidar_url = "https://gw2raidar.com"
 $complete = $false
@@ -159,29 +190,25 @@ $complete = $false
 $nameToId = @{}
 $nameToCmId = @{}
 
-# These emoji ids will need to be replaced by the correct ids for your
-# discord server. We uploaded the 40px icons from gw2 wiki, and found their
-# ids by typing the emote into a channel, prefixed by \.
-# The versions shown here will not display correctly even if you have
-# an emoji by the same name
-$bosses = @(@{name="Vale Guardian";emoji="<:vg:311578870933356545>";wing=1},
-            @{name="Gorseval";emoji="<:gors:311578871013310474>";wing=1},
-            @{name="Sabetha";emoji="<:sab:311578871122231296>";wing=1},
-            @{name="Slothasor";emoji="<:sloth:311578871206117376>";wing=2},
-            @{name="Matthias";emoji="<:matt:311578871105454080>";wing=2},
-            @{name="Keep Construct";emoji="<:kc:311578870686023682>";wing=3},
-            @{name="Xera";emoji="<:xera:311578871277289472>";wing=3},
-            @{name="Cairn";emoji="<:cairn:311578870954590208>";wing=4},
-            @{name="Mursaat Overseer";emoji="<:mo:311579053486243841>";wing=4},
-            @{name="Samarog";emoji="<:sam:311578871214637057>";wing=4},
-            @{name="Deimos";emoji="<:deimos:311578870761652225>";wing=4},
-            @{name="Soulless Horror";emoji="<:horror:386645168289480715>";wing=5},
-            @{name="Dhuum";emoji="<:dhuum:399610319464431627>";wing=5})
+# Main data structure tracking information about bosses as we discover it
+$bosses = @(@{name="Vale Guardian";wing=1},
+            @{name="Gorseval";wing=1},
+            @{name="Sabetha";wing=1},
+            @{name="Slothasor";wing=2},
+            @{name="Matthias";wing=2},
+            @{name="Keep Construct";wing=3},
+            @{name="Xera";wing=3},
+            @{name="Cairn";wing=4},
+            @{name="Mursaat Overseer";wing=4},
+            @{name="Samarog";wing=4},
+            @{name="Deimos";wing=4},
+            @{name="Soulless Horror";wing=5},
+            @{name="Dhuum";wing=5})
 
 # Get the area IDs
 $client = New-Object RestSharp.RestClient($gw2raidar_url)
 $req = New-Object RestSharp.RestRequest("/api/v2/areas")
-$req.AddHeader("Authorization", "Token $gw2raidar_token") | Out-Null
+$req.AddHeader("Authorization", "Token $($config.gw2raidar_token)") | Out-Null
 $req.Method = [RestSharp.Method]::GET
 
 $resp = $client.Execute($req)
@@ -207,7 +234,7 @@ ForEach($area in $areasResp.results) {
 $bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name); $_.Set_Item("cm_id", $nameToCmId.$name) }
 
 # Load the last upload time, or go back forever if we can't find it
-if (Test-Path $last_format_file) {
+if ((-not $config.debug_mode) -and (Test-Path $last_format_file)) {
     $last_format_time = Get-Content -Raw -Path $last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
     $since = ConvertTo-UnixDate ((Get-Date -Date $last_format_time).ToUniversalTime())
 } else {
@@ -222,7 +249,7 @@ Do {
     # Request a chunk of encounters
     $client = New-Object RestSharp.RestClient($gw2raidar_url)
     $req = New-Object RestSharp.RestRequest($request)
-    $req.AddHeader("Authorization", "Token $gw2raidar_token") | Out-Null
+    $req.AddHeader("Authorization", "Token $($config.gw2raidar_token)") | Out-Null
     $req.Method = [RestSharp.Method]::GET
 
     $resp = $client.Execute($req)
@@ -247,16 +274,15 @@ Do {
         $time = ConvertFrom-UnixDate $encounter.started_at
         $age = New-TimeSpan -Start $time
 
-        if (-not ( $encounter.tags -like $gw2raidar_tag ) ) {
+        if (-not ( $encounter.tags -like $config.gw2raidar_tag_glob ) ) {
             continue
         }
 
         # See if we have matching local data for this encounter.
-        # Local data is accessed from $upload_extras, by using
-        # $start_map as a mapping between encounter start time
-        # and the local evtc file data that we created using
-        # upload-logs.ps1
-        $map_dir = Join-Path -Path $start_map -ChildPath $encounter.started_at
+        # Local data is accessed from the extra_upload_data folder, by using
+        # the gw2raidar_start_map as a mapping between encounter start time
+        # and the local evtc file data that we created using upload-logs.ps1
+        $map_dir = Join-Path -Path $config.gw2raidar_start_map -ChildPath $encounter.started_at
         if (Test-Path -Path $map_dir) {
             $evtc_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
         } else {
@@ -303,18 +329,6 @@ $this_format_time = Get-Date
 
 $datestamp = Get-Date -Date $this_format_time -Format "yyyyMMdd-HHmmss"
 
-# Try to create an $encounters_file to save the JSON data
-if (-not (Test-Path $encounters_dir)) {
-    $encounters_file = Join-Path -Path $encounters_dir -ChildPath "ev-encounters-${datestamp}.txt"
-
-    if (Test-Path $encounters_file) {
-        Read-Host -Prompt "$encounters_file already exists.. Press Enter to Exit"
-        exit
-    }
-} else {
-    $encounters_file = $null
-}
-
 # We show a set of encounters based on the day that they occurred, so if you
 # run some encounters on one day, and some on another, you could run this script
 # only on the second day and it would publish two separate pages for each
@@ -332,8 +346,12 @@ $bosses | ForEach-Object {
 }
 
 # object holding the thumbnail URL
-$thumbnail = [PSCustomObject]@{
-    url = $guild_thumbnail
+if ($config.guild_thumbnail) {
+    $thumbnail = [PSCustomObject]@{
+        url = $config.guild_thumbnail
+    }
+} else {
+    $thumbnail = $null
 }
 
 $data = @()
@@ -350,8 +368,8 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
             continue
         }
 
-        $emoji = $boss.emoji
         $name = $boss.name
+        $emoji = $config.emoji_map."$name"
 
         $players += Get-Local-Players $boss
         $dps_report = Get-Local-DpsReport $boss
@@ -395,7 +413,7 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
 
     # Create the data object for this date, and add it to the list
     $data += [PSCustomObject]@{
-        title = "${guild} Wings: ${wings} | ${date}"
+        title = "$($config.guild_text) Wings: ${wings} | ${date}"
         color = 0xf9a825
         thumbnail = $thumbnail
         fields = $fields
@@ -433,16 +451,19 @@ Function Convert-Payload($payload) {
     return $json
 }
 
-# Store the JSON if we've generated if we have a location
-if (Test-Path $encounters_file) {
-    (Convert-Payload $payload) | Out-File $encounters_file
+if ($config.debug_mode) {
+    (Convert-Payload $payload) | Write-Output
+} elseif (Test-Path $config.discord_json_data) {
+    # Store the complete JSON we generated for later debugging
+    $discord_json_file = Join-Path -Path $config.discord_json_data -ChildPath "discord-webhook-${datestamp}.txt"
+    (Convert-Payload $payload) | Out-File $discord_json_file
 }
 
 # Send this request to the discord webhook
-Invoke-RestMethod -Uri $discord_webhook -Method Post -Body (Convert-Payload $payload)
+Invoke-RestMethod -Uri $config.discord_webhook -Method Post -Body (Convert-Payload $payload)
 
-# Update the $last_format_file with the new format time, so that
+# Update the last_format_file with the new format time, so that
 # future runs won't repost old links
-if (Test-Path $last_format_file) {
-    $this_format_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File -Force $last_format_file
+if ((-not $config.debug_mode) -and (Test-Path $config.last_format_file)) {
+    $this_format_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File -Force $config.last_format_file
 }
