@@ -404,9 +404,11 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
     $participants = ($players | Select-Object -Unique) -join " @MIDDLEDOT@ "
 
     # Add a final field as the set of players.
-    $fields += [PSCustomObject]@{
-        name = "@EMDASH@ Raiders @EMDASH@"
-        value = "${participants}"
+    if ($participants) {
+        $fields += [PSCustomObject]@{
+            name = "@EMDASH@ Raiders @EMDASH@"
+            value = "${participants}"
+        }
     }
 
     # Determine which wings we did
