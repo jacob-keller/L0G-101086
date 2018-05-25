@@ -202,7 +202,7 @@ ForEach($f in $files) {
         $time = (Get-Item $f).LastWriteTime.TimeOfDay
 
         # Handle custom logic for including tag and category information
-        if (Test-Path $config.custom_tags_script) {
+        if (($config.custom_tags_script) -and (Test-Path $config.custom_tags_script)) {
             . $config.custom_tags_script
         }
 
