@@ -237,8 +237,8 @@ ForEach($area in $areasResp.results) {
 $bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name); $_.Set_Item("cm_id", $nameToCmId.$name) }
 
 # Load the last upload time, or go back forever if we can't find it
-if ((-not $config.debug_mode) -and (Test-Path $last_format_file)) {
-    $last_format_time = Get-Content -Raw -Path $last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
+if ((-not $config.debug_mode) -and (Test-Path $config.last_format_file)) {
+    $last_format_time = Get-Content -Raw -Path $config.last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
     $since = ConvertTo-UnixDate ((Get-Date -Date $last_format_time).ToUniversalTime())
 } else {
     $since = 0
