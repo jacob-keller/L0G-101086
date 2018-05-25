@@ -1,4 +1,4 @@
-## L0G-101086 Automated log uploads
+# L0G-101086 Automated log uploads
 
 This repository contains several utilities designed to ease uploading logs
 created by [ArcDPS](https://www.deltaconnected.com/arcdps/) to both the
@@ -14,6 +14,55 @@ some work to get it functioning.
 In general the scripts are written with paths as if these scripts are stored at
 "%UserProfile%\Documents\Guild Wars 2\addons\arcdps", so most paths are based
 on this location. You may need to adjust these as necessary.
+
+## Requirements
+
+The scripts depend on Power Shell, and thus the .NET framework. It may already
+be installed by default, but if not you can install it manually. More
+information about how to install it and locate it can be found on [Microsoft's
+documentation](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell?view=powershell-6)
+
+
+The script also relies on RestSharp as the API for most of the REST connections,
+as I wasn't able to get the Invoke-WebRequest commandlet to work with gw2raidar.
+This is available as a package from nuget, but if you have trouble using this,
+you may also find it on their [Github Download Page](https://github.com/restsharp/RestSharp/downloads)
+
+Nuget is available from their [website](https://www.nuget.org/downloads)
+
+The simpleArcParse utility is written in C++ so depends on a C++ compiler.
+Visual Studio should work, but I used
+[CodeBlocks](https://www.codeblocks.org) with the [MinGW](http://www.mingw.org/)
+compiler suite. I have a CodeBlocks project file included in the repository
+which should work out of the box.
+
+## Running
+
+To run the script, you should be able to right click each script and use "run
+with powershell" after you've successfully updated the configuration file. I
+tried to make sure the scripts are robust against misconfiguration, but there is
+still some work to do.
+
+I use shortcuts which point the target like so
+
+```
+C:\Windows\SystOBem32\WindowsPowerShell\v1.0\powershell.exe -file
+"%UserProfile%\Documents\Guild Wars 2\addons\arcdps\upload-logs.ps1"
+```
+
+These help make it easier to "double click to run" the powershell files. I chose
+not to store the lnk files in the repository as they are binary files.
+
+## Powershell Execution Policy
+
+You may experience an issue due to the default Execution policy of your system,
+which may prevent you from running the script. This is because the scripts are
+not signed. Even if I self-signed the scripts, this would not be useful, because
+your computer would not trust my signature. You will likely need to white list
+the script or change the global execution policy. More information can be found
+on [Microsoft's Execution Policies](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies)
+page.
+
 
 ### update-arcdps.ps1
 
@@ -54,8 +103,8 @@ To do so, the simpleArcParse program was created. This program is used to scan
 uncompressed evtc files and extract data such as player names, success/failure,
 encounter type, and the encounter start time.
 
-These are stored into the arcdps.uploadextras folder by default (configurable
-within the upload-logs.ps1 and format-encounters.ps1 scripts) as JSON data.
+These are stored into the arcdps.uploadextras folder by default, configurable
+within the upload-logs.ps1 and format-encounters.ps1 scripts, as JSON data.
 
 ##### uploading to gw2raidar
 
