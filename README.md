@@ -117,10 +117,13 @@ to dps.report
 
 ##### Finding files
 
-To find the files, it assumes encounters are stored in arcdps.cbtlogs as defined
-in the script. It will find only Zipped encounters, so you must check that box
-in the arcdps settings. It recursively searches, so you can have any of the
-options for enabling extra path sections enabled *or* disabled.
+In order to find files, it assumes that the encounters are stored in the
+arcdps.cbtlogs folder as configured in the JSOn configuration file. It supports
+finding both compressed and uncompressed files, and will automatically
+uncompress files when sending them to simpleArcParse. Because it scans the
+arcdps.cbtlogs folder recursively, it should work regardless of how many folder
+layers you enabled in the ArcDPS configuration.
+
 
 ##### simpleArcParse
 
