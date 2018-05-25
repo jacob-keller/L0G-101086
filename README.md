@@ -30,6 +30,31 @@ you may also find it on their [Github Download Page](https://github.com/restshar
 
 Nuget is available from their [website](https://www.nuget.org/downloads)
 
+### RestSharp.dll is not loading?
+
+You may see an issue with loading the RestSharp.dll file, similar to the
+following exception:
+
+```
+Add-Type : Could not load file or assembly 'file:///C:\Users\Corey\Documents\Guild Wars 2\addons\arcdps\RestSharp.dll' or one of its dependencies. Operation is not supported. (Exception from HRESULT: 0x80131515)
+At C:\Users\Corey\Documents\Guild Wars 2\addons\arcdps\upload-logs.ps1:98 char:1
++ Add-Type -Path $config.restsharp_path
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Add-Type], FileLoadException
+    + FullyQualifiedErrorId : System.IO.FileLoadException,Microsoft.PowerShell.Commands.AddTypeCommand
+```
+
+This is likely caused because Windows needs to be told to unblock the file,
+which can be done from the powershell console like so:
+
+````
+Unblock-File -Path RestSharp.dll
+```
+
+This will not take affect until you reload the PowerShell console.
+
+### simpleArcParse
+
 The simpleArcParse utility is written in C++ so depends on a C++ compiler.
 Visual Studio should work, but I used
 [CodeBlocks](https://www.codeblocks.org) with the [MinGW](http://www.mingw.org/)
