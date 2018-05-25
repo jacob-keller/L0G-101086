@@ -47,7 +47,7 @@ At C:\Users\Corey\Documents\Guild Wars 2\addons\arcdps\upload-logs.ps1:98 char:1
 This is likely caused because Windows needs to be told to unblock the file,
 which can be done from the powershell console like so:
 
-````
+```
 Unblock-File -Path RestSharp.dll
 ```
 
