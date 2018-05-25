@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
 
+# Terminate on all errors...
+$ErrorActionPreference = Stop
+
 # Path to JSON-formatted configuration file
 $config_file = "l0g-101086-config.json"
 
