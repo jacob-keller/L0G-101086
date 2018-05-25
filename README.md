@@ -53,7 +53,7 @@ Unblock-File -Path RestSharp.dll
 
 This will not take affect until you reload the PowerShell console.
 
-### simpleArcParse
+##### simpleArcParse
 
 The simpleArcParse utility is written in C++ so depends on a C++ compiler.
 Visual Studio should work, but I used
@@ -66,7 +66,7 @@ Release](https://github.com/jacob-keller/L0G-101086/releases) page can be used
 to download a precompiled binary of the program. You can download this and
 update the configuration to point to it instead of compiling yourself.
 
-## Running
+##### Running
 
 To run the script, you should be able to right click each script and use "run
 with powershell" after you've successfully updated the configuration file. I
@@ -83,7 +83,7 @@ C:\Windows\SystOBem32\WindowsPowerShell\v1.0\powershell.exe -file
 These help make it easier to "double click to run" the powershell files. I chose
 not to store the lnk files in the repository as they are binary files.
 
-## Powershell Execution Policy
+##### Powershell Execution Policy
 
 You may experience an issue due to the default Execution policy of your system,
 which may prevent you from running the script. This is because the scripts are
