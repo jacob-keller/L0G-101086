@@ -114,9 +114,9 @@ function Log-Output ($string) {
 # last write time, and then we return the full path of that file.
 if (Test-Path $last_upload_file) {
     $last_upload_time = Get-Content -Raw -Path $last_upload_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
-    $files = @(Get-ChildItem -Recurse -File -Include "*.evtc.zip" -LiteralPath $arcdps_logs | Where-Object { $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $files = @(Get-ChildItem -Recurse -File -Include @(".evtc.zip", "*.evtc") -LiteralPath $arcdps_logs | Where-Object { $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 } else {
-    $files = @(Get-ChildItem -Recurse -File -Include "*.evtc.zip" -LiteralPath $arcdps_logs | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $files = @(Get-ChildItem -Recurse -File -Include @(".evtc.zip", "*.evtc") -LiteralPath $arcdps_logs | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 }
 
 $next_upload_time = Get-Date
@@ -136,10 +136,16 @@ ForEach($f in $files) {
         # Make the ancillary data directory
         New-Item -ItemType Directory -Path $dir
 
-        # simpleArcParse cannot deal with compressed data, so we must extract it
-        [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
+        if ($f -Like "*.evtc.zip") {
+            # simpleArcParse cannot deal with compressed data, so we must uncompress
+            # it first, before passing the file to the simpleArcParse program
+            [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
 
-        $evtc = Join-Path -Path $dir -ChildPath $name
+            $evtc = Join-Path -Path $dir -ChildPath $name
+        } else {
+            # if the file was not compressed originally, we don't need to copy it
+            $evtc = $f
+        }
 
         # Parse the evtc file and extract account names
         $player_data = (& $simple_arc_parse players "${evtc}")
@@ -173,8 +179,10 @@ ForEach($f in $files) {
             $name | ConvertTo-Json | Out-File -FilePath (Join-Path $map_dir -ChildPath "evtc.json")
         }
 
-        # Don't keep uncompressed data around
-        Remove-Item -Path $evtc
+        # If the file was originally compressed, there's no need to keep around the uncompressed copy
+        if ($f -ne $evtc) {
+            Remove-Item -Path $evtc
+        }
     }
 
     # First, upload to gw2raidar, because it returns immediately and processes in the background
