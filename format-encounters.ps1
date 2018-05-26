@@ -113,11 +113,41 @@ $config_file = "l0g-101086-config.json"
 # webhook to a separate hidden channel so that you don't spam anyone else on the discord
 # server.
 
+
+# Test a path for existence, safe against $null
+Function X-Test-Path($path) {
+    return $(try { Test-Path $path.trim() } catch { $false })
+}
+
+# Make sure the configuration file exists
+if (-not (X-Test-Path $config_file)) {
+    Read-Host -Prompt "Unable to locate the configuration file. Copy and edit the sample configuration? Press enter to exit"
+    exit
+}
+
 $config = Get-Content -Raw -Path $config_file | ConvertFrom-Json
 
 # Allow path configurations to contain %UserProfile%, replacing them with the environment variable
 $config | Get-Member -Type NoteProperty | where { $config."$($_.Name)" -is [string] } | ForEach-Object {
     $config."$($_.Name)" = ($config."$($_.Name)").replace("%UserProfile%", $env:USERPROFILE)
+}
+
+# Make sure RestSharp.dll exists
+if (-not (X-Test-Path $config.restsharp_path)) {
+    Read-Host -Prompt "This script requires RestSharp to be installed. Press enter to exit"
+    exit
+}
+
+# Check that the start map folder has already been created
+if (-not (X-Test-Path $config.gw2raidar_start_map)) {
+    Read-Host -Prompt "The $($config.gw2raidar_start_map) can't be found. Try running upload-logs.ps1 first? Press enter to exit"
+    exit
+}
+
+# Check that the ancillary data folder has already been created
+if (-not (X-Test-Path $config.extra_upload_data)) {
+    Read-Host -Prompt "The $($config.extra_upload_data) can't be found. Try running upload-logs.ps1 first? Press enter to exit"
+    exit
 }
 
 # We absolutely require a gw2raidar token

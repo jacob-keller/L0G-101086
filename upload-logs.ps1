@@ -76,6 +76,18 @@ $config_file = "l0g-101086-config.json"
 #
 # Switches output to display to the console instead of the log file.
 
+
+# Test a path for existence, safe against $null
+Function X-Test-Path($path) {
+    return $(try { Test-Path $path.trim() } catch { $false })
+}
+
+# Make sure the configuration file exists
+if (-not (X-Test-Path $config_file)) {
+    Read-Host -Prompt "Unable to locate the configuration file. Copy and edit the sample configuration? Press enter to exit"
+    exit
+}
+
 $config = Get-Content -Raw -Path $config_file | ConvertFrom-Json
 
 # Allow path configurations to contain %UserProfile%, replacing them with the environment variable
@@ -94,6 +106,56 @@ $logfile = $config.upload_log_file
 $extra_upload_data = $config.extra_upload_data
 $gw2raidar_start_map = $config.gw2raidar_start_map
 $simple_arc_parse = $config.simple_arc_parse_path
+
+# Make sure RestSharp.dll exists
+if (-not (X-Test-Path $config.restsharp_path)) {
+    Read-Host -Prompt "This script requires RestSharp to be installed. Press enter to exit"
+    exit
+}
+
+# Make sure that simpleArcParse has been correctly generated
+if (-not (X-Test-Path $simple_arc_parse)) {
+    Read-Host -Prompt "simpleArcParse must be installed for this script to work. Press enter to exit"
+    exit
+}
+
+# Make sure that the arcdps_logs folder exists
+if (-not (X-Test-Path $arcdps_logs)) {
+    Read-Host -Prompt "Can't locate $arcdp_logs. Press enter to exit."
+    exit
+}
+
+# We absolutely require a gw2raidar token
+if (-not $config.gw2raidar_token) {
+    Read-Host -Prompt "This script requires a gw2raidar authentication token. Press enter to exit"
+    exit
+}
+
+# Require a dps.report token
+if (-not $config.dps_report_token) {
+    Read-Host -Prompt "This script requires a dps.report authentication token. Press enter to exit"
+    exit
+}
+
+# Create the startmap directory if it doesn't exist
+if (-not (X-Test-Path $gw2raidar_start_map)) {
+    try {
+        New-Item -ItemType directory -Path $gw2raidar_start_map
+    } catch {
+        Read-Host -Prompt "Unable to create $gw2raidar_start_map. Press enter to exit"
+        exit
+    }
+}
+
+# Create the startmap directory if it doesn't exist
+if (-not (X-Test-Path $extra_upload_data)) {
+    try {
+        New-Item -ItemType directory -Path $extra_upload_data
+    } catch {
+        Read-Host -Prompt "Unable to create $extra_upload_data. Press enter to exit."
+        exit
+    }
+}
 
 $gw2raidar_url = "https://www.gw2raidar.com"
 $dpsreport_url = "https://dps.report"
