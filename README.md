@@ -211,6 +211,11 @@ token, and a webhook URL, and you probably want to update several of the paths.
 The scripts understand how to parse %UserProfile% in paths, but currently no
 other folder shorthands are supported.
 
+Careful attention must be paid when editing the configuration file such that it
+is well formed JSON. For example, when adding elements to a hash table section,
+you need to postfix each element with a comman except for the last one. Work is
+underway to help provide better validation of the configuration file.
+
 ### Questions?
 
 I'll probably respond to GitHub issues raised here, or you can find me on
