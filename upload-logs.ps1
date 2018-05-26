@@ -134,58 +134,57 @@ ForEach($f in $files) {
 
     $dir = Join-Path -Path $extra_upload_data -ChildPath $name
     if (Test-Path -Path $dir) {
-        Log-Output "Ancillary data appears to have already been created... skipping"
+        Log-Output "Ancillary data appears to have already been created... Overwriting"
+        Remove-Item -Recurse -Force $dir
+    }
+    # Make the ancillary data directory
+    New-Item -ItemType Directory -Path $dir
+
+    if ($f -Like "*.evtc.zip") {
+        # simpleArcParse cannot deal with compressed data, so we must uncompress
+        # it first, before passing the file to the simpleArcParse program
+        [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
+        $evtc = Join-Path -Path $dir -ChildPath $name
     } else {
-        # Make the ancillary data directory
-        New-Item -ItemType Directory -Path $dir
+        # if the file was not compressed originally, we don't need to copy it
+        $evtc = $f
+    }
 
-        if ($f -Like "*.evtc.zip") {
-            # simpleArcParse cannot deal with compressed data, so we must uncompress
-            # it first, before passing the file to the simpleArcParse program
-            [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
+    # Parse the evtc file and extract account names
+    $player_data = (& $simple_arc_parse players "${evtc}")
+    $players = $player_data.Split([Environment]::NewLine)
+    $players | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "accounts.json")
 
-            $evtc = Join-Path -Path $dir -ChildPath $name
-        } else {
-            # if the file was not compressed originally, we don't need to copy it
-            $evtc = $f
+    # Parse the evtc header file and get the encounter name
+    $evtc_header_data = (& $simple_arc_parse header "${evtc}")
+    $evtc_header = ($evtc_header_data.Split([Environment]::NewLine))
+    $evtc_header[0] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "version.json")
+    $evtc_header[1] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "encounter.json")
+
+    # Parse the evtc combat events to determine SUCCESS/FAILURE status
+    $evtc_success = (& $simple_arc_parse success "${evtc}")
+    $evtc_success | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "success.json")
+
+    # Parse the evtc combat events to determine the server start time
+    $start_time = (& $simple_arc_parse start_time "${evtc}")
+
+    # Generate a map between start time and the evtc file name
+    $map_dir = Join-Path -Path $gw2raidar_start_map -ChildPath $start_time
+    if (Test-Path -Path $map_dir) {
+        $recorded_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
+        if ($recorded_name -ne $name) {
+            Log-Output "$recorded_name was already mapped to this start time...!"
         }
+    } else {
+        # Make the mapping directory
+        New-Item -ItemType Directory -Path $map_dir
 
-        # Parse the evtc file and extract account names
-        $player_data = (& $simple_arc_parse players "${evtc}")
-        $players = $player_data.Split([Environment]::NewLine)
-        $players | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "accounts.json")
+        $name | ConvertTo-Json | Out-File -FilePath (Join-Path $map_dir -ChildPath "evtc.json")
+    }
 
-        # Parse the evtc header file and get the encounter name
-        $evtc_header_data = (& $simple_arc_parse header "${evtc}")
-        $evtc_header = ($evtc_header_data.Split([Environment]::NewLine))
-        $evtc_header[0] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "version.json")
-        $evtc_header[1] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "encounter.json")
-
-        # Parse the evtc combat events to determine SUCCESS/FAILURE status
-        $evtc_success = (& $simple_arc_parse success "${evtc}")
-        $evtc_success | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "success.json")
-
-        # Parse the evtc combat events to determine the server start time
-        $start_time = (& $simple_arc_parse start_time "${evtc}")
-
-        # Generate a map between start time and the evtc file name
-        $map_dir = Join-Path -Path $gw2raidar_start_map -ChildPath $start_time
-        if (Test-Path -Path $map_dir) {
-            $recorded_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
-            if ($recorded_name -ne $name) {
-                Log-Output "$recorded_name was already mapped to this start time...!"
-            }
-        } else {
-            # Make the mapping directory
-            New-Item -ItemType Directory -Path $map_dir
-
-            $name | ConvertTo-Json | Out-File -FilePath (Join-Path $map_dir -ChildPath "evtc.json")
-        }
-
-        # If the file was originally compressed, there's no need to keep around the uncompressed copy
-        if ($f -ne $evtc) {
-            Remove-Item -Path $evtc
-        }
+    # If the file was originally compressed, there's no need to keep around the uncompressed copy
+    if ($f -ne $evtc) {
+        Remove-Item -Path $evtc
     }
 
     # First, upload to gw2raidar, because it returns immediately and processes in the background
