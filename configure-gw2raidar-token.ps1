@@ -38,7 +38,7 @@ $config | Get-Member -Type NoteProperty | where { $config."$($_.Name)" -is [stri
 # Check if the token has already been set
 if ($config.gw2raidar_token) {
     try {
-        [ValidateSet('Y','N')]$continue = Read-Host -Prompt "A GW2 Raidar token appears to already be configured. Cotinue? (Y/N)"
+        [ValidateSet('Y','N')]$continue = Read-Host -Prompt "A GW2 Raidar token appears to already be configured. Continue? (Y/N)"
     } catch {
         # Just exit on an invalid response
         exit
