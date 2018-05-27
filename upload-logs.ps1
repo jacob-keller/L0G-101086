@@ -234,6 +234,7 @@ ForEach($f in $files) {
 
     # Parse the evtc combat events to determine the server start time
     $start_time = (& $simple_arc_parse start_time "${evtc}")
+    $start_time | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "servertime.json")
 
     # Generate a map between start time and the evtc file name
     $map_dir = Join-Path -Path $gw2raidar_start_map -ChildPath $start_time
@@ -278,14 +279,14 @@ ForEach($f in $files) {
             throw "Request was not completed"
         }
 
-        # Comment this out if you want to log the entire response content
-        # even on successful runs
-        # Log-Output $resp.Content
-
         if ($resp.StatusCode -ne "OK") {
             Log-Output $resp.Content
             throw "Request failed with status $resp.StatusCode"
         }
+
+        # Store the response data so we can use it in potential future gw2raidar APIs
+        $resp.Content | Out-File -FilePath (Join-Path $dir -ChildPath "gw2raidar.json")
+
         Log-Output "Upload successful..."
     } catch {
         Log-Output $_.Exception.Message
