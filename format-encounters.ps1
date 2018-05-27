@@ -371,10 +371,88 @@ Do {
 
 } Until($complete)
 
-# If we didnt't any URLs, this means that there are no
-# bosses to publish. Note this excludes the case where
-# we happen to have a dps.report without a gw2raidar URL
-if (-not ( $bosses | where { $_.ContainsKey("gw2r_url") } ) ) {
+# We're going to lookup dps.report URLs and include them into the boss report. In some cases
+# we'll find the exact match. In other cases, we might find a newer dps.report link which
+# invalidates the older encounter found from gw2 raidar
+if ($last_format_time) {
+    $start_dirs = @(Get-ChildItem -LiteralPath $config.gw2raidar_start_map | Where-Object { $_.LastWriteTime -gt $last_format_time } | Sort-Object -Property LastWriteTime -Descending | ForEach-Object {$_.FullName})
+} else {
+    $start_dirs = @(Get-ChildItem -LiteralPath $config.gw2raidar_start_map | Sort-Object -Property LastWriteTime -Descending | ForEach-Object {$_.FullName})
+}
+
+# obtain the evtc upload directory
+Function Get-Evtc-Name ($start) {
+    $path = Join-Path -Path $start -ChildPath "evtc.json"
+    if (-not (X-Test-Path $path)) {
+        return $null
+    }
+    return (Get-Content -Raw -Path $path | ConvertFrom-Json)
+}
+
+Function Get-Evtc-Dir ($start) {
+    $evtc_name = Get-Evtc-Name $start
+    $evtc_dir = Join-Path -Path $config.extra_upload_data -ChildPath $evtc_name
+    if (-not (X-Test-Path $evtc_dir)) {
+        return $null
+    }
+    return $evtc_dir
+}
+
+# Get the boss name, given evtc upload dir
+Function Get-Boss-Name ($dir) {
+    $path = Join-Path -Path $dir -ChildPath "encounter.json"
+    if (-not (X-Test-Path $path)) {
+        return $null
+    }
+    return (Get-Content -Raw -Path $path | ConvertFrom-Json)
+}
+
+$bosses | ForEach-Object {
+    $boss = $_
+
+    if ($boss.server_time) {
+        $evtc_dirs = @($start_dirs | where { [int](Split-Path -Leaf $_) -ge [int]$boss.server_time })
+    } else {
+        $evtc_dirs = $start_dirs
+    }
+
+    # Find matching start_map directories
+    $matching_dirs = @($evtc_dirs | where { (Get-Boss-Name (Get-Evtc-Dir $_)) -eq $boss.name })
+
+    # If we didn't find anything, there's nothing to update
+    if (-not $matching_dirs) {
+        return
+    }
+
+    # Use the newest data available
+    $newest_data = $matching_dirs[0]
+    $evtc_name = Get-Evtc-Name $newest_data
+
+    # Check if we either (a) don't yet have a gw2 raidar URL for this boss, or (b) the gw2 raidar data
+    # doesn't match what we found for the most recent boss. This should ensure that we update the data
+    # folder to include newer data not yet uploaded to gw2raidar
+    if ((-not $boss.gw2r_url) -or ($boss.evtc -ne $evtc_name)) {
+        # If this evtc name didn't match, we need to remove the gw2 raidar URL, since it
+        # will not correlate with this data. If we didn't have a gw2 raidar URL, this is
+        # a no-op
+        $boss.Remove("gw2r_url")
+
+        # Set the time data
+        $server_time = [int](Split-Path -Leaf $newest_data)
+        $time = ConvertFrom-UnixDate $server_time
+        $boss.SetItem("server_time", (Split-Path -Leaf $server_time))
+        $boss.SetItem("time", $time)
+
+        # Store this evtc data directory
+        $evtc_name = Split-Path -Leaf (Get-Evtc-Dir $newest_data)
+        $boss.SetItem("evtc", $evtc_name)
+    }
+}
+
+# If we didn't find any evtc data, this means that we didn't find any valid local data
+# to upload against. We might have found just a gw2 raidar URL, but this is unlikely
+# to be one of the files we uploaded via the upload-logs.ps1
+if (-not ( $bosses | where { ($_.ContainsKey("evtc")) -or ($_.ContainsKey("gw2r_url")) } ) ) {
     Read-Host -Prompt "No new encounters to format. Press Enter to exit"
     exit
 }
@@ -391,7 +469,7 @@ $datestamp = Get-Date -Date $this_format_time -Format "yyyyMMdd-HHmmss"
 # day.
 $bosses | ForEach-Object {
     # Skip bosses which weren't found
-    if (-not $_.ContainsKey("gw2r_url")) {
+    if ((-not $_.ContainsKey("evtc")) -and (-not $_.ContainsKey("gw2r_url"))) {
         return
     }
 
@@ -420,7 +498,7 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
 
     # We sort the bosses based on server start time
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
-        if ( -not ( $boss.ContainsKey("gw2r_url") ) ) {
+        if ((-not $boss.ContainsKey("evtc")) -and (-not $boss.ContainsKey("gw2r_url"))) {
             continue
         }
 
@@ -431,6 +509,12 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
         $dps_report = Get-Local-DpsReport $boss
 
         $gw2r_url = $boss.gw2r_url
+
+        # If we don't have at least one of these URLs, then we
+        # have nothing to post
+        if ((-not $gw2r_url) -and (-not $dps_report)) {
+            continue
+        }
 
         # For each boss, we add a field object to the embed
         #
@@ -447,7 +531,13 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
                 name = "${emoji} **${name}**"
                 inline = $true
         }
-        if ($dps_report) {
+
+        # At this point, we know that we have at least one of a dps.report or gw2raidar URL
+        if (-not $dps_report) {
+            $boss_field | Add-Member @{value="[gw2raidar](${gw2r_url} `"${gw2r_url}`")`r`n@UNICODE-ZWS@"}
+        } elseif (-not $gw2r_url) {
+            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`")`r`n@UNICODE-ZWS@"}
+        } else {
             # We put both the dps.report link and gw2raidar link here. We separate them by a MIDDLE DOT
             # unicode character, and we use markdown to format the URLs to include the URL as part of the
             # hover-over text.
@@ -455,8 +545,6 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
             # Discord eats extra spaces, but doesn't recognize the "zero width" space character, so we
             # insert that on an extra line in order to provide more spacing between elements
             $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2r_url} `"${gw2r_url}`")`r`n@UNICODE-ZWS@"}
-        } else {
-            $boss_field | Add-Member @{value="[gw2raidar](${gw2r_url} `"${gw2r_url}`")`r`n@UNICODE-ZWS@"}
         }
 
         # Insert the boss field into the array
