@@ -200,6 +200,8 @@ static const uint16_t cairn_id          = 0x432A;
 static const uint16_t overseer_id       = 0x4314;
 static const uint16_t samarog_id        = 0x4324;
 static const uint16_t deimos_id         = 0x4302;
+static const uint16_t horror_id         = 0x4d37;
+static const uint16_t dhuum_id          = 0x4bfa;
 
 static const uint64_t arcdps_src_agent = 0x637261;
 
@@ -288,6 +290,12 @@ parseHeader(ifstream& file, bool printHeader)
             break;
         case deimos_id:
             cout << "Deimos" << endl;
+            break;
+        case horror_id:
+            cout << "Soulless Horror" << endl;
+            break;
+        case dhuum_id:
+            cout << "Dhuum" << endl;
             break;
         default:
             cout << "Unknown encounter 0x" << hex << area_id << endl;
