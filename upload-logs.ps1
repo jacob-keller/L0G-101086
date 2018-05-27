@@ -138,7 +138,10 @@ if (-not $config.dps_report_token) {
 }
 
 # Create the startmap directory if it doesn't exist
-if (-not (X-Test-Path $gw2raidar_start_map)) {
+if (-not $gw2raidar_start_map) {
+    Read-Host -Prompt "A gw2raidar start map directory must be configured. Press enter to exit"
+    exit
+} elseif (-not (X-Test-Path $gw2raidar_start_map)) {
     try {
         New-Item -ItemType directory -Path $gw2raidar_start_map
     } catch {
@@ -148,7 +151,9 @@ if (-not (X-Test-Path $gw2raidar_start_map)) {
 }
 
 # Create the startmap directory if it doesn't exist
-if (-not (X-Test-Path $extra_upload_data)) {
+if (-not $extra_upload_data) {
+    Read-Host -Prompt "A folder to hold extra upload data must be configured. Press enter to exit"
+} elseif (-not (X-Test-Path $extra_upload_data)) {
     try {
         New-Item -ItemType directory -Path $extra_upload_data
     } catch {

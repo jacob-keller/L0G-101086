@@ -162,6 +162,26 @@ if (-not $config.discord_webhook) {
     exit
 }
 
+if (-not $config.discord_json_data) {
+    Read-Host -Prompt "The discord JSON data directory must be configured. Press enter to exit"
+    exit
+} elseif (-not (X-Test-Path $config.discord_json_data)) {
+    try {
+        New-Item -ItemType directory -Path $config.discord_json_data
+    } catch {
+        Read-Host -Prompt "Unable to create $($config.discord_json_data). Press enter to exit"
+        exit
+    }
+}
+
+if (-not $config.last_format_file) {
+    Read-Host -Prompt "A file to store last format time must be configured. Press enter to exit"
+    exit
+} elseif (-not (X-Test-Path (Split-Path $config.last_format_file))) {
+    Read-Host -Prompt "The path for the last_format_file appears invalid. Press enter to exit"
+    exit
+}
+
 # Convert UTC time into the local time zone
 Function ConvertFrom-UTC($utc) {
     [TimeZone]::CurrentTimeZone.ToLocalTime($utc)
@@ -502,7 +522,7 @@ Function Convert-Payload($payload) {
 
 if ($config.debug_mode) {
     (Convert-Payload $payload) | Write-Output
-} elseif (Test-Path $config.discord_json_data) {
+} elseif (X-Test-Path $config.discord_json_data) {
     # Store the complete JSON we generated for later debugging
     $discord_json_file = Join-Path -Path $config.discord_json_data -ChildPath "discord-webhook-${datestamp}.txt"
     (Convert-Payload $payload) | Out-File $discord_json_file
