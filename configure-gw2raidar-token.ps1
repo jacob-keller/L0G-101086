@@ -10,6 +10,7 @@ $ErrorActionPreference = "Stop"
 
 # Path to JSON-formatted configuration file
 $config_file = "l0g-101086-config.json"
+$backup_file = "${config_file}.bk"
 
 # gw2raidar_token
 #
@@ -25,6 +26,11 @@ Function X-Test-Path($path) {
 # Make sure the configuration file exists
 if (-not (X-Test-Path $config_file)) {
     Read-Host -Prompt "Unable to locate the configuration file. Copy and edit the sample configuration? Press enter to exit"
+    exit
+}
+
+if (X-Test-Path $backup_file) {
+    Read-Host -Prompt "Please remove the backup file before running this script. Press enter to exit"
     exit
 }
 
@@ -80,6 +86,7 @@ Write-Output "Obtained token..."
 $config.gw2raidar_token = $token_resp.token
 
 # Write the configuration out
+Copy-Item -Path $config_file -Destination $backup_file
 $config | ConvertTo-Json -Depth 10 | Out-File -Force $config_file
 
 Read-Host -Prompt "Configured GW2 Raidar token. Press enter to exit"
