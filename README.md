@@ -171,6 +171,58 @@ will request your username and password and then connect to the GW2 Raidar API
 and generate the token for you. It will automatically insert the token into the
 configuration file.
 
+### configure-emoji-map.ps1
+
+This script is provided as a convenience to enable updating the emoji mapping
+for the format-encounters.ps1 script. For each supported boss, it will ask you
+for the emoji id. This must be the complete id according to discord, not just
+the text you use to trigger the emoji.
+
+To generate this text, type the emoji into one of the channels of your discord
+server, prefixed with a backslash. For example if your emoji is :kc: then type
+
+```
+\:kc:
+```
+
+This should show some text similar to
+
+```
+<:kc:311578870686023682>
+```
+
+For each boss, generate the id using the above method and paste it into the
+script when it requests that boss's id.
+
+This script is intended to ease the burden of configuring the emoji map, and
+avoid needing to manually edit the configuration file.
+
+### configure-discord-account-map.ps1
+
+This script is provided as a convenience for updating the discord player map. It
+will ask you if you want to delete any current player mappings. Then it will ask
+if you want to add new mappings. In order for the discord pings to work, you
+will need to provide the discord id for the player mention. To generate this
+mention, you can enter their discord name into a message prefixed with a
+backslash.
+
+For example, to generate the id for the account serenamyr#8942, you could type
+
+```
+\@serenamyr#8942
+```
+
+into a discord channel. It should return text similar to
+
+```
+<@119167866103791621>
+```
+
+This text is the id of the particular mention. You can use this script to insert
+a map between the Guild Wars 2 account name and the discord ID of that player.
+Once configured, the format-encounters.ps1 script will use this mapping to
+convert GW2 account names into pings for the associated discord user.
+
 ### format-encounters.ps1
 
 This script is used to generate a report and post it to a discord webhook. This
