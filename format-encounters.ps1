@@ -440,12 +440,12 @@ $bosses | ForEach-Object {
         # Set the time data
         $server_time = [int](Split-Path -Leaf $newest_data)
         $time = ConvertFrom-UnixDate $server_time
-        $boss.SetItem("server_time", (Split-Path -Leaf $server_time))
-        $boss.SetItem("time", $time)
+        $boss.Set_Item("server_time", (Split-Path -Leaf $server_time))
+        $boss.Set_Item("time", $time)
 
         # Store this evtc data directory
         $evtc_name = Split-Path -Leaf (Get-Evtc-Dir $newest_data)
-        $boss.SetItem("evtc", $evtc_name)
+        $boss.Set_Item("evtc", $evtc_name)
     }
 }
 
