@@ -267,7 +267,7 @@ ForEach($area in $areasResp.results) {
 $bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name); $_.Set_Item("cm_id", $nameToCmId.$name) }
 
 # Load the last upload time, or go back forever if we can't find it
-if ((-not $config.debug_mode) -and (Test-Path $config.last_format_file)) {
+if ((-not $config.debug_mode) -and (X-Test-Path $config.last_format_file)) {
     $last_format_time = Get-Content -Raw -Path $config.last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
     $since = ConvertTo-UnixDate ((Get-Date -Date $last_format_time).ToUniversalTime())
 } else {
@@ -513,6 +513,6 @@ Invoke-RestMethod -Uri $config.discord_webhook -Method Post -Body (Convert-Paylo
 
 # Update the last_format_file with the new format time, so that
 # future runs won't repost old links
-if ((-not $config.debug_mode) -and (Test-Path $config.last_format_file)) {
+if ((-not $config.debug_mode) -and ($config.last_format_file)) {
     $this_format_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File -Force $config.last_format_file
 }
