@@ -326,7 +326,6 @@ Do {
         $url_id = $encounter.url_id
         $gw2r_url = "${gw2raidar_url}/encounter/${url_id}"
         $time = ConvertFrom-UnixDate $encounter.started_at
-        $age = New-TimeSpan -Start $time
 
         if (-not ( $encounter.tags -like $config.gw2raidar_tag_glob ) ) {
             continue
@@ -347,7 +346,9 @@ Do {
         #
         # Note that we search in *reverse* (newest first), so as soon as we find
         # a url for a particular encounter we will not overwrite it.
-        $bosses | where { -not $_.ContainsKey("gw2r_url") -and ($_.id -eq $area_id -or $_.cm_id -eq $area_id) } | ForEach-Object { $_.Set_Item("gw2r_url", $gw2r_url); $_.Set_Item("age", $age); $_.Set_Item("time", $time); $_.Set_Item("evtc", $evtc_name) }
+        $bosses | where { -not $_.ContainsKey("gw2r_url") -and ($_.id -eq $area_id -or $_.cm_id -eq $area_id) } | ForEach-Object { $_.Set_Item("gw2r_url", $gw2r_url);
+                                                                                                                                   $_.Set_Item("time", $time);
+                                                                                                                                   $_.Set_Item("evtc", $evtc_name) }
     }
 
     # If the gw2raidar API gave us a $next url, then there are more
