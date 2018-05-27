@@ -164,7 +164,7 @@ Currently, because it is rather hard to dig up the dps.report links, as compared
 to gw2raidar, the script defaults to only uploading successful logs to
 dps.report.
 
-### get-gw2raidar-token.ps1
+### configure-gw2raidar-token.ps1
 
 This script is provided to ease the generation of the GW2 Raidar API token. It
 will request your username and password and then connect to the GW2 Raidar API
