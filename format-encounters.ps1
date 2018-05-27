@@ -291,6 +291,7 @@ if ((-not $config.debug_mode) -and (X-Test-Path $config.last_format_file)) {
     $last_format_time = Get-Content -Raw -Path $config.last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
     $since = ConvertTo-UnixDate ((Get-Date -Date $last_format_time).ToUniversalTime())
 } else {
+    $last_format_time = $null
     $since = 0
 }
 
