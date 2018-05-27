@@ -323,7 +323,7 @@ Do {
     ForEach($encounter in $data.results) {
         $area_id = $encounter.area_id
         $url_id = $encounter.url_id
-        $url = "${gw2raidar_url}/encounter/${url_id}"
+        $gw2r_url = "${gw2raidar_url}/encounter/${url_id}"
         $time = ConvertFrom-UnixDate $encounter.started_at
         $age = New-TimeSpan -Start $time
 
@@ -346,7 +346,7 @@ Do {
         #
         # Note that we search in *reverse* (newest first), so as soon as we find
         # a url for a particular encounter we will not overwrite it.
-        $bosses | where { -not $_.ContainsKey("url") -and ($_.id -eq $area_id -or $_.cm_id -eq $area_id) } | ForEach-Object { $_.Set_Item("url", $url); $_.Set_Item("age", $age); $_.Set_Item("time", $time); $_.Set_Item("evtc", $evtc_name) }
+        $bosses | where { -not $_.ContainsKey("gw2r_url") -and ($_.id -eq $area_id -or $_.cm_id -eq $area_id) } | ForEach-Object { $_.Set_Item("gw2r_url", $gw2r_url); $_.Set_Item("age", $age); $_.Set_Item("time", $time); $_.Set_Item("evtc", $evtc_name) }
     }
 
     # If the gw2raidar API gave us a $next url, then there are more
@@ -360,7 +360,7 @@ Do {
     # We only want to show the latest run of each boss,
     # so we check to see if we've found a match for every boss
     # encounter. If so, we stop the loop
-    if ( $bosses | where { -not $_.ContainsKey("url") } ) {
+    if ( $bosses | where { -not $_.ContainsKey("gw2r_url") } ) {
         # We're still missing boss URLs
     } else {
         $complete = $true
@@ -371,7 +371,7 @@ Do {
 # If we didnt't any URLs, this means that there are no
 # bosses to publish. Note this excludes the case where
 # we happen to have a dps.report without a gw2raidar URL
-if (-not ( $bosses | where { $_.ContainsKey("url") } ) ) {
+if (-not ( $bosses | where { $_.ContainsKey("gw2r_url") } ) ) {
     Read-Host -Prompt "No new encounters to format. Press Enter to exit"
     exit
 }
@@ -388,7 +388,7 @@ $datestamp = Get-Date -Date $this_format_time -Format "yyyyMMdd-HHmmss"
 # day.
 $bosses | ForEach-Object {
     # Skip bosses which weren't found
-    if (-not $_.ContainsKey("url")) {
+    if (-not $_.ContainsKey("gw2r_url")) {
         return
     }
 
@@ -417,7 +417,7 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
 
     # We sort the bosses based on server start time
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
-        if ( -not ( $boss.ContainsKey("url") ) ) {
+        if ( -not ( $boss.ContainsKey("gw2r_url") ) ) {
             continue
         }
 
@@ -427,7 +427,7 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
         $players += Get-Local-Players $boss
         $dps_report = Get-Local-DpsReport $boss
 
-        $url = $boss.url
+        $gw2r_url = $boss.gw2r_url
 
         # For each boss, we add a field object to the embed
         #
@@ -451,9 +451,9 @@ $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key |
             #
             # Discord eats extra spaces, but doesn't recognize the "zero width" space character, so we
             # insert that on an extra line in order to provide more spacing between elements
-            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${url} `"${url}`")`r`n@UNICODE-ZWS@"}
+            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2r_url} `"${gw2r_url}`")`r`n@UNICODE-ZWS@"}
         } else {
-            $boss_field | Add-Member @{value="[gw2raidar](${url} `"${url}`")`r`n@UNICODE-ZWS@"}
+            $boss_field | Add-Member @{value="[gw2raidar](${gw2r_url} `"${gw2r_url}`")`r`n@UNICODE-ZWS@"}
         }
 
         # Insert the boss field into the array
