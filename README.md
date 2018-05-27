@@ -141,14 +141,14 @@ within the upload-logs.ps1 and format-encounters.ps1 scripts, as JSON data.
 
 ##### uploading to gw2raidar
 
-In order to upload to gw2raidar, you will need to get an account and generate an
-API token. This can be done after logging in by using the online [API
-site](https://www.gw2raidar.com/api/v2/swagger#/token "GW2 Raidar API")
+In order to upload to GW2 Raidar, you need to generate an account token. For
+your convenience, the get-gw2raidar-token.ps1 script is provided.
 
-You may need to visit [gw2raidar](https://gw2raidar.com) and login first.
-
-This token must be set in both the upload-logs.ps1 and format-encounters.ps1
-scripts.
+If you do not wish to directly enter your password into this script, you may
+instead obtain the token manually from GW2 Raidar's [Swagger
+API](https://www.gw2raidar.com/api/v2/swagger#/token "GW2 Raidar Swagger API")
+website. You will then need to edit and insert the token into the configuration
+manually.
 
 The script will upload all logs to gw2raidar, and by default will not provide
 tags or set the category. You may modify the script to automatically insert tags
@@ -164,6 +164,12 @@ Currently, because it is rather hard to dig up the dps.report links, as compared
 to gw2raidar, the script defaults to only uploading successful logs to
 dps.report.
 
+### get-gw2raidar-token.ps1
+
+This script is provided to ease the generation of the GW2 Raidar API token. It
+will request your username and password and then connect to the GW2 Raidar API
+and generate the token for you. It will automatically insert the token into the
+configuration file.
 
 ### format-encounters.ps1
 
