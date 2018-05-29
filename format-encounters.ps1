@@ -407,6 +407,11 @@ Function Get-Boss-Name ($dir) {
     return (Get-Content -Raw -Path $path | ConvertFrom-Json)
 }
 
+Function Has-Dps-Report ($dir) {
+    $path = Join-Path -Path $dir -ChildPath "dpsreport.json"
+    return X-Test-Path $path
+}
+
 $bosses | ForEach-Object {
     $boss = $_
 
@@ -416,8 +421,8 @@ $bosses | ForEach-Object {
         $evtc_dirs = $start_dirs
     }
 
-    # Find matching start_map directories
-    $matching_dirs = @($evtc_dirs | where { (Get-Boss-Name (Get-Evtc-Dir $_)) -eq $boss.name })
+    # Find matching start_map directories. Make sure we only check those which actually have a dps.report link
+    $matching_dirs = @($evtc_dirs | where { ((Get-Boss-Name (Get-Evtc-Dir $_)) -eq $boss.name) -and (Has-Dps-Report (Get-Evtc-Dir $_)) })
 
     # If we didn't find anything, there's nothing to update
     if (-not $matching_dirs) {
