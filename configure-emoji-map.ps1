@@ -8,6 +8,9 @@
 # Terminate on all errors...
 $ErrorActionPreference = "Stop"
 
+# Load the shared module
+Import-Module -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
+
 # Path to JSON-formatted configuration file
 $config_file = "l0g-101086-config.json"
 $backup_file = "${config_file}.bk"
@@ -18,11 +21,6 @@ $backup_file = "${config_file}.bk"
 # that you wish to display for each boss. This can be found by typing "\emoji" into
 # a discord channel, and should return a link similar to <emoji123456789> which you
 # need to place into a hash map keyed by the boss name.
-
-# Test a path for existence, safe against $null
-Function X-Test-Path($path) {
-    return $(try { Test-Path $path.trim() } catch { $false })
-}
 
 # Make sure the configuration file exists
 if (-not (X-Test-Path $config_file)) {

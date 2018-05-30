@@ -8,6 +8,9 @@
 # Terminate on all errors...
 $ErrorActionPreference = "Stop"
 
+# Load the shared module
+Import-Module -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
+
 # Path to JSON-formatted configuration file
 $config_file = "l0g-101086-config.json"
 $backup_file = "${config_file}.bk"
@@ -17,11 +20,6 @@ $backup_file = "${config_file}.bk"
 # This is the token obtained from gw2raidar's API, in connection with your account.
 # It can be obtained through a webbrowser by logging into gw2raidar.com and visiting
 # "https://www.gw2raidar.com/api/v2/swagger#/token"
-
-# Test a path for existence, safe against $null
-Function X-Test-Path($path) {
-    return $(try { Test-Path $path.trim() } catch { $false })
-}
 
 # Make sure the configuration file exists
 if (-not (X-Test-Path $config_file)) {
