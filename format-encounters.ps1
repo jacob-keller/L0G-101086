@@ -226,7 +226,13 @@ $bosses = @(@{name="Vale Guardian";wing=1},
             @{name="Samarog";wing=4},
             @{name="Deimos";wing=4},
             @{name="Soulless Horror";wing=5},
-            @{name="Dhuum";wing=5})
+            @{name="Dhuum";wing=5},
+            @{name="MAMA (CM)";wing="99cm"}
+            @{name="Siax (CM)";wing="99cm"}
+            @{name="Ensolyss (CM)";wing="99cm"}
+            @{name="Skorvald (CM)";wing="100cm"}
+            @{name="Artsariiv (CM)";wing="100cm"}
+            @{name="Arkk (CM)";wing="100cm"})
 
 # Get the area IDs
 $client = New-Object RestSharp.RestClient($gw2raidar_url)
@@ -250,8 +256,13 @@ ForEach($area in $areasResp.results) {
         continue
     }
 
-    # Store the area name and id mapping
-    $nameToId.Set_Item($area.name, $area.id)
+    # GW2 Raidar uses the long name for Skorvald, and we want the short one
+    if ($area.name -eq "Skorvald the Shattered (CM)") {
+        $nameToId.Set_Item("Skorvald (CM)", $area.id)
+    } else {
+        # Store the area name and id mapping
+        $nameToId.Set_Item($area.name, $area.id)
+    }
 }
 
 # Insert IDs
