@@ -203,6 +203,16 @@ static const uint16_t deimos_id         = 0x4302;
 static const uint16_t horror_id         = 0x4d37;
 static const uint16_t dhuum_id          = 0x4bfa;
 
+/* Fractal 99 CM boss encounters */
+static const uint16_t mama_cm_id        = 0x427d;
+static const uint16_t siax_cm_id        = 0x4284;
+static const uint16_t ensolyss_cm_id    = 0x4234;
+
+/* Fractal 100 CM boss encounters */
+static const uint16_t skorvald_cm_id    = 0x44e0;
+static const uint16_t artsariiv_cm_id   = 0x461d;
+static const uint16_t arkk_cm_id        = 0x455f;
+
 static const uint64_t arcdps_src_agent = 0x637261;
 
 /* is_elite value indicating a non-player object */
@@ -297,6 +307,25 @@ parseHeader(ifstream& file, bool printHeader)
         case dhuum_id:
             cout << "Dhuum" << endl;
             break;
+        case mama_cm_id:
+            cout << "MAMA (CM)" << endl;
+            break;
+        case siax_cm_id:
+            cout << "Siax (CM)" << endl;
+            break;
+        case ensolyss_cm_id:
+            cout << "Ensolyss (CM)" << endl;
+            break;
+        case skorvald_cm_id:
+            cout << "Skorvald the Shattered (CM)" << endl;
+            break;
+        case artsariiv_cm_id:
+            cout << "Artsariiv (CM)" << endl;
+            break;
+        case arkk_cm_id:
+            cout << "Arkk (CM)" << endl;
+            break;
+
         default:
             cout << "Unknown encounter 0x" << hex << area_id << endl;
             break;
