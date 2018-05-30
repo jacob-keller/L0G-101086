@@ -371,8 +371,8 @@ Function Get-Evtc-Dir ($start) {
 }
 
 # Get the boss name, given evtc upload dir
-Function Get-Boss-Name ($dir) {
-    $path = Join-Path -Path $dir -ChildPath "encounter.json"
+Function Get-Boss-Id ($dir) {
+    $path = Join-Path -Path $dir -ChildPath "id.json"
     if (-not (X-Test-Path $path)) {
         return $null
     }
@@ -394,7 +394,7 @@ $bosses | ForEach-Object {
     }
 
     # Find matching start_map directories. Make sure we only check those which actually have a dps.report link
-    $matching_dirs = @($evtc_dirs | where { ((Get-Boss-Name (Get-Evtc-Dir $_)) -eq $boss.name) -and (Has-Dps-Report (Get-Evtc-Dir $_)) })
+    $matching_dirs = @($evtc_dirs | where { ((Get-Boss-Id (Get-Evtc-Dir $_)) -eq $boss.id) -and (Has-Dps-Report (Get-Evtc-Dir $_)) })
 
     # If we didn't find anything, there's nothing to update
     if (-not $matching_dirs) {

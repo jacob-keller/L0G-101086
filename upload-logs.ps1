@@ -210,11 +210,12 @@ ForEach($f in $files) {
     $players = $player_data.Split([Environment]::NewLine)
     $players | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "accounts.json")
 
-    # Parse the evtc header file and get the encounter name
+    # Parse the evtc header file and get the encounter name and id
     $evtc_header_data = (& $simple_arc_parse header "${evtc}")
     $evtc_header = ($evtc_header_data.Split([Environment]::NewLine))
     $evtc_header[0] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "version.json")
     $evtc_header[1] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "encounter.json")
+    $evtc_header[2] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "id.json")
 
     # Parse the evtc combat events to determine SUCCESS/FAILURE status
     $evtc_success = (& $simple_arc_parse success "${evtc}")
