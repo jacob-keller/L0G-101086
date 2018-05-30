@@ -164,6 +164,10 @@ Function Load-Configuration {
             type=[string]
             path=$true
         };
+        "last_upload_file"=@{
+            type=[string]
+            path=$true
+        };
         "extra_upload_data"=@{
             type=[string]
             path=$true
