@@ -39,7 +39,7 @@ Function X-Test-Path {
   The UTC time value to convert
 #>
 Function ConvertFrom-UTC {
-    [CmdlletBinding()]
+    [CmdletBinding()]
     param([DateTime]$time)
     [TimeZone]::CurrentTimeZone.ToLocalTime($time)
 }
