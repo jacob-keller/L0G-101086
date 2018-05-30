@@ -319,9 +319,9 @@ Do {
         # Note that we search in *reverse* (newest first), so as soon as we find
         # a url for a particular encounter we will not overwrite it.
         $bosses | where { -not $_.ContainsKey("gw2r_url") -and ($_.id -eq $area_id) } | ForEach-Object { $_.Set_Item("gw2r_url", $gw2r_url);
-                                                                                                                                   $_.Set_Item("time", $time);
-                                                                                                                                   $_.Set_Item("evtc", $evtc_name);
-                                                                                                                                   $_.Set_Item("server_time", $encounter.started_at) }
+                                                                                                         $_.Set_Item("time", $time);
+                                                                                                         $_.Set_Item("evtc", $evtc_name);
+                                                                                                         $_.Set_Item("server_time", $encounter.started_at) }
     }
 
     # If the gw2raidar API gave us a $next url, then there are more
