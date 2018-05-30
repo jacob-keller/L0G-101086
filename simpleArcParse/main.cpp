@@ -327,9 +327,10 @@ parseHeader(ifstream& file, bool printHeader)
             break;
 
         default:
-            cout << "Unknown encounter 0x" << hex << area_id << endl;
+            cout << "Unknown encounter" << endl;
             break;
         }
+        cout << area_id << endl;
     }
 
     return 0;
