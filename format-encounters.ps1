@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 
 # Load the shared module
-Import-Module -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
+Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
 # Relevant customizable configuration fields
 #

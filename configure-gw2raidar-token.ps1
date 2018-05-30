@@ -9,7 +9,7 @@
 $ErrorActionPreference = "Stop"
 
 # Load the shared module
-Import-Module -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
+Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
 # Path to JSON-formatted configuration file
 $backup_file = "${config_file}.bk"
