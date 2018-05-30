@@ -212,7 +212,6 @@ $gw2raidar_url = "https://gw2raidar.com"
 $complete = $false
 
 $nameToId = @{}
-$nameToCmId = @{}
 
 # Main data structure tracking information about bosses as we discover it
 $bosses = @(@{name="Vale Guardian";wing=1},
@@ -244,18 +243,19 @@ if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
 
 $areasResp = $resp.Content | ConvertFrom-Json
 
-# Treat Challenge Mote encounters the same as regular ones
 ForEach($area in $areasResp.results) {
-    if ($area.name -Match " \(CM\)$") {
-        $name = $area.name -Replace " \(CM\)$", ""
-        $nameToCmId.Set_Item($name, $area.id)
-    } else {
-        $nameToId.Set_Item($area.name, $area.id)
+    # Raid CMs have bits 16-23 all set. We want to treat CMs the same as normal runs
+    # so we'll just ignore these
+    if ($area.id -band 0xFF0000) {
+        continue
     }
+
+    # Store the area name and id mapping
+    $nameToId.Set_Item($area.name, $area.id)
 }
 
 # Insert IDs
-$bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name); $_.Set_Item("cm_id", $nameToCmId.$name) }
+$bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name) }
 
 # Load the last upload time, or go back forever if we can't find it
 if ((-not $config.debug_mode) -and (X-Test-Path $config.last_format_file)) {
@@ -293,7 +293,8 @@ Do {
 
     # Parse each encounter from the results
     ForEach($encounter in $data.results) {
-        $area_id = $encounter.area_id
+        # Extract the area id minus the upper bits indicating challenge mode
+        $area_id = $encounter.area_id -band 0xFFFF
         $url_id = $encounter.url_id
         $gw2r_url = "${gw2raidar_url}/encounter/${url_id}"
         $time = ConvertFrom-UnixDate $encounter.started_at
@@ -317,7 +318,7 @@ Do {
         #
         # Note that we search in *reverse* (newest first), so as soon as we find
         # a url for a particular encounter we will not overwrite it.
-        $bosses | where { -not $_.ContainsKey("gw2r_url") -and ($_.id -eq $area_id -or $_.cm_id -eq $area_id) } | ForEach-Object { $_.Set_Item("gw2r_url", $gw2r_url);
+        $bosses | where { -not $_.ContainsKey("gw2r_url") -and ($_.id -eq $area_id) } | ForEach-Object { $_.Set_Item("gw2r_url", $gw2r_url);
                                                                                                                                    $_.Set_Item("time", $time);
                                                                                                                                    $_.Set_Item("evtc", $evtc_name);
                                                                                                                                    $_.Set_Item("server_time", $encounter.started_at) }
