@@ -7,9 +7,6 @@ $ErrorActionPreference = "Stop"
 # Load the shared module
 Import-Module -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
-# Path to JSON-formatted configuration file
-$config_file = "l0g-101086-config.json"
-
 # Relevant customizable configuration fields
 #
 # This script depends on some configuration which is meaningful
@@ -116,17 +113,10 @@ $config_file = "l0g-101086-config.json"
 # webhook to a separate hidden channel so that you don't spam anyone else on the discord
 # server.
 
-# Make sure the configuration file exists
-if (-not (X-Test-Path $config_file)) {
-    Read-Host -Prompt "Unable to locate the configuration file. Copy and edit the sample configuration? Press enter to exit"
+# Load the configuration from the default file
+$config = Load-Configuration "l0g-101086-config.json"
+if (-not $config) {
     exit
-}
-
-$config = Get-Content -Raw -Path $config_file | ConvertFrom-Json
-
-# Allow path configurations to contain %UserProfile%, replacing them with the environment variable
-$config | Get-Member -Type NoteProperty | where { $config."$($_.Name)" -is [string] } | ForEach-Object {
-    $config."$($_.Name)" = ($config."$($_.Name)").replace("%UserProfile%", $env:USERPROFILE)
 }
 
 # Make sure RestSharp.dll exists

@@ -79,3 +79,152 @@ Function ConvertTo-UnixDate {
     $UnixEpoch = [DateTime]'1/1/1970'
     (New-TimeSpan -Start $UnixEpoch -End $Date).TotalSeconds
 }
+
+<#
+ .Synopsis
+  Load the configuration file and return a configuration object
+
+ .Description
+  Load the specified configuration file and return a valid configuration
+  object. Will ignore unknown fields in the configuration JSON, and will
+  convert magic path strings in path-like fields
+
+ .Parameter ConfigFile
+  The configuration file to load
+#>
+Function Load-Configuration {
+    [CmdletBinding()]
+    param([string]$ConfigFile)
+
+    # Check that the configuration file path is valid
+    if (-not (X-Test-Path $ConfigFile)) {
+        Read-Host -Prompt "Unable to locate the configuration file. Press enter to exit"
+        return
+    }
+
+    # Parse the configuration file and convert it from JSON
+    try {
+        $config = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json
+    } catch {
+        Write-Host "Unable to read the configuration file: $($_.Exception.Message)"
+        Read-Host -Prompt "Press enter to exit"
+        return
+    }
+
+    # For now, allow an empty config_version
+    if (-not $config.PSObject.Properties.Match("config_version")) {
+        Write-Host "Configuration file is missing config_version field. This will be required in a future update. Please set it to the value '1'"
+    }
+
+    # Make sure the config_version is set to 1. This should only be bumped if
+    # the expected configuration names change. New fields should not cause a
+    # bump in this version, but only removal or change of fields.
+    #
+    # Scripts should be resilient against new parameters not being configured.
+    if ($config.config_version -ne 1) {
+        Read-Host -Prompt "This script only knows how to understand config_version=1. Press enter to exit"
+        return
+    }
+
+    # List of current configuration values
+    $ConfigurationFields = @{
+        "gw2raidar_token"=@{
+            type=[string]
+        };
+        "dps_report_token"=@{
+            type=[string]
+        };
+        "discord_webhook"=@{
+            type=[string]
+        };
+        "guild_thumbnail"=@{
+            type=[string]
+        };
+        "gw2raidar_tag_glob"=@{
+            type=[string]
+        };
+        "guild_text"=@{
+            type=[string]
+        };
+        "discord_map"=@{
+            type=[PSCustomObject]
+        };
+        "emoji_map"=@{
+            type=[PSCustomObject]
+        };
+        "restsharp_path"=@{
+            type=[string]
+            path=$true
+        };
+        "discord_json_data"=@{
+            type=[string]
+            path=$true
+        };
+        "last_format_file"=@{
+            type=[string]
+            path=$true
+        };
+        "extra_upload_data"=@{
+            type=[string]
+            path=$true
+        };
+        "gw2raidar_start_map"=@{
+            type=[string]
+            path=$true
+        };
+        "simple_arc_parse_path"=@{
+            type=[string]
+            path=$true
+        };
+        "custom_tags_script"=@{
+            type=[string]
+            path=$true
+        };
+        "arcdps_logs"=@{
+            type=[string]
+            path=$true
+        };
+        "upload_log_file"=@{
+            type=[string]
+            path=$true
+        };
+        "guildwars2_path"=@{
+            type=[string]
+            path=$true
+        };
+        "dll_backup_path"=@{
+            type=[string]
+            path=$true
+        };
+        "debug_mode"=@{
+            type=[bool]
+        };
+        "config_version"=@{
+            type=[int]
+        }
+    }
+
+    # Select only the known properties, ignoring unknown properties
+    $config = $config | Select-Object -Property @($ConfigurationFields.Keys)
+
+    $invalid = $false
+    foreach ($field in $ConfigurationFields.Keys) {
+        # Make sure that the field has the expected type
+        if ($config."${field}" -isnot $ConfigurationFields[$field].type) {
+            Write-Host "${field} has an unexpected type [$($config."${field}".GetType().name)]"
+            $invalid = $true
+        }
+
+        # Handle %UserProfile% in path fields
+        if ($ConfigurationFields[$field].path) {
+            $config."${field}" = $config."${field}".replace("%UserProfile%", $env:USERPROFILE)
+        }
+    }
+
+    if ($invalid) {
+        Read-Host -Prompt "Configuration file has invalid parameters. Press enter to exit"
+        return
+    }
+
+    return $config
+}

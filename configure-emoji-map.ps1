@@ -12,7 +12,6 @@ $ErrorActionPreference = "Stop"
 Import-Module -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
 # Path to JSON-formatted configuration file
-$config_file = "l0g-101086-config.json"
 $backup_file = "${config_file}.bk"
 
 # emoji_map
@@ -22,22 +21,16 @@ $backup_file = "${config_file}.bk"
 # a discord channel, and should return a link similar to <emoji123456789> which you
 # need to place into a hash map keyed by the boss name.
 
-# Make sure the configuration file exists
-if (-not (X-Test-Path $config_file)) {
-    Read-Host -Prompt "Unable to locate the configuration file. Copy and edit the sample configuration? Press enter to exit"
-    exit
-}
 
 if (X-Test-Path $backup_file) {
     Read-Host -Prompt "Please remove the backup file before running this script. Press enter to exit"
     exit
 }
 
-$config = Get-Content -Raw -Path $config_file | ConvertFrom-Json
-
-# Allow path configurations to contain %UserProfile%, replacing them with the environment variable
-$config | Get-Member -Type NoteProperty | where { $config."$($_.Name)" -is [string] } | ForEach-Object {
-    $config."$($_.Name)" = ($config."$($_.Name)").replace("%UserProfile%", $env:USERPROFILE)
+# Load the configuration from the default file
+$config = Load-Configuration "l0g-101086-config.json"
+if (-not $config) {
+    exit
 }
 
 # Check if the token has already been set
