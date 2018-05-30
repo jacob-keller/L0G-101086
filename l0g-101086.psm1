@@ -26,3 +26,56 @@ Function X-Test-Path {
         return $false
     }
 }
+
+<#
+ .Synopsis
+  Convert UTC time to the local timezone
+
+ .Description
+  Take a UTC date time object containing a UTC time and convert it to the
+  local time zone
+
+ .Parameter Time
+  The UTC time value to convert
+#>
+Function ConvertFrom-UTC {
+    [CmdlletBinding()]
+    param([DateTime]$time)
+    [TimeZone]::CurrentTimeZone.ToLocalTime($time)
+}
+
+
+<#
+ .Synopsis
+  Convert a Unix timestamp to a DateTime object
+
+ .Description
+  Given a Unix timestamp (integer containing seconds since the Unix Epoch),
+  convert it to a DateTime object representing the same time.
+
+ .Parameter UnixDate
+  The Unix timestamp to convert
+#>
+Function ConvertFrom-UnixDate {
+    [CmdletBinding()]
+    param([int]$UnixDate)
+    ConvertFrom-UTC ([DateTime]'1/1/1970').AddSeconds($UnixDate)
+}
+
+<#
+ .Synopsis
+  Convert DateTime object into a Unix timestamp
+
+ .Description
+  Given a DateTime object, convert it to an integer representing seconds since
+  the Unix Epoch.
+
+ .Parameter Date
+  The DateTime object to convert
+#>
+Function ConvertTo-UnixDate {
+    [CmdletBinding()]
+    param([DateTime]$Date)
+    $UnixEpoch = [DateTime]'1/1/1970'
+    (New-TimeSpan -Start $UnixEpoch -End $Date).TotalSeconds
+}

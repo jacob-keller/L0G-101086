@@ -179,22 +179,6 @@ if (-not $config.last_format_file) {
     exit
 }
 
-# Convert UTC time into the local time zone
-Function ConvertFrom-UTC($utc) {
-    [TimeZone]::CurrentTimeZone.ToLocalTime($utc)
-}
-
-# Convert a unix timestamp (seconds since the Unix epoch) into a DateTime object
-Function ConvertFrom-UnixDate ($UnixDate) {
-    ConvertFrom-UTC ([DateTime]'1/1/1970').AddSeconds($UnixDate)
-}
-
-# Convert a DateTime object into a unix epoch timestamp
-Function ConvertTo-UnixDate ($date) {
-    $unixEpoch = [DateTime]'1/1/1970'
-    (New-TimeSpan -Start $unixEpoch -End $date).TotalSeconds
-}
-
 # Loads account names from the local data directory
 Function Get-Local-Players ($boss) {
     $names = @()
