@@ -226,13 +226,19 @@ $bosses = @(@{name="Vale Guardian";wing=1},
             @{name="Samarog";wing=4},
             @{name="Deimos";wing=4},
             @{name="Soulless Horror";wing=5},
-            @{name="Dhuum";wing=5},
-            @{name="MAMA (CM)";wing="99cm"}
-            @{name="Siax (CM)";wing="99cm"}
-            @{name="Ensolyss (CM)";wing="99cm"}
-            @{name="Skorvald (CM)";wing="100cm"}
-            @{name="Artsariiv (CM)";wing="100cm"}
-            @{name="Arkk (CM)";wing="100cm"})
+            @{name="Dhuum";wing=5})
+
+$fractals = @(@{name="MAMA (CM)";wing="99cm"}
+              @{name="Siax (CM)";wing="99cm"}
+              @{name="Ensolyss (CM)";wing="99cm"}
+              @{name="Skorvald (CM)";wing="100cm"}
+              @{name="Artsariiv (CM)";wing="100cm"}
+              @{name="Arkk (CM)";wing="100cm"})
+
+# Only add the fractal CMs if enabled
+if ($config.publish_fractals) {
+    $bosses += $fractals
+}
 
 # Get the area IDs
 $client = New-Object RestSharp.RestClient($gw2raidar_url)

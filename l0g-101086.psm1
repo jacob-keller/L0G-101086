@@ -200,6 +200,9 @@ Function Load-Configuration {
             type=[string]
             path=$true
         };
+        "publish_fractals"=@{
+            type=[bool]
+        };
         "debug_mode"=@{
             type=[bool]
         };
