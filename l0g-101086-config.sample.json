@@ -37,6 +37,6 @@
 	"upload_log_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_log.txt",
 	"guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
 	"dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
-	"debug_mode": false,
-	"config_version": 1
+	"debug_mode":  false,
+	"config_version":  1
 }
