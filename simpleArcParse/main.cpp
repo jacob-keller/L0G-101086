@@ -491,7 +491,7 @@ calculate_cbt_event_count(parsed_details& details, ifstream& file)
     streampos cbtevent_pos, cbtevent_length;
 
     /* Seek to the beginning of the combat events */
-    details.cbt_event_count = SEEKG_EVTC_FIRST_CBTEVENT(details.agent_count,
+    details.cbt_event_start = SEEKG_EVTC_FIRST_CBTEVENT(details.agent_count,
                                                         details.skill_count);
     file.seekg(details.cbt_event_count);
     cbtevent_pos = file.tellg();
@@ -696,7 +696,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v0.10" << endl;
+        cout << "v0.11" << endl;
         return 0;
     }
 
