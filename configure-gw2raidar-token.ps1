@@ -65,7 +65,7 @@ try {
     exit
 }
 
-if ($topen_resp.token -eq $null) {
+if ($token_resp.token -eq $null) {
     Read-Host -Prompt "Unable to obtain GW2 Raidar token. Press enter to exit"
     exit
 }
