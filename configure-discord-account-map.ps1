@@ -66,7 +66,7 @@ do {
         if ((-not $gw2name) -or (-not $discord)) {
             continue
         }
-        $conmfig.discord_map[$gw2name] = $discord
+        $config.discord_map[$gw2name] = $discord
     }
 } while ($continue -eq "Y")
 
