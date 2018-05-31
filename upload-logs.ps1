@@ -150,6 +150,19 @@ if (-not $extra_upload_data) {
     }
 }
 
+# Make sure that simpleArcParse version matches our expectation
+$expected_simple_arc_version = "v0.10"
+$simple_arc_version = (& $simple_arc_parse version)
+if ($simple_arc_version -eq "") {
+    Write-Host "Unable to determine the version of simpleArcParse"
+    Read-Host -Prompt "Please use version ${expected_simple_arc_version}. Press enter to exit"
+    exit
+} elseif ($simple_arc_version -ne $expected_simple_arc_version) {
+    Write-Host "simpleArcParse version ${simple_arc_version} is not compatible with this script"
+    Read-Host -Prompt "Please use version ${expected_simple_arc_version} instead. Press enter to exit"
+    exit
+}
+
 $gw2raidar_url = "https://www.gw2raidar.com"
 $dpsreport_url = "https://dps.report"
 
