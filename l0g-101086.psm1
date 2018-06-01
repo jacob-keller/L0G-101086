@@ -250,10 +250,14 @@ Function Validate-Configuration {
 
  .Parameter ConfigFile
   The configuration file to load
+
+ .Parameter version
+  The version of the config file we expect, defaults to 1 currently.
 #>
 Function Load-Configuration {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$ConfigFile)
+    param([Parameter(Mandatory)][string]$ConfigFile,
+          [int]$version = 1)
 
     # Check that the configuration file path is valid
     if (-not (X-Test-Path $ConfigFile)) {
@@ -270,7 +274,7 @@ Function Load-Configuration {
         return
     }
 
-    $config = (Validate-Configuration $config 1)
+    $config = (Validate-Configuration $config $version)
     if (-not $config) {
         return
     }
