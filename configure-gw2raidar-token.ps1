@@ -12,6 +12,7 @@ $ErrorActionPreference = "Stop"
 Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
 # Path to JSON-formatted configuration file
+$config_file = "l0g-101086-config.json"
 $backup_file = "${config_file}.bk"
 
 # gw2raidar_token
@@ -26,7 +27,7 @@ if (X-Test-Path $backup_file) {
 }
 
 # Load the configuration from the default file
-$config = Load-Configuration "l0g-101086-config.json"
+$config = Load-Configuration $config_file
 if (-not $config) {
     exit
 }
