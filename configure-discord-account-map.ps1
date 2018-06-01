@@ -12,7 +12,8 @@ $ErrorActionPreference = "Stop"
 Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
 # Path to JSON-formatted configuration file
-$backup_file = "${config-file}.bk"
+$config_file = "l0g-101086-config.json"
+$backup_file = "${config_file}.bk"
 
 # discord_map
 #
@@ -32,7 +33,7 @@ if (X-Test-Path $backup_file) {
 }
 
 # Load the configuration from the default file
-$config = Load-Configuration "l0g-101086-config.json"
+$config = Load-Configuration $config_file
 if (-not $config) {
     exit
 }
@@ -50,13 +51,11 @@ if ($config.discord_map) {
     }
 }
 
-$confinue = "Y"
-
 # ask if the user wants to add more mappings
 do {
     Write-Output = ""
-    $continue = Read-Host -Prompt "Would you like to add a new mappping? (Y/N)"
-    if ($continue -eq "Y") {
+    $add = Read-Host -Prompt "Would you like to add a new mappping? (Y/N)"
+    if ($add -eq "Y") {
         Write-Output "I need a Guild Wars 2 account name and the assiocated discord id"
         Write-Output "To generate the discord id you can enter their mention into a"
         Write-Output "discord channel, prefixed by a backslash"
@@ -68,7 +67,7 @@ do {
         }
         $config.discord_map[$gw2name] = $discord
     }
-} while ($continue -eq "Y")
+} while ($add -eq "Y")
 
 # Write the configuration file out
 Copy-Item -Path $config_file -Destination $backup_file
