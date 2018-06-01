@@ -220,6 +220,14 @@ Function Validate-Configuration {
         exit
     }
 
+    # Make sure all the required parameters are actually valid
+    ForEach ($parameter in $RequiredParameters) {
+        if ($parameter -notin ($configurationFields | ForEach-Object { $_.name })) {
+            Read-Host -Prompt "BUG: $parameter is not a valid parameter. Press enter to exit"
+            exit
+        }
+    }
+
     # For now, allow an empty config_version
     if (-not $config.PSObject.Properties.Match("config_version")) {
         Write-Host "Configuration file is missing config_version field. This will be required in a future update. Please set it to the value '1'"
