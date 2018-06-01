@@ -90,89 +90,107 @@ Function ConvertTo-UnixDate {
   for the current $env:USERPROFILE value
 #>
 $v1ConfigurationFields =
-@{
-    "gw2raidar_token"=@{
-        type=[string]
-    };
-    "dps_report_token"=@{
-        type=[string]
-    };
-    "discord_webhook"=@{
-        type=[string]
-    };
-    "guild_thumbnail"=@{
-        type=[string]
-    };
-    "gw2raidar_tag_glob"=@{
-        type=[string]
-    };
-    "guild_text"=@{
-        type=[string]
-    };
-    "discord_map"=@{
-        type=[PSCustomObject]
-    };
-    "emoji_map"=@{
-        type=[PSCustomObject]
-    };
-    "restsharp_path"=@{
-        type=[string]
-        path=$true
-    };
-    "discord_json_data"=@{
-        type=[string]
-        path=$true
-    };
-    "last_format_file"=@{
-        type=[string]
-        path=$true
-    };
-    "last_upload_file"=@{
-        type=[string]
-        path=$true
-    };
-    "extra_upload_data"=@{
-        type=[string]
-        path=$true
-    };
-    "gw2raidar_start_map"=@{
-        type=[string]
-        path=$true
-    };
-    "simple_arc_parse_path"=@{
-        type=[string]
-        path=$true
-    };
-    "custom_tags_script"=@{
-        type=[string]
-        path=$true
-    };
-    "arcdps_logs"=@{
-        type=[string]
-        path=$true
-    };
-    "upload_log_file"=@{
-        type=[string]
-        path=$true
-    };
-    "guildwars2_path"=@{
-        type=[string]
-        path=$true
-    };
-    "dll_backup_path"=@{
-        type=[string]
-        path=$true
-    };
-    "publish_fractals"=@{
-        type=[bool]
-    };
-    "debug_mode"=@{
-        type=[bool]
-    };
-    "config_version"=@{
+@(
+    @{
+        name="config_version"
         type=[int]
     }
-}
+    @{
+        name="debug_mode"
+        type=[bool]
+    }
+    @{
+        name="arcdps_logs"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="discord_json_data"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="extra_upload_data"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="gw2raidar_start_map"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="last_format_file"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="last_upload_file"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="simple_arc_parse_path"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="custom_tags_script"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="upload_log_file"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="guildwars2_path"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="dll_backup_path"
+        type=[string]
+        path=$true
+    }
+    @{
+        name="gw2raidar_token"
+        type=[string]
+    }
+    @{
+        name="dps_report_token"
+        type=[string]
+    }
+    @{
+        name="discord_webhook"
+        type=[string]
+    }
+    @{
+        name="guild_thumbnail"
+        type=[string]
+    }
+    @{
+        name="gw2raidar_tag_glob"
+        type=[string]
+    }
+    @{
+        name="guild_text"
+        type=[string]
+    }
+    @{
+        name="discord_map"
+        type=[PSCustomObject]
+    }
+    @{
+        name="emoji_map"
+        type=[PSCustomObject]
+    }
+    @{
+        name="publish_fractals"
+        type=[bool]
+    }
+)
 
 <#
  .Synopsis
@@ -215,19 +233,19 @@ Function Validate-Configuration {
     }
 
     # Select only the known properties, ignoring unknown properties
-    $config = $config | Select-Object -Property @($ConfigurationFields.Keys)
+    $config = $config | Select-Object -Property ($configurationFields | ForEach-Object { $_.name })
 
     $invalid = $false
-    foreach ($field in $ConfigurationFields.Keys) {
+    foreach ($field in $ConfigurationFields) {
         # Make sure that the field has the expected type
-        if ($config."${field}" -isnot $ConfigurationFields[$field].type) {
-            Write-Host "${field} has an unexpected type [$($config."${field}".GetType().name)]"
+        if ($config."$($field.name)" -isnot $field.type) {
+            Write-Host "$(field.name) has an unexpected type [$($config."$($field.name)".GetType().name)]"
             $invalid = $true
         }
 
         # Handle %UserProfile% in path fields
-        if ($ConfigurationFields[$field].path) {
-            $config."${field}" = $config."${field}".replace("%UserProfile%", $env:USERPROFILE)
+        if ($field.path) {
+            $config."$($field.name)" = $config."$($field.name)".replace("%UserProfile%", $env:USERPROFILE)
         }
     }
 
