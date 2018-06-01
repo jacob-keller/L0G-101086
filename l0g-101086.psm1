@@ -19,7 +19,7 @@
 #>
 Function X-Test-Path {
     [CmdletBinding()]
-    param([string]$path)
+    param([Parameter(Mandatory)][string]$path)
     try {
         return Test-Path $path.trim()
     } catch {
@@ -40,7 +40,7 @@ Function X-Test-Path {
 #>
 Function ConvertFrom-UTC {
     [CmdletBinding()]
-    param([DateTime]$time)
+    param([Parameter(Mandatory)][DateTime]$time)
     [TimeZone]::CurrentTimeZone.ToLocalTime($time)
 }
 
@@ -58,7 +58,7 @@ Function ConvertFrom-UTC {
 #>
 Function ConvertFrom-UnixDate {
     [CmdletBinding()]
-    param([int]$UnixDate)
+    param([Parameter(Mandatory)][int]$UnixDate)
     ConvertFrom-UTC ([DateTime]'1/1/1970').AddSeconds($UnixDate)
 }
 
@@ -75,7 +75,7 @@ Function ConvertFrom-UnixDate {
 #>
 Function ConvertTo-UnixDate {
     [CmdletBinding()]
-    param([DateTime]$Date)
+    param([Parameter(Mandatory)][DateTime]$Date)
     $UnixEpoch = [DateTime]'1/1/1970'
     (New-TimeSpan -Start $UnixEpoch -End $Date).TotalSeconds
 }
@@ -188,8 +188,8 @@ $v1ConfigurationFields =
 #>
 Function Validate-Configuration {
     [CmdletBinding()]
-    param([PSCustomObject]$config,
-          [int]$version)
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][int]$version)
 
     if ($version -eq 1) {
         $configurationFields = $v1ConfigurationFields
@@ -252,7 +252,7 @@ Function Validate-Configuration {
 #>
 Function Load-Configuration {
     [CmdletBinding()]
-    param([string]$ConfigFile)
+    param([Parameter(Mandatory)][string]$ConfigFile)
 
     # Check that the configuration file path is valid
     if (-not (X-Test-Path $ConfigFile)) {
