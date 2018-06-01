@@ -233,10 +233,14 @@ Function Validate-Configuration {
     }
 
     # Select only the known properties, ignoring unknown properties
-    $config = $config | Select-Object -Property ($configurationFields | ForEach-Object { $_.name })
+    $config = $config | Select-Object -Property ($configurationFields | ForEach-Object { $_.name } | where { $config."$_" -ne $null })
 
     $invalid = $false
     foreach ($field in $ConfigurationFields) {
+        if (-not (Get-Member -InputObject $config -Name $field.name)) {
+            continue
+        }
+
         # Make sure that the field has the expected type
         if ($config."$($field.name)" -isnot $field.type) {
             Write-Host "$($field.name) has an unexpected type [$($config."$($field.name)".GetType().name)]"
