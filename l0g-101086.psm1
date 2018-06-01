@@ -203,11 +203,15 @@ $v1ConfigurationFields =
 
  .Parameter config
   The configuration object to validate
+
+ .Parameter RequiredParameters
+  The parameters that are required by the invoking script
 #>
 Function Validate-Configuration {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][int]$version)
+          [Parameter(Mandatory)][int]$version,
+          [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredParameters)
 
     if ($version -eq 1) {
         $configurationFields = $v1ConfigurationFields
@@ -237,7 +241,12 @@ Function Validate-Configuration {
 
     $invalid = $false
     foreach ($field in $ConfigurationFields) {
+        # Make sure required parameters are available
         if (-not (Get-Member -InputObject $config -Name $field.name)) {
+            if ($field.name -in $RequiredParameters) {
+                Write-Host "$($field.name) is a required parameter for this script."
+                $invalid = $true
+            }
             continue
         }
 
@@ -275,11 +284,17 @@ Function Validate-Configuration {
 
  .Parameter version
   The version of the config file we expect, defaults to 1 currently.
+
+ .Parameter RequiredParameters
+  An array of parameters required by the script. Will ensure that the generated
+  config object has non-null values for the specified paramters. Defaults to
+  an empty array, meaning no parameters are required.
 #>
 Function Load-Configuration {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$ConfigFile,
-          [int]$version = 1)
+          [int]$version = 1,
+          [AllowEmptyCollection()][array]$RequiredParameters = @())
 
     # Check that the configuration file path is valid
     if (-not (X-Test-Path $ConfigFile)) {
@@ -296,7 +311,7 @@ Function Load-Configuration {
         return
     }
 
-    $config = (Validate-Configuration $config $version)
+    $config = (Validate-Configuration $config $version $RequiredParameters)
     if (-not $config) {
         return
     }
