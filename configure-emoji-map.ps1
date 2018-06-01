@@ -28,7 +28,7 @@ if (X-Test-Path $backup_file) {
 }
 
 # Load the configuration from the default file
-$config = Load-Configuration "l0g-101086-config.json"
+$config = Load-Configuration "l0g-101086-config.json" 1
 if (-not $config) {
     exit
 }

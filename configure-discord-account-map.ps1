@@ -33,7 +33,7 @@ if (X-Test-Path $backup_file) {
 }
 
 # Load the configuration from the default file
-$config = Load-Configuration $config_file
+$config = Load-Configuration $config_file 1
 if (-not $config) {
     exit
 }
