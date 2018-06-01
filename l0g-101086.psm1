@@ -201,6 +201,7 @@ Function Validate-Configuration {
     # For now, allow an empty config_version
     if (-not $config.PSObject.Properties.Match("config_version")) {
         Write-Host "Configuration file is missing config_version field. This will be required in a future update. Please set it to the value '1'"
+        $config.config_version = 1
     }
 
     # Make sure the config_version is set to 1. This should only be bumped if
