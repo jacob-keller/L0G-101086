@@ -239,7 +239,7 @@ Function Validate-Configuration {
     foreach ($field in $ConfigurationFields) {
         # Make sure that the field has the expected type
         if ($config."$($field.name)" -isnot $field.type) {
-            Write-Host "$(field.name) has an unexpected type [$($config."$($field.name)".GetType().name)]"
+            Write-Host "$($field.name) has an unexpected type [$($config."$($field.name)".GetType().name)]"
             $invalid = $true
         }
 
