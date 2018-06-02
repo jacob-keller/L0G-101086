@@ -533,3 +533,84 @@ Function Load-Configuration {
 
     return $config
 }
+
+<#
+ .Synopsis
+  Return true if this is a fractal id, false otherise
+
+ .Parameter id
+  The ArcDPS EVTC encounter id
+#>
+Function Is-Fractal-Encounter {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][int]$id)
+
+    # 99CM and 100CM encounter IDs
+    $FractalIds = @(0x427d, 0x4284, 0x4234, 0x44e0, 0x461d, 0x455f)
+
+    return [bool]($id -in $FractalIds)
+}
+
+<#
+ .Synopsis
+  Determine which guild "ran" this encounter.
+
+ .Description
+  Given a list of players and an encounter id, determine which guild ran this
+  encounter. We determine which guild the encounter belongs to by picking
+  the guild who has the most players involved. If there is a tie, we break it
+  by the priority.
+
+  If the encounter is a fractal, then only guilds  who have fractals set to
+  true will be considered. Thus, even if one guild has more members in the
+  encounter, but does not have have fractals set to true, the encounter
+  may be associated with the smaller guild in this case.
+
+ .Parameter guilds
+  The array of guilds to consider
+
+ .Parameter players
+  An array of players who were involved in this encounter
+
+ .Parameter id
+  The encounter id, used to determine whether this was a fractal
+#>
+Function Determine-Guild {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][Object[]]$Guilds,
+          [Parameter(Mandatory)][array]$Players,
+          [Parameter(Mandatory)][int]$id)
+
+    # First remove any non-fractal guilds
+    if (Is-Fractal-Encounter $id) {
+        $AvailableGuilds = $Guilds | where { $_.fractals }
+    } else {
+        $AvailableGuilds = $Guilds
+    }
+
+    $GuildData = $AvailableGuilds | ForEach-Object {
+        $guild = $_
+        $activeMembers = @($players | where {(Keys $guild.discord_map) -Contains $_}).Length
+
+        # Only consider this guild if it meets the player threshold
+        if ($activeMembers -lt $guild.threshold) {
+            return
+        }
+
+        # Return a data object indicating the name, priority, and number of
+        # active members in this encounter
+        return [PSCustomObject]@{
+            name = $guild.name
+            priority = $guild.priority
+            activeMembers = $activeMembers
+        }
+    }
+
+    # No suitable guild was found
+    if ($GuildData.Length -eq 0) {
+        return
+    }
+
+    # Return the name of the most eligible guild
+    return @($GuildData | Sort-Object @{Expression="activeMembers";Descending=$true},priority)[0].name
+}
