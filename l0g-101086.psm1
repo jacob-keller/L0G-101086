@@ -82,14 +82,20 @@ Function ConvertTo-UnixDate {
 
 <#
  .Description
-  Configuration fields which are valid for a v1 configuration file. Anything
-  not listed here will be excluded from the generated $config object. If one
-  of the fields has an incorrect type, configuration will fail to be validated.
+  Configuration fields which are valid for multiple versions of the
+  configuration file. Currently this is shared between the v1 and v2
+  formats, as they share a common base of configuration fields.
 
-  If $path is set, then the configuration will allow exchanging %UserProfile%
+  If path is set, then the configuration will allow exchanging %UserProfile%
   for the current $env:USERPROFILE value
+
+  If validFields is set to an array if fields, then the subfield will be
+  recursively validated. If arrayFields is set, then the field will be treated as
+  an array of objects and each object in the array will be recursively validated.
+
+  Path, validFields, and arrayFields are mutually exclusive
 #>
-$v1ConfigurationFields =
+$commonConfigurationFields =
 @(
     @{
         name="config_version"
@@ -135,11 +141,6 @@ $v1ConfigurationFields =
         path=$true
     }
     @{
-        name="custom_tags_script"
-        type=[string]
-        path=$true
-    }
-    @{
         name="upload_log_file"
         type=[string]
         path=$true
@@ -161,6 +162,25 @@ $v1ConfigurationFields =
     @{
         name="dps_report_token"
         type=[string]
+    }
+)
+
+
+<#
+ .Description
+  Configuration fields which are valid for a v1 configuration file. Anything
+  not listed here will be excluded from the generated $config object. If one
+  of the fields has an incorrect type, configuration will fail to be validated.
+
+  Fields which are common to many versions of the configuration file are stored
+  in $commonConfigurationFields
+#>
+$v1ConfigurationFields = $commonConfigurationFields +
+@(
+    @{
+        name="custom_tags_script"
+        type=[string]
+        path=$true
     }
     @{
         name="discord_webhook"
@@ -193,6 +213,156 @@ $v1ConfigurationFields =
 )
 
 <#
+ .Description
+  Configuration fields which are valid for a v2 configuration file. Anything
+  not listed here will be excluded from the generated $config object. If one
+  of the fields has an incorrect type, configuration will fail to be validated.
+
+  Fields which are common to many versions of the configuration file are stored
+  in $commonConfigurationFields
+#>
+$v2ValidGuildFields =
+@(
+    @{
+        name="name"
+        type=[string]
+    }
+    @{
+        name="priority"
+        type=[int]
+    }
+    @{
+        name="tag"
+        type=[string]
+    }
+    @{
+        name="webhook_url"
+        type=[string]
+    }
+    @{
+        name="thumbnail"
+        type=[string]
+    }
+    @{
+        name="fractals"
+        type=[bool]
+    }
+    @{
+        name="discord_map"
+        type=[PSCustomObject]
+    }
+    @{
+        name="emoji_map"
+        type=[PSCustomObject]
+    }
+)
+
+$v2ConfigurationFields = $commonConfigurationFields +
+@(
+    @{
+        name="guilds"
+        type=[Object[]]
+        arrayFields=$v2ValidGuildFields
+    }
+)
+
+<#
+ .Synopsis
+  Validate fields of an object
+
+ .Description
+  Given a set of field definitions, validate that the given object has fields
+  of the correct type, possibly recursively.
+
+  Return the object on success, with updated path data if necessary. Unknown fields
+  will be removed from the returned object.
+
+  Return $null if the object has invalid fields or is missing required fields.
+
+ .Parameter object
+  The object to validate
+
+ .Parameter fields
+  The field definition
+#>
+Function Validate-Object-Fields {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$Object,
+          [Parameter(Mandatory)][array]$Fields,
+          [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredFields)
+
+    # Make sure all the required parameters are actually valid
+    ForEach ($parameter in $RequiredParameters) {
+        if ($parameter -notin ($Fields | ForEach-Object { $_.name })) {
+            Read-Host -Prompt "BUG: $parameter is not a valid parameter. Press enter to exit"
+            exit
+        }
+    }
+
+    # Select only the known properties, ignoring unknown properties
+    $Object = $Object | Select-Object -Property ($Fields | ForEach-Object { $_.name } | where { $Object."$_" -ne $null })
+
+    $invalid = $false
+    foreach ($field in $Fields) {
+        # Make sure required parameters are available
+        if (-not (Get-Member -InputObject $Object -Name $field.name)) {
+            if ($field.name -in $RequiredFields) {
+                Write-Host "$($field.name) is a required parameter for this script."
+                $invalid = $true
+            }
+            continue
+        }
+
+        # Make sure that the field has the expected type
+        if ($Object."$($field.name)" -isnot $field.type) {
+            Write-Host "$($field.name) has an unexpected type [$($Object."$($field.name)".GetType().name)]"
+            $invalid = $true
+            continue;
+        }
+
+        if ($field.path) {
+            # Handle %UserProfile% in path fields
+            $Object."$($field.name)" = $Object."$($field.name)".replace("%UserProfile%", $env:USERPROFILE)
+        } elseif ($field.validFields) {
+            # Recursively validate subfields. For now, just require every subfield to be set
+            $Object."$($field.name)" = Validate-Object-Fields $Object."$($field.name)" $field.validFields ($field.validFields | ForEach-Object { $_.name } )
+        } elseif ($field.arrayFields) {
+            # Recursively validate subfields of an array of objects.  For now, just require every subfield to be set
+            $ValidatedSubObjects = @()
+
+            $arrayObjectInvalid = $false
+
+            ForEach ($SubObject in $Object."$($field.name)") {
+                $SubObject = Validate-Object-Fields $SubObject $field.arrayFields ($field.arrayFields | ForEach-Object { $_.name } )
+                if (-not $SubObject) {
+                    $arrayObjectInvalid = $true
+                    break;
+                }
+                $ValidatedSubObjects += $SubObject
+            }
+            # If any of the sub fields was invalid, the whole array is invalid
+            if ($arrayObjectInvalid) {
+                $Object."$($field.name)" = $null
+            } else {
+                $Object."$($field.name)" = $ValidatedSubObjects
+            }
+        }
+
+        # If the subfield is now null, then the recursive validation failed, and this whole field is invalid
+        if ($Object."$($field.name)" -eq $null) {
+            $invalid = $true
+        }
+    }
+
+    if ($invalid) {
+        Read-Host -Prompt "Configuration file has invalid parameters. Press enter to exit"
+        return
+    }
+
+    return $Object
+}
+
+<#
  .Synopsis
   Validate a configuration object to make sure it has correct fields
 
@@ -215,17 +385,11 @@ Function Validate-Configuration {
 
     if ($version -eq 1) {
         $configurationFields = $v1ConfigurationFields
+    } elseif ($version -eq 2) {
+        $configurationFields = $v2ConfigurationFields
     } else {
         Read-Host -Prompt "BUG: configuration validation does not support version ${version}. Press enter to exit"
         exit
-    }
-
-    # Make sure all the required parameters are actually valid
-    ForEach ($parameter in $RequiredParameters) {
-        if ($parameter -notin ($configurationFields | ForEach-Object { $_.name })) {
-            Read-Host -Prompt "BUG: $parameter is not a valid parameter. Press enter to exit"
-            exit
-        }
     }
 
     # For now, allow an empty config_version
@@ -244,36 +408,7 @@ Function Validate-Configuration {
         return
     }
 
-    # Select only the known properties, ignoring unknown properties
-    $config = $config | Select-Object -Property ($configurationFields | ForEach-Object { $_.name } | where { $config."$_" -ne $null })
-
-    $invalid = $false
-    foreach ($field in $ConfigurationFields) {
-        # Make sure required parameters are available
-        if (-not (Get-Member -InputObject $config -Name $field.name)) {
-            if ($field.name -in $RequiredParameters) {
-                Write-Host "$($field.name) is a required parameter for this script."
-                $invalid = $true
-            }
-            continue
-        }
-
-        # Make sure that the field has the expected type
-        if ($config."$($field.name)" -isnot $field.type) {
-            Write-Host "$($field.name) has an unexpected type [$($config."$($field.name)".GetType().name)]"
-            $invalid = $true
-        }
-
-        # Handle %UserProfile% in path fields
-        if ($field.path) {
-            $config."$($field.name)" = $config."$($field.name)".replace("%UserProfile%", $env:USERPROFILE)
-        }
-    }
-
-    if ($invalid) {
-        Read-Host -Prompt "Configuration file has invalid parameters. Press enter to exit"
-        return
-    }
+    $config = Validate-Object-Fields $config $configurationFields $RequiredParameters
 
     return $config
 }
