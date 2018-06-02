@@ -81,6 +81,23 @@ Function ConvertTo-UnixDate {
 }
 
 <#
+ .Synopsis
+  Returns the NoteProperties of a PSCustomObject
+
+ .Description
+  Given a PSCustomObject, return the names of each NoteProperty in the object
+
+ .Parameter obj
+  The PSCustomObject to match
+#>
+Function Keys {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$obj)
+
+    return @($obj | Get-Member -MemberType NoteProperty | % Name)
+}
+
+<#
  .Description
   Configuration fields which are valid for multiple versions of the
   configuration file. Currently this is shared between the v1 and v2
