@@ -217,7 +217,7 @@ ForEach($f in $files) {
         continue
     } finally {
         # If the file was originally compressed, there's no need to keep around the uncompressed copy
-        if ($f -ne $evtc) {
+        if ($f -ne $evtc -and (Test-Path $evtc)) {
             Remove-Item -Path $evtc
         }
     }
