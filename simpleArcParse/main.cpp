@@ -513,11 +513,11 @@ calculate_cbt_event_count(parsed_details& details, ifstream& file)
 static void
 get_cbt_event_details(ifstream& file, streampos cbt_event_start, uint32_t cbtevent, evtc_cbtevent& cbt_details)
 {
-    uint32_t fdindex = cbt_event_start;
+    streampos event_index = cbt_event_start;
 
-    fdindex += cbtevent * sizeof(evtc_cbtevent);
+    event_index += cbtevent * sizeof(evtc_cbtevent);
 
-    file.seekg(fdindex);
+    file.seekg(event_index);
     file.read((char *)&cbt_details, sizeof(evtc_cbtevent));
 }
 
