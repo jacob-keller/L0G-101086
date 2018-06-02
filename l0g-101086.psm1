@@ -294,7 +294,7 @@ $v2ValidGuildFields =
         # 3: PUG
         # 4: Low Man / Sells
         name="gw2raidar_category"
-        type=[string]
+        type=[int]
     }
     @{
         # Minimum number of players required for an encounter to be considered
