@@ -284,7 +284,16 @@ $v2ValidGuildFields =
     }
     @{
         # Tag to add when uploading to gw2raidar.
-        name="tag"
+        name="gw2raidar_tag"
+        type=[string]
+    }
+    @{
+        # Category to use when uploading to gw2raidar.
+        # 1: Guild/ Static
+        # 2: Training
+        # 3: PUG
+        # 4: Low Man / Sells
+        name="gw2raidar_category"
         type=[string]
     }
     @{

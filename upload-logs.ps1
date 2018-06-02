@@ -232,8 +232,12 @@ ForEach($f in $files) {
 
         $req.AddFile("file", $f) | Out-Null
 
-        $day = (Get-Item $f).LastWriteTime.DayOfWeek
-        $time = (Get-Item $f).LastWriteTime.TimeOfDay
+        # Determine the tag used to upload
+        $tag = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_tag }
+        $category = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_category }
+
+        $req.AddParameter("tags", $tag) | Out-Null
+        $req.AddParameter("category", $category) | Out-Null
 
         $resp = $client.Execute($req)
 
