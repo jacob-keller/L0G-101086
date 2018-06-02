@@ -364,7 +364,7 @@ Function Validate-Object-Fields {
           [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredFields)
 
     # Make sure all the required parameters are actually valid
-    ForEach ($parameter in $RequiredParameters) {
+    ForEach ($parameter in $RequiredFields) {
         if ($parameter -notin ($Fields | ForEach-Object { $_.name })) {
             Read-Host -Prompt "BUG: $parameter is not a valid parameter. Press enter to exit"
             exit
