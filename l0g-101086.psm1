@@ -173,6 +173,11 @@ $commonConfigurationFields =
         path=$true
     }
     @{
+        name="restsharp_path"
+        type=[string]
+        path=$true
+    }
+    @{
         name="gw2raidar_token"
         type=[string]
     }
