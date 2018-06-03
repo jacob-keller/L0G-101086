@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
 
-# This script is used to ease the burden of generating a gw2raidar token. Feel free
-# to use https://www.gw2raidar.com/api/v2/swagger instead, if you do not trust
-# this script with your username and password.
+# This script is deprecated, and is in need of a replacement now that we have migrated
+# to the v2 configuration format
 
 # Terminate on all errors...
 $ErrorActionPreference = "Stop"
