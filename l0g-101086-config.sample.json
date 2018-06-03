@@ -1,43 +1,45 @@
 {
-	"gw2raidar_token":  "",
-	"dps_report_token":  "",
-	"discord_webhook":  "",
-	"guild_thumbnail":  "",
-	"gw2raidar_tag_glob":  "*",
-	"guild_text":  "[guild]",
-    "discord_map":  {
-                        "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
-                    },
-	"emoji_map":  {
-					"Mursaat Overseer":  "\u003c:mo:311579053486243841\u003e",
-					"Samarog":  "\u003c:sam:311578871214637057\u003e",
-					"Slothasor":  "\u003c:sloth:311578871206117376\u003e",
-					"Sabetha":  "\u003c:sab:311578871122231296\u003e",
-					"Dhuum":  "\u003c:dhuum:399610319464431627\u003e",
-					"Gorseval":  "\u003c:gors:311578871013310474\u003e",
-					"Xera":  "\u003c:xera:311578871277289472\u003e",
-					"Soulless Horror":  "\u003c:horror:386645168289480715\u003e",
-					"Cairn":  "\u003c:cairn:311578870954590208\u003e",
-					"Keep Construct":  "\u003c:kc:311578870686023682\u003e",
-					"Matthias":  "\u003c:matt:311578871105454080\u003e",
-					"Deimos":  "\u003c:deimos:311578870761652225\u003e",
-					"Vale Guardian":  "\u003c:vg:311578870933356545\u003e"
-				  },
-
-	"restsharp_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\RestSharp.dll",
-	"discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted",
-	"last_format_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted\\last_format_time.json",
-	"last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\last_upload_time.json",
-	"extra_upload_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.uploadextras",
-	"gw2raidar_start_map":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.startmap",
-	"simple_arc_parse_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\simpleArcParse\\bin\\Release\\simpleArcParse.exe",
-	"last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\last_upload_time.json",
-	"custom_tags_script":  "",
-	"arcdps_logs":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs",
-	"upload_log_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_log.txt",
-	"guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
-	"dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
-	"publish_fractals":  false,
-	"debug_mode":  false,
-	"config_version":  1
+    "config_version":  2,
+    "debug_mode":  false,
+    "arcdps_logs":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs",
+    "discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted",
+    "extra_upload_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.uploadextras",
+    "gw2raidar_start_map":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.startmap",
+    "last_format_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted\\last_format_time.json",
+    "last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\last_upload_time.json",
+    "simple_arc_parse_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\simpleArcParse\\bin\\Release\\simpleArcParse.exe",
+    "upload_log_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_log.txt",
+    "guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
+    "dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
+    "gw2raidar_token":  "",
+    "dps_report_token":  "",
+    "guilds":  [
+                   {
+                       "name":  "[guild]",
+                       "priority":  1,
+                       "webhook_url":  "",
+                       "gw2raidar_tag":  "",
+					   "gw2raidar_category": 1
+                       "thumbnail":  "",
+                       "fractals":  false,
+                       "discord_map":  {
+                                           "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
+                                       },
+                       "emoji_map":  {
+                                         "Mursaat Overseer":  "\u003c:mo:311579053486243841\u003e",
+                                         "Samarog":  "\u003c:sam:311578871214637057\u003e",
+                                         "Slothasor":  "\u003c:sloth:311578871206117376\u003e",
+                                         "Sabetha":  "\u003c:sab:311578871122231296\u003e",
+                                         "Dhuum":  "\u003c:dhuum:399610319464431627\u003e",
+                                         "Gorseval":  "\u003c:gors:311578871013310474\u003e",
+                                         "Xera":  "\u003c:xera:311578871277289472\u003e",
+                                         "Soulless Horror":  "\u003c:horror:386645168289480715\u003e",
+                                         "Cairn":  "\u003c:cairn:311578870954590208\u003e",
+                                         "Keep Construct":  "\u003c:kc:311578870686023682\u003e",
+                                         "Matthias":  "\u003c:matt:311578871105454080\u003e",
+                                         "Deimos":  "\u003c:deimos:311578870761652225\u003e",
+                                         "Vale Guardian":  "\u003c:vg:311578870933356545\u003e"
+                                     }
+                   }
+               ]
 }
