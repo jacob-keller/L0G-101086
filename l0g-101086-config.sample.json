@@ -19,7 +19,7 @@
                        "priority":  1,
                        "webhook_url":  "",
                        "gw2raidar_tag":  "",
-					   "gw2raidar_category": 1
+					   "gw2raidar_category": 1,
                        "thumbnail":  "",
                        "fractals":  false,
                        "discord_map":  {
