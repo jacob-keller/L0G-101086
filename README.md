@@ -115,6 +115,10 @@ Currently, the script finds all new evtc logs in the arcdps.cbtlogs folder,
 scans them with simpleArcParse, uploads them to gw2raidar, and then uploads them
 to dps.report
 
+The script sorts encounters into guilds based on the players active in the
+encounter. You must configure at least one guild in order for the upload to
+work correctly.
+
 ##### Finding files
 
 In order to find files, it assumes that the encounters are stored in the
@@ -171,12 +175,60 @@ will request your username and password and then connect to the GW2 Raidar API
 and generate the token for you. It will automatically insert the token into the
 configuration file.
 
-### configure-emoji-map.ps1
+### configurating guilds
 
-This script is provided as a convenience to enable updating the emoji mapping
-for the format-encounters.ps1 script. For each supported boss, it will ask you
-for the emoji id. This must be the complete id according to discord, not just
-the text you use to trigger the emoji.
+Currently there is no script to help configure guilds, and this must be done
+manually. I recommend using a JSON validation website if you edit the
+configuration by hand.
+
+You must configure at least one guild in order for upload-logs.ps1 and
+format-encounters.ps1 to work. If you were previously using a v1
+configuration, there is a provided script to migrate to the v2 guilds format.
+
+Guilds are used to tie encounters to specific discord webhooks. The list of
+guild members stored in the discord map is used for this purpose. An encounter
+will be considered as belonging to the guild which has the most members
+partaking in the encounter. In the case of ties, the priority number of the
+guild will be used to break the tie (lower numbers mean higher priority, with
+1 being the highest priority guild).
+
+You may configure a guild with a threshold. This is the minimum number of
+guild members who must participate in order for the encounter to be
+considered as that guild.
+
+You may also configure whether a guild runs fractal encounters. If disabled,
+fractal encounters will not consider that guild when determining which guild
+ran an encounter.
+
+It may be possible that an encounter does not belong to any configured guild.
+In this case, the encounter will simply be ignored. If you wish all encounters
+to be considered, add a guild with no players, a threshold of zero, and a low
+priority as a fallback.
+
+It is currently not possible to add discord mappings for players who are not
+considered guild members. This may become supported in the future.
+
+##### configure-v2-guilds.ps1
+
+This script is provided as a means to migrate from the deprecated v1
+configuration format to the new v2 format. The v2 format has several
+advantages, first it can support uploading to multiple different discord
+channels. Second, it understands how to add tags and category to the gw2
+raidar uploads. Third, it has better support for handling fractal encounters.
+
+The script will simply run and migrate the old data to the new format. It will
+create a backup of the old configuration before overwriting. You should verify
+manually that the data looks correct before deleting the backup.
+
+##### configuring emojis
+
+In order to show icons before boss names you must have server emojis enabled.
+Unfortunately there is no way for a webhook to include an image in the title
+sections, so emojis are required. You may opt out of using emojis by leaving
+the emoji map for a guild empty.
+
+If you wish to configure emojis, you must determine the discord ID of the
+emoji you want to use for each boss.
 
 To generate this text, type the emoji into one of the channels of your discord
 server, prefixed with a backslash. For example if your emoji is :kc: then type
@@ -191,20 +243,23 @@ This should show some text similar to
 <:kc:311578870686023682>
 ```
 
-For each boss, generate the id using the above method and paste it into the
-script when it requests that boss's id.
+For each boss you want an icon, you must generate the id text and place it
+within the emoji map. It is possible you may need to unicode escape the '<'
+and '>' characters.
 
-This script is intended to ease the burden of configuring the emoji map, and
-avoid needing to manually edit the configuration file.
+##### configuring gw2 & discord accounts
 
-### configure-discord-account-map.ps1
+The upload-logs.ps1 and format-encounters.ps1 scripts rely on the discord map
+to provide a list of players who are considered members of the guild.
+upload-logs.ps1 uses the account names to determine which encounters belong to
+which guilds.
 
-This script is provided as a convenience for updating the discord player map. It
-will ask you if you want to delete any current player mappings. Then it will ask
-if you want to add new mappings. In order for the discord pings to work, you
-will need to provide the discord id for the player mention. To generate this
-mention, you can enter their discord name into a message prefixed with a
-backslash.
+To configure a successful discord map, you need to obtain the discord id for
+the account name on discord. This is done by obtaining the id for the
+@mention.
+
+To generate this mention, you can enter their discord name into a message
+prefixed with a backslash.
 
 For example, to generate the id for the account serenamyr#8942, you could type
 
@@ -218,10 +273,8 @@ into a discord channel. It should return text similar to
 <@119167866103791621>
 ```
 
-This text is the id of the particular mention. You can use this script to insert
-a map between the Guild Wars 2 account name and the discord ID of that player.
-Once configured, the format-encounters.ps1 script will use this mapping to
-convert GW2 account names into pings for the associated discord user.
+This text is the id of the particular mention. You should include this in the
+discord map hash table as the value for the matching gw2 account name.
 
 ### format-encounters.ps1
 
@@ -233,6 +286,7 @@ the accounts which participated in the raids.
 
 The format will combine multiple boss kills into one post if they occur on the
 same day, and will spread out each different days logs to separate posts.
+Fractals and raids will be reported in separate posts.
 
 In order for this to function, you must set the gw2raidar API token up.
 Additionally, you usually must wait a few minutes after running the
