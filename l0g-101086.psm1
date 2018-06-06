@@ -181,6 +181,12 @@ $commonConfigurationFields =
         path=$true
     }
     @{
+        # Path to a file which logs actions and data generated while formatting to discord
+        name="format_encounters_log"
+        type=[string]
+        path=$true
+    }
+    @{
         # Path to the GW2 installation directory
         name="guildwars2_path"
         type=[string]

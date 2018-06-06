@@ -14,6 +14,7 @@ $RequiredParameters = @(
     "restsharp_path"
     "simple_arc_parse_path"
     "last_upload_file"
+    "format_encounters_log"
     "arcdps_logs"
     "upload_log_file"
     "gw2raidar_token"
@@ -26,6 +27,8 @@ $config = Load-Configuration "l0g-101086-config.json" 2
 if (-not $config) {
     exit
 }
+
+$logfile = $config.format_encounters_log
 
 # Make sure RestSharp.dll exists
 if (-not (X-Test-Path $config.restsharp_path)) {
@@ -71,6 +74,14 @@ if (-not $config.last_format_file) {
     exit
 }
 
+Function Log-Output ($string) {
+    if ($config.debug_mode) {
+        Write-Output $string
+    } else {
+        Write-Output $string | Out-File -Append $logfile
+    }
+}
+
 # Loads account names from the local data directory
 Function Get-Local-Players ($guild, $boss) {
     $names = @()
@@ -106,6 +117,10 @@ Function Get-Local-DpsReport ($boss) {
     $dps_report = Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json
     return $dps_report.permalink
 }
+
+Log-Output "~~~"
+Log-Output "Formatting encounters for discord at $(Get-Date)..."
+Log-Output "~~~"
 
 # Load RestSharp
 Add-Type -Path $config.restsharp_path
@@ -198,8 +213,45 @@ if ((-not $config.debug_mode) -and (X-Test-Path $config.last_format_file)) {
     $since = 0
 }
 
+Log-Output "Searching gw2raidar for encounters..."
+
 # Limit ourselves to 15 encounters at a time
 $request = "/api/v2/encounters?limit=15&since=${since}"
+
+# Attempt to find local data for a given start time and area id
+Function Locate-Local-EVTC-Data ($area_id, $start_time) {
+    # In some cases, the gw2raidar server time may not exactly match the time
+    # recorded in our local file. This should only happen if another user
+    # happens to upload a different record of the same encounter. To avoid this,
+    # we'll check start times within 2 seconds either direction, preferring times closer
+    # to the start than not.
+    $map_times = @($start_time, ($start_time - 1), ($start_time + 1), ($start_time - 2), ($start_time + 2))
+
+    ForEach ($time in $map_times) {
+        # If the map dir doeesn't exist, try the next time in the list
+        $map_dir = Join-Path -Path $config.gw2raidar_start_map -ChildPath $time
+        if (-not (X-Test-Path $map_dir)) {
+            continue
+        }
+
+        # If the EVTC local directory doesn't exist, try the next time on the list
+        $evtc_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
+        $evtc_dir = Join-Path -Path $config.extra_upload_data -ChildPath $evtc_name
+        if (-not (X-Test-Path $evtc_dir)) {
+            continue
+        }
+
+        # If the recorded area_id doesn't match, try the next item in the list
+        $local_id = Get-Content -Raw -Path (Join-Path -Path $evtc_dir -ChildPath "id.json") | ConvertFrom-Json
+        if ($local_id -ne $area_id) {
+            continue
+        }
+
+        return $evtc_name
+
+    }
+    return $null
+}
 
 # Main loop for getting gw2raidar links
 Do {
@@ -246,13 +298,14 @@ Do {
         # Local data is accessed from the extra_upload_data folder, by using
         # the gw2raidar_start_map as a mapping between encounter start time
         # and the local evtc file data that we created using upload-logs.ps1
-        $map_dir = Join-Path -Path $config.gw2raidar_start_map -ChildPath $encounter.started_at
-        if (Test-Path -Path $map_dir) {
-            $evtc_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
+        $evtc_name = Locate-Local-EVTC-Data $area_id $encounter.started_at
+        if ($evtc_name) {
             $guild_json = [io.path]::combine($config.extra_upload_data, $evtc_name, "guild.json")
             if (X-Test-Path $guild_json) {
                 $guild_name = Get-Content -Raw -Path $guild_json | ConvertFrom-Json
             }
+        } else {
+            Log-Output "Unable to locate local map data $($encounter.started_at) for boss id ${area_id}"
         }
 
         if (-not $guild_tag -and -not $guild_name) {
@@ -382,6 +435,9 @@ Function Is-Matching-Encounter($start, $guild, $boss) {
 }
 
 Function Publish-Encounters($guild, $bosses, $encounterText) {
+
+    Log-Output "$($guild.name): searching local evtc data for dps.report links..."
+
     $bosses | ForEach-Object {
         $boss = $_
 
@@ -403,14 +459,21 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
         $newest_data = $matching_dirs[0]
         $evtc_name = Get-Evtc-Name $newest_data
 
-        # Check if we either (a) don't yet have a gw2 raidar URL for this boss, or (b) the gw2 raidar data
-        # doesn't match what we found for the most recent boss. This should ensure that we update the data
-        # folder to include newer data not yet uploaded to gw2raidar
-        if ((-not $boss.gw2r_url) -or ($boss.evtc -ne $evtc_name)) {
-            # If this evtc name didn't match, we need to remove the gw2 raidar URL, since it
-            # will not correlate with this data. If we didn't have a gw2 raidar URL, this is
-            # a no-op
+        # If the EVTC names don't match, this means our local data does not match the expected data
+        # based on the gw2 raidar URL. Thus, prefer local data, and remove the gw2 raidar URL.
+        if ($boss.evtc -ne $evtc_name) {
+            if ($boss.evtc) {
+                Log-Output "$($guild.name): $($boss.evtc) is not the newest encounter data for $($boss.name). Removing the GW2 Raidar data"
+            } else {
+                Log-Output "$($guild.name): Couldn't find local data for $($boss.name) using GW2 Raidar unix time. Removing the GW2 Raidar data"
+            }
             $boss.Remove("gw2r_url") | Out-Null
+            $boss.Remove("evtc") | Out-Null
+        }
+
+        # Now, if we have no evtc data, use our latest local data instead
+        if (-not $boss.evtc) {
+            Log-Output "$($guild.name): Using ${evtc_name} as the only source of data for $($boss.name)"
 
             # Set the time data
             $server_time = [int](Split-Path -Leaf $newest_data)
@@ -428,7 +491,7 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
     # to upload against. We might have found just a gw2 raidar URL, but this is unlikely
     # to be one of the files we uploaded via the upload-logs.ps1
     if (-not ( $bosses | where { ($_.ContainsKey("evtc")) -or ($_.ContainsKey("gw2r_url")) } ) ) {
-        Write-Host "$($guild.name) has no new encounters to publish."
+        Log-Output "$($guild.name): no new ${encounterText}s to publish."
         return
     }
 
@@ -462,6 +525,8 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
     }
 
     $data = @()
+
+    Log-Output "$($guild.name): generating discord report..."
 
     $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key | ForEach-Object {
         $date = $_.key
@@ -591,6 +656,8 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
         $discord_json_file = Join-Path -Path $config.discord_json_data -ChildPath "discord-webhook-${datestamp}.txt"
         (Convert-Payload $payload) | Out-File $discord_json_file
     }
+
+    Log-Output "$($guild.name): publishing discord report..."
 
     # Send this request to the discord webhook
     Invoke-RestMethod -Uri $guild.webhook_url -Method Post -Body (Convert-Payload $payload)

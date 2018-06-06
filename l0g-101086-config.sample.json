@@ -9,6 +9,7 @@
     "last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\last_upload_time.json",
     "simple_arc_parse_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\simpleArcParse\\bin\\Release\\simpleArcParse.exe",
     "upload_log_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_log.txt",
+    "format_encounters_log":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_log.txt",
     "guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
     "dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
     "gw2raidar_token":  "",
