@@ -16,12 +16,12 @@
     "guilds":  [
                    {
                        "name":  "[guild]",
-                       "priority":  1,
-                       "webhook_url":  "",
+                       "riority":  1,
+                       "pwebhook_url":  "",
                        "gw2raidar_tag":  "",
-		       "gw2raidar_category":  1,
+                       "gw2raidar_category":  1,
 		       "threshold":  0,
-                       "thumbnail":  "",
+		       "thumbnail":  "",
                        "fractals":  false,
                        "discord_map":  {
                                            "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
