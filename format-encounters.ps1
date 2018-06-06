@@ -249,7 +249,7 @@ Do {
         $map_dir = Join-Path -Path $config.gw2raidar_start_map -ChildPath $encounter.started_at
         if (Test-Path -Path $map_dir) {
             $evtc_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
-            $guild_json = [io.path]::combine($config.extra_upload_data, $boss.evtc, "guild.json")
+            $guild_json = [io.path]::combine($config.extra_upload_data, $evtc_name, "guild.json")
             if (X-Test-Path $guild_json) {
                 $guild_name = Get-Content -Raw -Path $guild_json | ConvertFrom-Json
             }
