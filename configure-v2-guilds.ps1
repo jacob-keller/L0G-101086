@@ -43,6 +43,7 @@ $guild_data = [PSCustomObject]@{
     webhook_url = $config.discord_webhook
     gw2raidar_tag = $config.gw2raidar_tag_glob.trim("*")
     gw2raidar_category = 1
+    threshold = 0
     thumbnail = $config.guild_thumbnail
     fractals = $config.publish_fractals
     discord_map = $config.discord_map
