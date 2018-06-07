@@ -12,17 +12,18 @@
     "format_encounters_log":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_log.txt",
     "guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
     "dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
+    "restsharp_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\RestSharp.dll",
     "gw2raidar_token":  "",
     "dps_report_token":  "",
     "guilds":  [
                    {
                        "name":  "[guild]",
-                       "riority":  1,
-                       "pwebhook_url":  "",
+                       "priority":  1,
+                       "webhook_url":  "",
                        "gw2raidar_tag":  "",
                        "gw2raidar_category":  1,
-		       "threshold":  0,
-		       "thumbnail":  "",
+                       "threshold":  0,
+                       "thumbnail":  "",
                        "fractals":  false,
                        "discord_map":  {
                                            "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
