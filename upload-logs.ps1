@@ -121,6 +121,10 @@ function Log-Output ($string) {
     }
 }
 
+# Determine the most recent release of ArcDPS
+$arcdps_headers = (Invoke-WebRequest -UseBasicParsing -Uri https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum).Headers
+$arcdps_release_date = (Get-Date -Date ($arcdps_headers['Last-Modified'])).Date
+
 # If we have a last upload file, we want to limit our scan to all files since
 # the last time that we uploaded.
 #
@@ -171,6 +175,27 @@ ForEach($f in $files) {
         # Parse the evtc header file and get the encounter name and id
         $evtc_header_data = (& $simple_arc_parse header "${evtc}")
         $evtc_header = ($evtc_header_data.Split([Environment]::NewLine))
+
+        # Determine the ArcDPS release date of this encounter
+        try {
+            $evtc_arcpds_version = [DateTime]::ParseExact($evtc_header[0], 'EVTCyyyyMMdd', $null)
+
+            # gw2raidar is extremely picky about uploading new encounters, and will generally
+            # only parse the most recent release of ArcDPS. Warn the user if the version of
+            # for this encounter is out of date. We'll still try to upload to gw2raidar, but
+            # at least the user will be aware that the links may not be generated.
+            if ($evtc_arcpds_version -lt $arcdps_release_date) {
+                Log-Output "It appears that ${name} was recorded using an outdated ArcDPS version released on $(Get-Date -Format "MMM d, yyyy" $evtc_arcdps_version)"
+                Log-Output "The most recent ArcDPS version was releasted on $(Get-Date -Format "MMM d, yyyy" $arcdps_release_date)"
+                Log-Output "gw2raidar is unlikely to accept this encounter, so you might not see a link for it in the formatted encounters list"
+                Log-Output "It is recommended that you update ArcDPS to avoid this issue."
+            }
+        } catch {
+            Log-Output "$PSItem"
+            Log-Output "Unable to determine the ArcDPS version used to record ${name}"
+        }
+
+
 
         # Determine the guild to associate with this encounter
         $guild = Determine-Guild $config.guilds $players $evtc_header[2]
