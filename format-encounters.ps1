@@ -11,7 +11,6 @@ Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildP
 $RequiredParameters = @(
     "extra_upload_data"
     "gw2raidar_start_map"
-    "restsharp_path"
     "simple_arc_parse_path"
     "last_upload_file"
     "format_encounters_log"
@@ -29,12 +28,6 @@ if (-not $config) {
 }
 
 $logfile = $config.format_encounters_log
-
-# Make sure RestSharp.dll exists
-if (-not (X-Test-Path $config.restsharp_path)) {
-    Read-Host -Prompt "This script requires RestSharp to be installed. Press enter to exit"
-    exit
-}
 
 # Check that the start map folder has already been created
 if (-not (X-Test-Path $config.gw2raidar_start_map)) {
@@ -122,9 +115,6 @@ Log-Output "~~~"
 Log-Output "Formatting encounters for discord at $(Get-Date)..."
 Log-Output "~~~"
 
-# Load RestSharp
-Add-Type -Path $config.restsharp_path
-
 $gw2raidar_url = "https://gw2raidar.com"
 $complete = $false
 
@@ -152,20 +142,13 @@ $fractals = @(@{name="MAMA (CM)";wing="99cm"}
               @{name="Artsariiv (CM)";wing="100cm"}
               @{name="Arkk (CM)";wing="100cm"})
 
-# Get the area IDs
-$client = New-Object RestSharp.RestClient($gw2raidar_url)
-$req = New-Object RestSharp.RestRequest("/api/v2/areas")
-$req.AddHeader("Authorization", "Token $($config.gw2raidar_token)") | Out-Null
-$req.Method = [RestSharp.Method]::GET
-
-$resp = $client.Execute($req)
-
-if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
+try {
+    $areasResp = Invoke-RestMethod -Uri "${gw2raidar_url}/api/v2/areas" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
+} catch {
+    Write-Host $PSItem
     Read-Host -Prompt "Areas request Failed, press Enter to exit"
     exit
 }
-
-$areasResp = $resp.Content | ConvertFrom-Json
 
 ForEach($area in $areasResp.results) {
     # Raid CMs have bits 16-23 all set. We want to treat CMs the same as normal runs
@@ -255,20 +238,15 @@ Function Locate-Local-EVTC-Data ($area_id, $start_time) {
 
 # Main loop for getting gw2raidar links
 Do {
-    # Request a chunk of encounters
-    $client = New-Object RestSharp.RestClient($gw2raidar_url)
-    $req = New-Object RestSharp.RestRequest($request)
-    $req.AddHeader("Authorization", "Token $($config.gw2raidar_token)") | Out-Null
-    $req.Method = [RestSharp.Method]::GET
+    $areasResp = Invoke-RestMethod -Uri "${gw2raidar_url}/api/v2/areas" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
 
-    $resp = $client.Execute($req)
-
-    if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
+    try {
+        $data = Invoke-RestMethod -Uri "${gw2raidar_url}${request}" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
+    } catch {
+        Write-Host $PSItem
         Read-Host -Prompt "Request Failed, press Enter to exit"
         exit
     }
-
-    $data = $resp.Content | ConvertFrom-Json
 
     # When we get no further results, break the loop
     if (!($data.results)) {
@@ -491,7 +469,7 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
     # to upload against. We might have found just a gw2 raidar URL, but this is unlikely
     # to be one of the files we uploaded via the upload-logs.ps1
     if (-not ( $bosses | where { ($_.ContainsKey("evtc")) -or ($_.ContainsKey("gw2r_url")) } ) ) {
-        Log-Output "$($guild.name): no new ${encounterText}s to publish."
+        Log-Output "$($guild.name): no new ${encounterText} to publish."
         return
     }
 
