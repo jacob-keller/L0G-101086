@@ -15,6 +15,7 @@
     "restsharp_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\RestSharp.dll",
     "gw2raidar_token":  "",
     "dps_report_token":  "",
+    "dps_report_generator":  "ei",
     "guilds":  [
                    {
                        "name":  "[guild]",

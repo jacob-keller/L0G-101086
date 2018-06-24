@@ -168,6 +168,14 @@ Currently, because it is rather hard to dig up the dps.report links, as compared
 to gw2raidar, the script defaults to only uploading successful logs to
 dps.report.
 
+dps.report supports multiple generators. By default RaidHeros is used, but the site
+also supports using EliteInsights. You can configure this by setting a configuration
+value
+
+```
+dps_report_generator:  "ei",
+```
+
 ### configure-gw2raidar-token.ps1
 
 This script is provided to ease the generation of the GW2 Raidar API token. It

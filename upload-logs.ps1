@@ -39,6 +39,14 @@ $extra_upload_data = $config.extra_upload_data
 $gw2raidar_start_map = $config.gw2raidar_start_map
 $simple_arc_parse = $config.simple_arc_parse_path
 
+# Determine what generator to use
+$valid_generators = @( "rh", "ei" )
+$dps_report_generator = $config.dps_report_generator.Trim()
+if ($dps_report_generator -and -not $valid_generators.Contains($dps_report_generator)) {
+    Read-Host -Prompt "The dps.report generator $dps_report_generator is unknown..."
+    exit
+}
+
 # Make sure RestSharp.dll exists
 if (-not (X-Test-Path $config.restsharp_path)) {
     Read-Host -Prompt "This script requires RestSharp to be installed. Press enter to exit"
@@ -312,6 +320,9 @@ ForEach($f in $files) {
         $req.AddParameter("rotation_weap", "1") | Out-Null
         # Include the dps.report user token
         $req.AddParameter("userToken", $dpsreport_token)
+
+        # Set the generator if it was configured
+        $req.AddParameter("generator", $dps_report_generator)
 
         $req.AddFile("file", $f) | Out-Null
 

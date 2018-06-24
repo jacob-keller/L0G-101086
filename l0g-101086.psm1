@@ -217,8 +217,15 @@ $commonConfigurationFields =
         name="dps_report_token"
         type=[string]
     }
+    @{
+        # dps.report allows using alternative generators besides raid heros. This parameter
+        # is used to configure the generator used by the site, and must match a valid value
+        # from their API. Currently "rh" means RaidHeros, "ei" means EliteInsights, and
+        # leaving it blank will use the current default generator.
+        name="dps_report_generator"
+        type=[string]
+    }
 )
-
 
 <#
  .Description
