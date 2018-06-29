@@ -323,6 +323,7 @@ ForEach($f in $files) {
 
         # Set the generator if it was configured
         $req.AddParameter("generator", $dps_report_generator)
+        $req.Timeout = 300000
 
         $req.AddFile("file", $f) | Out-Null
 
