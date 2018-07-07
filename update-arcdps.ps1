@@ -158,5 +158,3 @@ if ($run_update -eq $false) {
     Invoke-WebRequest -Uri $mechanics_url -UseBasicParsing -OutFile $mechanics_path
     Copy-Item $mechanics_path $mechanics_bin_path
 }
-
-Read-Host -Prompt "Press Enter to exit"
