@@ -326,7 +326,11 @@ ForEach($f in $files) {
         $req.AddParameter("userToken", $dpsreport_token)
 
         # Set the generator if it was configured
-        $req.AddParameter("generator", $dps_report_generator)
+        if ($dps_report_generator) {
+            $req.AddParameter("generator", $dps_report_generator) | Out-Null
+        }
+
+        # Increase the default timeout
         $req.Timeout = 300000
 
         $req.AddFile("file", $f) | Out-Null
