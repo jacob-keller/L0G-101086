@@ -316,8 +316,12 @@ ForEach($f in $files) {
 
         # This depends on the json output being enabled
         $req.AddParameter("json", "1") | Out-Null
-        # We wanted weapon rotations, but you can disable this if you like
-        $req.AddParameter("rotation_weap", "1") | Out-Null
+
+        # Enable weapon rotations if using raid heros
+        if ($dps_report_generator -ne "ei") {
+            $req.AddParameter("rotation_weap", "1") | Out-Null
+        }
+
         # Include the dps.report user token
         $req.AddParameter("userToken", $dpsreport_token)
 
