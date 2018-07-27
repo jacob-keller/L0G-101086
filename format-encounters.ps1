@@ -199,7 +199,7 @@ if ((-not $config.debug_mode) -and (X-Test-Path $config.last_format_file)) {
 Log-Output "Searching gw2raidar for encounters..."
 
 # Limit ourselves to 15 encounters at a time
-$request = "/api/v2/encounters?limit=15&since=${since}"
+$request = "/api/v2/encounters?success=true&limit=15&since=${since}"
 
 # Attempt to find local data for a given start time and area id
 Function Locate-Local-EVTC-Data ($area_id, $start_time) {
