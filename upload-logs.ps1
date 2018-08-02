@@ -201,6 +201,7 @@ ForEach($f in $files) {
         } catch {
             Log-Output "$PSItem"
             Log-Output "Unable to determine the ArcDPS version used to record ${name}"
+            Log-Output "EVTC header was '$evtc_header[0]'"
         }
 
 
