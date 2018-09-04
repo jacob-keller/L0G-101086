@@ -193,6 +193,12 @@ $commonConfigurationFields =
         path=$true
     }
     @{
+        # Path to Launch Buddy program (used by launcher.ps1)
+        name="launchbuddy_path"
+        type=[string]
+        path=$true
+    }
+    @{
         # Path to a folder which holds backups of DLLs for arcdps, and related plugins
         name="dll_backup_path"
         type=[string]

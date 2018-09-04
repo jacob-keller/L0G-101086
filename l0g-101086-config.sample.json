@@ -11,6 +11,7 @@
     "upload_log_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_log.txt",
     "format_encounters_log":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_log.txt",
     "guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
+    "launchbuddy_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\gw2launchbuddy\\Gw2.Launchbuddy.exe",
     "dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
     "restsharp_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\RestSharp.dll",
     "gw2raidar_token":  "",
