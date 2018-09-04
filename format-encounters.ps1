@@ -394,6 +394,11 @@ Function Has-Dps-Report ($dir) {
 Function Is-Matching-Encounter($start, $guild, $boss) {
     $dir = Get-Evtc-Dir $start
 
+    # Make sure we actually have an EVTC dir
+    if (-not $dir) {
+        return $false
+    }
+
     # Make sure the boss id matches
     if ((Get-Boss-Id $dir) -ne $boss.id) {
         return $false
