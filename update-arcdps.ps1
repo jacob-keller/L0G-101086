@@ -46,17 +46,20 @@ $arc_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9.dll"
 $templates_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_buildtemplates.dll"
 # Path to store the mechanics dll
 $mechanics_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_mechanics.dll"
+# Path to store the extras dll
+$extras_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_extras.dll"
 
 # Store the dlls in both the top level and \bin64 to make Gw2 Launch Buddy happy
 $arc_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9.dll"
 $templates_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_buildtemplates.dll"
 $mechanics_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_mechanics.dll"
+$extras_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_extras.dll"
 
 # Path to backup locations for the previous versions
 $arc_backup = Join-Path -Path $config.dll_backup_path -ChildPath "arc-d3d9.dll.back"
 $templates_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_buildtemplates.dll.back"
 $mechanics_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_mechanics.dll.back"
-
+$extras_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_extras.dll.back"
 #
 # URLs we need to fetch from
 #
@@ -67,6 +70,8 @@ $arc_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
 $arc_md5_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
 # URL for the build templates plugin
 $templates_url = "https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll"
+# URL for arc extras
+$extras_url = "https://www.deltaconnected.com/arcdps/x64/extras/d3d9_arcdps_extras.dll"
 # URL for the mechanics plugin for Arc DPS
 $mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll"
 # URL for the MD5 sum of the mechanics dll
@@ -108,9 +113,23 @@ if ($run_update -eq $false) {
         Move-Item $templates_path $templates_backup
     }
 
+    # Also backup extras
+    if (X-Test-Path $extras_path) {
+        if (X-Test-Path $extras_backup) {
+            Remove-Item $extras_backup
+        }
+        Move-Item $extras_path $extras_backup
+    }
+
     # Remove the copy in bin64 as well
     if (X-Test-Path $arc_bin_path) {
         Remove-Item $arc_bin_path
+    }
+    if (X-Test-Path $templates_bin_path) {
+        Remove-Item $templates_bin_path
+    }
+    if (X-Test-Path $extras_bin_path) {
+        Remove-Item $extras_bin_path
     }
 
     Write-Host "Downloading new arcdps d3d9.dll"
@@ -119,6 +138,9 @@ if ($run_update -eq $false) {
     Write-Host "Downloading new arcdps d3d9_arcdps_build_templates.dll"
     Invoke-WebRequest -Uri $templates_url -UseBasicParsing -OutFile $templates_path
     Copy-Item $templates_path $templates_bin_path
+    Write-Host "Downloading new arcdps d3d9_arcdps_extras.dll.dll"
+    Invoke-WebRequest -Uri $extras_url -UseBasicParsing -OutFile $extras_path
+    Copy-Item $extras_path $extras_bin_path
 }
 
 $run_update = $false
