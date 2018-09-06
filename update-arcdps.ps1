@@ -138,7 +138,7 @@ if ($run_update -eq $false) {
     Write-Host "Downloading new arcdps d3d9_arcdps_build_templates.dll"
     Invoke-WebRequest -Uri $templates_url -UseBasicParsing -OutFile $templates_path
     Copy-Item $templates_path $templates_bin_path
-    Write-Host "Downloading new arcdps d3d9_arcdps_extras.dll.dll"
+    Write-Host "Downloading new arcdps d3d9_arcdps_extras.dll"
     Invoke-WebRequest -Uri $extras_url -UseBasicParsing -OutFile $extras_path
     Copy-Item $extras_path $extras_bin_path
 }
