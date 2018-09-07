@@ -308,6 +308,10 @@ ForEach($f in $files) {
         # on the next run. This avoids re-uploading lots of files if we fail in the middle of
         # a large sequence.
         (Get-Item $f).LastWriteTime.AddSeconds(-1) | Select-Object -Property DateTime | ConvertTo-Json | Out-File -Force $last_upload_file
+        Write-Output "!!!!!!!!!!!!!"
+        Write-Output "UPLOAD FAILED"
+        Write-Output "!!!!!!!!!!!!!"
+        Read-Host -Prompt "Press enter to exit."
         exit
     }
 
@@ -371,6 +375,10 @@ ForEach($f in $files) {
         # on the next run. This avoids re-uploading lots of files if we fail in the middle of
         # a large sequence.
         (Get-Item $f).LastWriteTime.AddSeconds(-1) | Select-Object -Property DateTime | ConvertTo-Json | Out-File -Force $last_upload_file
+        Write-Output "!!!!!!!!!!!!!"
+        Write-Output "UPLOAD FAILED"
+        Write-Output "!!!!!!!!!!!!!"
+        Read-Host -Prompt "Press enter to exit."
         exit
     }
 }
