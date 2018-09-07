@@ -154,6 +154,7 @@ Log-Output "~~~"
 # Main loop to generate and upload gw2raidar and dps.report files
 ForEach($f in $files) {
     $name = [io.path]::GetFileNameWithoutExtension($f)
+    Log-Output "---"
     Log-Output "Saving ancillary data for ${name}..."
 
     $dir = Join-Path -Path $extra_upload_data -ChildPath $name
@@ -204,8 +205,6 @@ ForEach($f in $files) {
             Log-Output "EVTC header was '$evtc_header[0]'"
         }
 
-
-
         # Determine the guild to associate with this encounter
         $guild = Determine-Guild $config.guilds $players $evtc_header[2]
         if (-not $guild) {
@@ -214,19 +213,29 @@ ForEach($f in $files) {
 
         $guild | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "guild.json")
 
+        Log-Output "Guild: ${guild}"
+
         $players | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "accounts.json")
 
         $evtc_header[0] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "version.json")
         $evtc_header[1] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "encounter.json")
         $evtc_header[2] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "id.json")
 
+        Log-Output "EVTC Version: $(${evtc_header}[0])"
+        Log-Output "Encounter: $(${evtc_header}[1])"
+        Log-Output "ID: $(${evtc_header}[2])"
+
         # Parse the evtc combat events to determine SUCCESS/FAILURE status
         $evtc_success = (& $simple_arc_parse success "${evtc}")
         $evtc_success | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "success.json")
 
+        Log-Output "Outcome: ${evtc_success}"
+
         # Parse the evtc combat events to determine the server start time
         $start_time = (& $simple_arc_parse start_time "${evtc}")
         $start_time | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "servertime.json")
+
+        Log-Output "Start Time: ${start_time}"
 
         # Generate a map between start time and the evtc file name
         $map_dir = Join-Path -Path $gw2raidar_start_map -ChildPath $start_time
