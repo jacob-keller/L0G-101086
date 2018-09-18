@@ -202,7 +202,9 @@ ForEach($f in $files) {
         } catch {
             Log-Output "$PSItem"
             Log-Output "Unable to determine the ArcDPS version used to record ${name}"
-            Log-Output "EVTC header was '$evtc_header[0]'"
+            Log-Output "EVTC ArcDPS version was '$evtc_arcdps_version'"
+            Log-Output "EVTC header was '$evtc_header'"
+            Log-Output "ArcDPS release date was '$arcdps_release_date'"
         }
 
         # Determine the guild to associate with this encounter
