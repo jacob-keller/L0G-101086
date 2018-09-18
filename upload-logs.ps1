@@ -187,13 +187,13 @@ ForEach($f in $files) {
 
         # Determine the ArcDPS release date of this encounter
         try {
-            $evtc_arcpds_version = [DateTime]::ParseExact($evtc_header[0], 'EVTCyyyyMMdd', $null)
+            $evtc_arcdps_version = [DateTime]::ParseExact($evtc_header[0], 'EVTCyyyyMMdd', $null)
 
             # gw2raidar is extremely picky about uploading new encounters, and will generally
             # only parse the most recent release of ArcDPS. Warn the user if the version of
             # for this encounter is out of date. We'll still try to upload to gw2raidar, but
             # at least the user will be aware that the links may not be generated.
-            if ($evtc_arcpds_version -lt $arcdps_release_date) {
+            if ($evtc_arcdps_version -lt $arcdps_release_date) {
                 Log-Output "It appears that ${name} was recorded using an outdated ArcDPS version released on $(Get-Date -Format "MMM d, yyyy" $evtc_arcdps_version)"
                 Log-Output "The most recent ArcDPS version was releasted on $(Get-Date -Format "MMM d, yyyy" $arcdps_release_date)"
                 Log-Output "gw2raidar is unlikely to accept this encounter, so you might not see a link for it in the formatted encounters list"
