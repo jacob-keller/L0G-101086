@@ -355,6 +355,14 @@ $v2ValidGuildFields =
         name="emoji_map"
         type=[PSCustomObject]
     }
+    @{
+        # If set to true, format-encounters will publish every post to this guilds
+        # discord. If unset or if set to false, only the encounters which match
+        # this guild will be published to the guild's discord.
+        name="everything"
+        type=[bool]
+        optional=$true
+    }
 )
 
 $v2ConfigurationFields = $commonConfigurationFields +

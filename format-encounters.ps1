@@ -650,6 +650,11 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
     Log-Output "$($guild.name): generating discord report..."
 
     Format-And-Publish $guild $boss_per_date $thumbnail $guild.name $guild.emoji_map $guild.webhook_url
+
+    ForEach ($iter in ( $guild_data.GetEnumerator() | where { ( $_.value.guild.everything -eq $true ) -and ( $_.value.guild.webhook_url -ne $guild.webhook_url ) } ) ) {
+        $extra_guild = $iter.value.guild
+        Format-And-Publish $guild $boss_per_date $thumbnail $extra_guild.name $extra_guild.emoji_map $extra_guild.webhook_url
+    }
 }
 
 $this_format_time = Get-Date
