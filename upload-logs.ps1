@@ -173,6 +173,11 @@ ForEach($f in $files) {
         # it first, before passing the file to the simpleArcParse program
         [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
         $evtc = Join-Path -Path $dir -ChildPath $name
+
+        # Sometimes the evtc.zip file stores the uncompressed file suffixed with .tmp
+        if (-not (X-Test-Path $evtc)) {
+            $evtc = Join-Path -Path $dir -ChildPath "${name}.tmp"
+        }
     } else {
         # if the file was not compressed originally, we don't need to copy it
         $evtc = $f
