@@ -336,8 +336,9 @@ Do {
         }
     }
 
+    # If we're not missing any encounters, then we are complete, and can stop looping backwards
     if (-not $missing_encounters) {
-        $complete = $false
+        $complete = $true
     }
 
 } Until($complete)
