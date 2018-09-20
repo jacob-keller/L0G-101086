@@ -543,7 +543,9 @@ Function Load-Configuration {
     try {
         $config = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json
     } catch {
-        Write-Host "Unable to read the configuration file: $($_.Exception.Message)"
+        Write-Error ($_.Exception | Format-List -Force | Out-String) -ErrorAction Continue
+        Write-Error ($_.InvocationInfo | Format-List -Force | Out-String) -ErrorAction Continue
+        Write-Host "Unable to read the configuration file"
         Read-Host -Prompt "Press enter to exit"
         return
     }
