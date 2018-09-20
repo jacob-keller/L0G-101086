@@ -636,3 +636,21 @@ Function Determine-Guild {
     # Return the name of the most eligible guild
     return @($GuildData | Sort-Object @{Expression="activeMembers";Descending=$true},priority)[0].name
 }
+
+<#
+ .Synopsis
+  Print out details about an exception that occurred.
+
+ .Description
+  Write out details about an exception that was caught.
+
+ .Parameter e
+  The exception object to dump.
+#>
+Function Write-Exception {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][Object]$e)
+
+    Write-Error ($e.Exception | Format-List -Force | Out-String) -ErrorAction Continue
+    Write-Error ($e.InvocationInfo | Format-List -Force | Out-String) -ErrorAction Continue
+}
