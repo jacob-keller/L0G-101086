@@ -54,6 +54,7 @@ if (-not $config.discord_json_data) {
     try {
         New-Item -ItemType directory -Path $config.discord_json_data
     } catch {
+        Write-Exception $_
         Read-Host -Prompt "Unable to create $($config.discord_json_data). Press enter to exit"
         exit
     }
@@ -145,7 +146,7 @@ $fractals = @(@{name="MAMA (CM)";wing="99cm"}
 try {
     $areasResp = Invoke-RestMethod -Uri "${gw2raidar_url}/api/v2/areas" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
 } catch {
-    Write-Host $PSItem
+    Write-Exception $_
     Read-Host -Prompt "Areas request Failed, press Enter to exit"
     exit
 }
@@ -243,7 +244,7 @@ Do {
     try {
         $data = Invoke-RestMethod -Uri "${gw2raidar_url}${request}" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
     } catch {
-        Write-Host $PSItem
+        Write-Exception $_
         Read-Host -Prompt "Request Failed, press Enter to exit"
         exit
     }

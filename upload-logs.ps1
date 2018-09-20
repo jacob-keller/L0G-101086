@@ -85,6 +85,7 @@ if (-not $gw2raidar_start_map) {
     try {
         New-Item -ItemType directory -Path $gw2raidar_start_map
     } catch {
+        Write-Exception $_
         Read-Host -Prompt "Unable to create $gw2raidar_start_map. Press enter to exit"
         exit
     }
@@ -97,6 +98,7 @@ if (-not $extra_upload_data) {
     try {
         New-Item -ItemType directory -Path $extra_upload_data
     } catch {
+        Write-Exception $_
         Read-Host -Prompt "Unable to create $extra_upload_data. Press enter to exit."
         exit
     }
@@ -200,7 +202,7 @@ ForEach($f in $files) {
                 Log-Output "It is recommended that you update ArcDPS to avoid this issue."
             }
         } catch {
-            Log-Output "$PSItem"
+            Write-Exception $_
             Log-Output "Unable to determine the ArcDPS version used to record ${name}"
             Log-Output "EVTC ArcDPS version was '$evtc_arcdps_version'"
             Log-Output "EVTC header was '$evtc_header'"
@@ -253,7 +255,7 @@ ForEach($f in $files) {
             $name | ConvertTo-Json | Out-File -FilePath (Join-Path $map_dir -ChildPath "evtc.json")
         }
     } catch {
-        Log-Output "$PSItem"
+        Write-Exception $_
 
         # Remove the extra data for this object
         Remove-Item -Path $dir -Recurse
@@ -300,7 +302,7 @@ ForEach($f in $files) {
 
         Log-Output "Upload successful..."
     } catch {
-        Log-Output $_.Exception.Message
+        Write-Exception $_
         Log-Output "Upload to gw2raidar failed..."
 
         # The set of files is sorted in ascending order by its last write time. This
@@ -367,7 +369,7 @@ ForEach($f in $files) {
 
         Log-Output "Upload successful..."
     } catch {
-        Log-Output $_.Exeception.Message
+        Write-Exception $_
         Log-Output "Upload to dps.report failed..."
 
         # The set of files is sorted in ascending order by its last write time. This
