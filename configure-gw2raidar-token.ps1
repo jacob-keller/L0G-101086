@@ -62,7 +62,8 @@ $netcreds = $pscreds.GetNetworkCredential()
 try {
     $token_resp = Invoke-RestMethod -Uri https://www.gw2raidar.com/api/v2/token -Method post -Body @{username=$netcreds.username;password=$netcreds.password}
 } catch {
-    Write-Host "Unable to obtain GW2 Raidar token: $($_.Exception.Message)"
+    Write-Exception $_
+    Write-Host "Unable to obtain GW2 Raidar token"
     Read-Host -Prompt "Press enter to exit"
     exit
 }

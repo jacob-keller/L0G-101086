@@ -35,6 +35,7 @@ if (-not $config.dll_backup_path) {
     try {
         New-Item -ItemType directory -Path $config.dll_backup_path
     } catch {
+        Write-Exception $_
         Read-Host -Prompt "Unable to create $($.config.dll_backup_path)"
         exit
     }
