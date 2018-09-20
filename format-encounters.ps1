@@ -316,17 +316,9 @@ Do {
 
     }
 
-    # If the gw2raidar API gave us a $next url, then there are more
-    # encounters available to check.
-    if ($data.next) {
-        $request = $data.next -replace $gw2raidar_url, ""
-    } else {
-        $complete = $true
-    }
-
-    # We want to make sure that we keep looking for encounters unless *every* guild is full
     $missing_encounters = $false
 
+    # We want to make sure that we keep looking for encounters unless *every* guild is full
     ForEach ($iter in $guild_data.GetEnumerator()) {
         if ( $iter.value.bosses | where { -not $_.ContainsKey("gw2r_url") } ) {
             $missing_encounters = $true
@@ -338,6 +330,14 @@ Do {
 
     # If we're not missing any encounters, then we are complete, and can stop looping backwards
     if (-not $missing_encounters) {
+        $complete = $true
+    }
+
+    # If the gw2raidar API gave us a $next url, then we still have encounters
+    # available to check. If not, we're complete and should stop here
+    if ($data.next) {
+        $request = $data.next -replace $gw2raidar_url, ""
+    } else {
         $complete = $true
     }
 
