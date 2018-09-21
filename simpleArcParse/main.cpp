@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include <cerrno>
 #include <cctype>
@@ -354,7 +355,9 @@ parse_header(parsed_details& details, ifstream& file)
         break;
 
     default:
-        details.boss_name = "Unknown encounter";
+        std::stringstream ss;
+        ss << "Unknown encounter " << details.boss_id;
+        details.boss_name = std::move(ss.str().c_str());
         break;
     }
 
