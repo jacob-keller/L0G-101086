@@ -105,7 +105,7 @@ if (-not $extra_upload_data) {
 }
 
 # Make sure that simpleArcParse version matches our expectation
-$expected_simple_arc_version = "v0.12"
+$expected_simple_arc_version = "v0.13"
 $simple_arc_version = (& $simple_arc_parse version)
 if ($simple_arc_version -eq "") {
     Write-Host "Unable to determine the version of simpleArcParse"
