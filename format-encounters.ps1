@@ -134,7 +134,11 @@ $bosses = @(@{name="Vale Guardian";wing=1},
             @{name="Samarog";wing=4},
             @{name="Deimos";wing=4},
             @{name="Soulless Horror";wing=5},
-            @{name="Dhuum";wing=5})
+            @{name="Dhuum";wing=5},
+            @{name="Conjured Amalgamate";wing=6},
+            @{name="Nikare";wing=6},
+            @{name="Kenut";wing=6},
+            @{name="Qadim";wing=6})
 
 $fractals = @(@{name="MAMA (CM)";wing="99cm"}
               @{name="Siax (CM)";wing="99cm"}
@@ -166,6 +170,12 @@ ForEach($area in $areasResp.results) {
         $nameToId.Set_Item($area.name, $area.id)
     }
 }
+
+# Hack in the wing6 IDs until gw2raidar updates
+$nameToId.Set_Item("Conjured Amalgamate", 43974);
+$nameToId.Set_Item("Nikare", 21105);
+$nameToId.Set_Item("Kenut", 21089);
+$nameToId.Set_Item("Qadim", 20934);
 
 # Insert IDs
 $bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name) }

@@ -26,7 +26,7 @@ describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
     it 'version should be v0.11' {
-        $version | Should BeExactly 'v0.12'
+        $version | Should BeExactly 'v0.13'
     }
 }
 

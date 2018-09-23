@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include <cerrno>
 #include <cctype>
@@ -205,6 +206,12 @@ static const uint16_t deimos_id         = 0x4302;
 static const uint16_t horror_id         = 0x4d37;
 static const uint16_t dhuum_id          = 0x4bfa;
 
+/* Possible wing6 boss ids */
+static const uint16_t conjured_amalgamate_id = 43974;
+static const uint16_t nikare_id              = 21105;
+static const uint16_t kenut_id               = 21089;
+static const uint16_t qadim_id               = 20934;
+
 /* Fractal 99 CM boss encounters */
 static const uint16_t mama_cm_id        = 0x427d;
 static const uint16_t siax_cm_id        = 0x4284;
@@ -352,9 +359,23 @@ parse_header(parsed_details& details, ifstream& file)
     case arkk_cm_id:
         details.boss_name = "Arkk (CM)";
         break;
+    case conjured_amalgamate_id:
+        details.boss_name = "Conjured Amalgamate";
+        break;
+    case nikare_id:
+        details.boss_name = "Nikare";
+        break;
+    case kenut_id:
+        details.boss_name = "Kenut";
+        break;
+    case qadim_id:
+        details.boss_name = "Qadim";
+        break;
 
     default:
-        details.boss_name = "Unknown encounter";
+        std::stringstream ss;
+        ss << "Unknown encounter " << details.boss_id;
+        details.boss_name = std::move(ss.str().c_str());
         break;
     }
 
@@ -696,7 +717,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v0.12" << endl;
+        cout << "v0.13" << endl;
         return 0;
     }
 
