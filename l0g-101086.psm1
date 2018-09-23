@@ -355,6 +355,14 @@ $v2ValidGuildFields =
         name="emoji_map"
         type=[PSCustomObject]
     }
+    @{
+        # If set to true, format-encounters will publish every post to this guilds
+        # discord. If unset or if set to false, only the encounters which match
+        # this guild will be published to the guild's discord.
+        name="everything"
+        type=[bool]
+        optional=$true
+    }
 )
 
 $v2ConfigurationFields = $commonConfigurationFields +
@@ -424,16 +432,16 @@ Function Validate-Object-Fields {
             # Handle %UserProfile% in path fields
             $Object."$($field.name)" = $Object."$($field.name)".replace("%UserProfile%", $env:USERPROFILE)
         } elseif ($field.validFields) {
-            # Recursively validate subfields. For now, just require every subfield to be set
-            $Object."$($field.name)" = Validate-Object-Fields $Object."$($field.name)" $field.validFields ($field.validFields | ForEach-Object { $_.name } )
+            # Recursively validate subfields. All fields not explicitly marked "optional" must be present
+            $Object."$($field.name)" = Validate-Object-Fields $Object."$($field.name)" $field.validFields ($field.validFields | where { -not ( $_.optional -eq $true ) } | ForEach-Object { $_.name } )
         } elseif ($field.arrayFields) {
-            # Recursively validate subfields of an array of objects.  For now, just require every subfield to be set
+            # Recursively validate subfields of an array of objects. All fields not explicitly marked "optional" must be present
             $ValidatedSubObjects = @()
 
             $arrayObjectInvalid = $false
 
             ForEach ($SubObject in $Object."$($field.name)") {
-                $SubObject = Validate-Object-Fields $SubObject $field.arrayFields ($field.arrayFields | ForEach-Object { $_.name } )
+                $SubObject = Validate-Object-Fields $SubObject $field.arrayFields ($field.arrayFields | where { -not ( $_.optional -eq $true ) } | ForEach-Object { $_.name } )
                 if (-not $SubObject) {
                     $arrayObjectInvalid = $true
                     break;

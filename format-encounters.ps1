@@ -429,99 +429,8 @@ Function Is-Matching-Encounter($start, $guild, $boss) {
     return $true
 }
 
-Function Publish-Encounters($guild, $bosses, $encounterText) {
-
-    Log-Output "$($guild.name): searching local evtc data for dps.report links..."
-
-    $bosses | ForEach-Object {
-        $boss = $_
-
-        if ($boss.server_time) {
-            $evtc_dirs = @($start_dirs | where { [int](Split-Path -Leaf $_) -ge [int]$boss.server_time })
-        } else {
-            $evtc_dirs = $start_dirs
-        }
-
-        # Find matching start_map directories. Make sure we only check those which actually have a dps.report link
-        $matching_dirs = @($evtc_dirs | where { Is-Matching-Encounter $_ $guild $boss })
-
-        # If we didn't find anything, there's nothing to update
-        if (-not $matching_dirs) {
-            return
-        }
-
-        # Use the newest data available
-        $newest_data = $matching_dirs[0]
-        $evtc_name = Get-Evtc-Name $newest_data
-
-        # If the EVTC names don't match, this means our local data does not match the expected data
-        # based on the gw2 raidar URL. Thus, prefer local data, and remove the gw2 raidar URL.
-        if ($boss.evtc -ne $evtc_name) {
-            if ($boss.evtc) {
-                Log-Output "$($guild.name): $($boss.evtc) is not the newest encounter data for $($boss.name). Removing the GW2 Raidar data"
-            } else {
-                Log-Output "$($guild.name): Couldn't find local data for $($boss.name) using GW2 Raidar unix time. Removing the GW2 Raidar data"
-            }
-            $boss.Remove("gw2r_url") | Out-Null
-            $boss.Remove("evtc") | Out-Null
-        }
-
-        # Now, if we have no evtc data, use our latest local data instead
-        if (-not $boss.evtc) {
-            Log-Output "$($guild.name): Using ${evtc_name} as the only source of data for $($boss.name)"
-
-            # Set the time data
-            $server_time = [int](Split-Path -Leaf $newest_data)
-            $time = ConvertFrom-UnixDate $server_time
-            $boss.Set_Item("server_time", (Split-Path -Leaf $server_time))
-            $boss.Set_Item("time", $time)
-
-            # Store this evtc data directory
-            $evtc_name = Split-Path -Leaf (Get-Evtc-Dir $newest_data)
-            $boss.Set_Item("evtc", $evtc_name)
-        }
-    }
-
-    # If we didn't find any evtc data, this means that we didn't find any valid local data
-    # to upload against. We might have found just a gw2 raidar URL, but this is unlikely
-    # to be one of the files we uploaded via the upload-logs.ps1
-    if (-not ( $bosses | where { ($_.ContainsKey("evtc")) -or ($_.ContainsKey("gw2r_url")) } ) ) {
-        Log-Output "$($guild.name): no new ${encounterText} to publish."
-        return
-    }
-
-    $boss_per_date = @{}
-
-    $datestamp = Get-Date -Date $this_format_time -Format "yyyyMMdd-HHmmss"
-
-    # We show a set of encounters based on the day that they occurred, so if you
-    # run some encounters on one day, and some on another, you could run this script
-    # only on the second day and it would publish two separate pages for each
-    # day.
-    $bosses | ForEach-Object {
-        # Skip bosses which weren't found
-        if ((-not $_.ContainsKey("evtc")) -and (-not $_.ContainsKey("gw2r_url"))) {
-            return
-        }
-
-        if (-not $boss_per_date.ContainsKey($_.time.Date)) {
-            $boss_per_date[$_.time.Date] = @()
-        }
-        $boss_per_date[$_.time.Date] += ,@($_)
-    }
-
-    # object holding the thumbnail URL
-    if ($guild.thumbnail) {
-        $thumbnail = [PSCustomObject]@{
-            url = $guild.thumbnail
-        }
-    } else {
-        $thumbnail = $null
-    }
-
+Function Format-And-Publish($guild, $boss_per_date, $thumbnail, $server_name, $emoji_map, $webhook_url) {
     $data = @()
-
-    Log-Output "$($guild.name): generating discord report..."
 
     $boss_per_date.GetEnumerator() | Sort-Object -Property {$_.Key.DayOfWeek}, key | ForEach-Object {
         $date = $_.key
@@ -536,7 +445,7 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
             }
 
             $name = $boss.name
-            $emoji = $guild.emoji_map."$name"
+            $emoji = $emoji_map."$name"
 
             $players += Get-Local-Players $guild $boss
             $dps_report = Get-Local-DpsReport $boss
@@ -647,19 +556,118 @@ Function Publish-Encounters($guild, $bosses, $encounterText) {
     if ($config.debug_mode) {
         (Convert-Payload $payload) | Write-Output
     } elseif (X-Test-Path $config.discord_json_data) {
-        # Store the complete JSON we generated for later debugging
+        # Store the complete JSON we generated for later debugging (Need a better filename for this purpose)
         $discord_json_file = Join-Path -Path $config.discord_json_data -ChildPath "discord-webhook-${datestamp}.txt"
         (Convert-Payload $payload) | Out-File $discord_json_file
     }
 
-    Log-Output "$($guild.name): publishing discord report..."
+    Log-Output "$($guild.name): publishing discord report on $server_name..."
 
     # Send this request to the discord webhook
-    Invoke-RestMethod -Uri $guild.webhook_url -Method Post -Body (Convert-Payload $payload)
+    Invoke-RestMethod -Uri $webhook_url -Method Post -Body (Convert-Payload $payload)
+}
+
+Function Publish-Encounters($guild, $bosses, $encounterText) {
+
+    Log-Output "$($guild.name): searching local evtc data for dps.report links..."
+
+    $bosses | ForEach-Object {
+        $boss = $_
+
+        if ($boss.server_time) {
+            $evtc_dirs = @($start_dirs | where { [int](Split-Path -Leaf $_) -ge [int]$boss.server_time })
+        } else {
+            $evtc_dirs = $start_dirs
+        }
+
+        # Find matching start_map directories. Make sure we only check those which actually have a dps.report link
+        $matching_dirs = @($evtc_dirs | where { Is-Matching-Encounter $_ $guild $boss })
+
+        # If we didn't find anything, there's nothing to update
+        if (-not $matching_dirs) {
+            return
+        }
+
+        # Use the newest data available
+        $newest_data = $matching_dirs[0]
+        $evtc_name = Get-Evtc-Name $newest_data
+
+        # If the EVTC names don't match, this means our local data does not match the expected data
+        # based on the gw2 raidar URL. Thus, prefer local data, and remove the gw2 raidar URL.
+        if ($boss.evtc -ne $evtc_name) {
+            if ($boss.evtc) {
+                Log-Output "$($guild.name): $($boss.evtc) is not the newest encounter data for $($boss.name). Removing the GW2 Raidar data"
+            } else {
+                Log-Output "$($guild.name): Couldn't find local data for $($boss.name) using GW2 Raidar unix time. Removing the GW2 Raidar data"
+            }
+            $boss.Remove("gw2r_url") | Out-Null
+            $boss.Remove("evtc") | Out-Null
+        }
+
+        # Now, if we have no evtc data, use our latest local data instead
+        if (-not $boss.evtc) {
+            Log-Output "$($guild.name): Using ${evtc_name} as the only source of data for $($boss.name)"
+
+            # Set the time data
+            $server_time = [int](Split-Path -Leaf $newest_data)
+            $time = ConvertFrom-UnixDate $server_time
+            $boss.Set_Item("server_time", (Split-Path -Leaf $server_time))
+            $boss.Set_Item("time", $time)
+
+            # Store this evtc data directory
+            $evtc_name = Split-Path -Leaf (Get-Evtc-Dir $newest_data)
+            $boss.Set_Item("evtc", $evtc_name)
+        }
+    }
+
+    # If we didn't find any evtc data, this means that we didn't find any valid local data
+    # to upload against. We might have found just a gw2 raidar URL, but this is unlikely
+    # to be one of the files we uploaded via the upload-logs.ps1
+    if (-not ( $bosses | where { ($_.ContainsKey("evtc")) -or ($_.ContainsKey("gw2r_url")) } ) ) {
+        Log-Output "$($guild.name): no new ${encounterText} to publish."
+        return
+    }
+
+    $boss_per_date = @{}
+
+    $datestamp = Get-Date -Date $this_format_time -Format "yyyyMMdd-HHmmss"
+
+    # We show a set of encounters based on the day that they occurred, so if you
+    # run some encounters on one day, and some on another, you could run this script
+    # only on the second day and it would publish two separate pages for each
+    # day.
+    $bosses | ForEach-Object {
+        # Skip bosses which weren't found
+        if ((-not $_.ContainsKey("evtc")) -and (-not $_.ContainsKey("gw2r_url"))) {
+            return
+        }
+
+        if (-not $boss_per_date.ContainsKey($_.time.Date)) {
+            $boss_per_date[$_.time.Date] = @()
+        }
+        $boss_per_date[$_.time.Date] += ,@($_)
+    }
+
+    # object holding the thumbnail URL
+    if ($guild.thumbnail) {
+        $thumbnail = [PSCustomObject]@{
+            url = $guild.thumbnail
+        }
+    } else {
+        $thumbnail = $null
+    }
+
+    Log-Output "$($guild.name): generating discord report..."
+
+    Format-And-Publish $guild $boss_per_date $thumbnail $guild.name $guild.emoji_map $guild.webhook_url
+
+    ForEach ($iter in ( $guild_data.GetEnumerator() | where { ( $_.value.guild.everything -eq $true ) -and ( $_.value.guild.webhook_url -ne $guild.webhook_url ) } ) ) {
+        $extra_guild = $iter.value.guild
+        Format-And-Publish $guild $boss_per_date $thumbnail $extra_guild.name $extra_guild.emoji_map $extra_guild.webhook_url
+    }
 }
 
 $this_format_time = Get-Date
-
 
 ForEach ($iter in $guild_data.GetEnumerator()) {
     $guild = $iter.value.guild
