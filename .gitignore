@@ -7,12 +7,14 @@ RaidHeros
 arcdps.cbtlogs
 arcdps.mechanics
 ev-encounters-list.txt
-last_upload_time.json
+upload_logs_time.json
 arcdps.uploadextras
 arcdps.startmap
 evraids.formatted
 access_token.json
 client_secret.json
 upload_log.txt
+format_encounters_log.txt
+format_encounters_time.json
 l0g-101086-config.json
 simpleArcParse/simpleArcParse.depend
