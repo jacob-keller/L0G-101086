@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v0.11' {
-        $version | Should BeExactly 'v0.13'
+    it 'version should be v0.14' {
+        $version | Should BeExactly 'v0.14'
     }
 }
 
