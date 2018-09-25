@@ -171,12 +171,6 @@ ForEach($area in $areasResp.results) {
     }
 }
 
-# Hack in the wing6 IDs until gw2raidar updates
-$nameToId.Set_Item("Conjured Amalgamate", 43974);
-$nameToId.Set_Item("Nikare", 21105);
-$nameToId.Set_Item("Kenut", 21089);
-$nameToId.Set_Item("Qadim", 20934);
-
 # Insert IDs
 $bosses | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name) }
 $fractals | ForEach-Object { $name = $_.name; $_.Set_Item("id", $nameToId.$name) }
