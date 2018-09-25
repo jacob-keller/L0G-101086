@@ -299,7 +299,7 @@ ForEach($f in $files) {
 
         if ($resp.StatusCode -ne "OK") {
             Log-Output $resp.Content
-            throw "Request failed with status $resp.StatusCode"
+            throw "Request failed with status $($resp.StatusCode)"
         }
 
         # Store the response data so we can use it in potential future gw2raidar APIs
@@ -367,7 +367,7 @@ ForEach($f in $files) {
         if ($resp.StatusCode -ne "OK") {
             $json_resp = ConvertFrom-Json $resp.Content
             Log-Output $json_resp.error
-            throw "Request failed with status $resp.StatusCode"
+            throw "Request failed with status $($resp.StatusCode)"
         }
 
         $resp.Content | Out-File -FilePath (Join-Path $dir -ChildPath "dpsreport.json")
