@@ -363,10 +363,11 @@ parse_header(parsed_details& details, ifstream& file)
         details.boss_name = "Conjured Amalgamate";
         break;
     case nikare_id:
-        details.boss_name = "Nikare";
+        details.boss_name = "Largos Twins";
         break;
     case kenut_id:
-        details.boss_name = "Kenut";
+        /* This shouldn't end up in a real evtc file, but for completeness sake... */
+        details.boss_name = "Largos Twins";
         break;
     case qadim_id:
         details.boss_name = "Qadim";

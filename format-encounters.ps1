@@ -136,8 +136,7 @@ $bosses = @(@{name="Vale Guardian";wing=1},
             @{name="Soulless Horror";wing=5},
             @{name="Dhuum";wing=5},
             @{name="Conjured Amalgamate";wing=6},
-            @{name="Nikare";wing=6},
-            @{name="Kenut";wing=6},
+            @{name="Largos Twins";wing=6},
             @{name="Qadim";wing=6})
 
 $fractals = @(@{name="MAMA (CM)";wing="99cm"}
