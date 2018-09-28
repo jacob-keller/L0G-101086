@@ -375,6 +375,27 @@ $v2ConfigurationFields = $commonConfigurationFields +
 )
 
 <#
+ .Description
+ An enumeration defining methods for converting path-like fields
+
+ This enumeration defines the methods of converting path-like strings, which
+ support reading %UserProfile% as the $env.UserProfile environment variable.
+
+ FromUserProfile will allow converting the %UserProfile% string to the
+ UserProfile environment variable when reading the config in from disk.
+
+ ToUserProfile will allow converting the value of the UserProfile environment
+ variable into %UserProfile% when writing back out to disk.
+#>
+Add-Type -TypeDefinition @"
+    public enum PathConversion
+    {
+        FromUserProfile,
+        ToUserProfile,
+    }
+"@
+
+<#
  .Synopsis
   Validate fields of an object
 
@@ -396,12 +417,17 @@ $v2ConfigurationFields = $commonConfigurationFields +
  .Parameter RequiredFields
   Specifies which fiels are required to exist. If a required field is missing, an error is
   generated.
+
+ .Parameter conversion using the PathConversion enum
+  Optional parameter specifying how to convert path-like configuration values. The
+  default mode is to convert from %UserProfile% to the environment value for UserProfile
 #>
 Function Validate-Object-Fields {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$Object,
           [Parameter(Mandatory)][array]$Fields,
-          [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredFields)
+          [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredFields,
+          [PathConversion]$conversion = [PathConversion]::FromUserProfile)
 
     # Make sure all the required parameters are actually valid
     ForEach ($parameter in $RequiredFields) {
@@ -434,7 +460,14 @@ Function Validate-Object-Fields {
 
         if ($field.path) {
             # Handle %UserProfile% in path fields
-            $Object."$($field.name)" = $Object."$($field.name)".replace("%UserProfile%", $env:USERPROFILE)
+            switch ($conversion) {
+                "FromUserProfile" {
+                    $Object."$($field.name)" = $Object."$($field.name)".replace("%UserProfile%", $env:USERPROFILE)
+                }
+                "ToUserProfile" {
+                    $Object."$($field.name)" = $Object."$($field.name)".replace($env:USERPROFILE, "%UserProfile%")
+                }
+            }
         } elseif ($field.validFields) {
             # Recursively validate subfields. All fields not explicitly marked "optional" must be present
             $Object."$($field.name)" = Validate-Object-Fields $Object."$($field.name)" $field.validFields ($field.validFields | where { -not ( $_.optional -eq $true ) } | ForEach-Object { $_.name } )
@@ -492,12 +525,17 @@ Function Validate-Object-Fields {
 
  .Parameter RequiredParameters
   The parameters that are required by the invoking script
+
+ .Parameter conversion using the PathConversion enum
+  Optional parameter specifying how to convert path-like configuration values. The
+  default mode is to convert from %UserProfile% to the environment value for UserProfile
 #>
 Function Validate-Configuration {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][int]$version,
-          [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredParameters)
+          [Parameter(Mandatory)][AllowEmptyCollection()][array]$RequiredParameters,
+          [PathConversion]$conversion = [PathConversion]::FromUserProfile)
 
     if ($version -eq 1) {
         $configurationFields = $v1ConfigurationFields
@@ -518,7 +556,7 @@ Function Validate-Configuration {
         return
     }
 
-    $config = Validate-Object-Fields $config $configurationFields $RequiredParameters
+    $config = Validate-Object-Fields $config $configurationFields $RequiredParameters $conversion
 
     return $config
 }
@@ -566,7 +604,7 @@ Function Load-Configuration {
         return
     }
 
-    $config = (Validate-Configuration $config $version $RequiredParameters)
+    $config = (Validate-Configuration $config $version $RequiredParameters FromUserProfile)
     if (-not $config) {
         return
     }
