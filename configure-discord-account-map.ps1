@@ -1,9 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
 
-# This script is deprecated, and is in need of a replacement now that we have migrated
-# to the v2 configuration format
-
 # Terminate on all errors...
 $ErrorActionPreference = "Stop"
 
@@ -32,20 +29,36 @@ if (X-Test-Path $backup_file) {
 }
 
 # Load the configuration from the default file
-$config = Load-Configuration $config_file 1
+$config = Load-Configuration $config_file 2
 if (-not $config) {
     exit
 }
 
+Write-Output "The configuration file has the following guilds:"
+
+$config.guilds | ForEach-Object {
+    Write-Output "$($_.name)"
+}
+
+$guild_name = Read-Host -Prompt "Which guild would you like to configure?"
+
+$guild = $config.guilds | where { $_.name -eq $guild_name }
+
+if (-not $guild) {
+    Write-Output "${guild_name} is not one of the configured guilds."
+    Read-Host -Prompt "Press any key to exit."
+    exit
+}
+
 # Check if the token has already been set
-if ($config.discord_map) {
-    Write-Output "A discord account map already exists."
+if ($guild.discord_map) {
+    Write-Output "A discord account map already exists for this guild."
 
     # offer to delete any current mappings
-    $config.discord_map | Get-Member -Type NoteProperty | where { $config.discord_map."$($_.Name)" -is [string] } | ForEach-Object {
+    $guild.discord_map | Get-Member -Type NoteProperty | where { $guild.discord_map."$($_.Name)" -is [string] } | ForEach-Object {
         $delete = Read-Host -Prompt "Delete mapping for $($_.Name))? (Y/N)"
         if ($delete -eq "Y") {
-            $config.discord_map.PSObject.Members.Remove($_.Name)
+            $guild.discord_map.PSObject.Members.Remove($_.Name)
         }
     }
 }
@@ -64,7 +77,7 @@ do {
         if ((-not $gw2name) -or (-not $discord)) {
             continue
         }
-        $config.discord_map[$gw2name] = $discord
+        $guild.discord_map | Add-Member -MemberType NoteProperty -Name "$gw2name" -Value "$discord"
     }
 } while ($add -eq "Y")
 
