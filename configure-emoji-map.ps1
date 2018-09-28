@@ -1,9 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
 
-# This script is deprecated, and is in need of a replacement now that we have migrated
-# to the v2 configuration format
-
 # Terminate on all errors...
 $ErrorActionPreference = "Stop"
 
@@ -28,15 +25,31 @@ if (X-Test-Path $backup_file) {
 }
 
 # Load the configuration from the default file
-$config = Load-Configuration $config_file 1
+$config = Load-Configuration $config_file 2
 if (-not $config) {
     exit
 }
 
+Write-Output "The configuration file has the following guilds:"
+
+$config.guilds | ForEach-Object {
+    Write-Output "$($_.name)"
+}
+
+$guild_name = Read-Host -Prompt "Which guild would you like to configure?"
+
+$guild = $config.guilds | where { $_.name -eq $guild_name }
+
+if (-not $guild) {
+    Write-Output "${guild_name} is not one of the configured guilds."
+    Read-Host -Prompt "Press any key to exit."
+    exit
+}
+
 # Check if the token has already been set
-if ($config.emoji_map) {
+if ($guild.emoji_map) {
     try {
-        [ValidateSet('Y','N')]$continue = Read-Host -Prompt "An emoji map appears to already be configured. Comtinue? (Y/N)"
+        [ValidateSet('Y','N')]$continue = Read-Host -Prompt "An emoji map appears to already be configured for this guild. Comtinue? (Y/N)"
     } catch {
         # Just exit on an invalid response
         exit
@@ -72,7 +85,7 @@ $emoji_map.GetEnumerator() | Sort-Object -Property { $_.Key } | ForEach-Object {
 }
 
 # Store the new map into the configuration
-$config.emoji_map = $emoji_map
+$guild.emoji_map = $emoji_map
 
 # Write the configuration file out
 Write-Configuration $config $config_file $backup_file
