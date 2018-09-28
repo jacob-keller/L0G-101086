@@ -79,8 +79,9 @@ $mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanic
 $mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
 
 $run_update = $false
-Write-Host "Checking ArcDPS MD5 Hash for changes"
-if ((X-Test-Path $arc_path) -and (X-Test-Path $templates_path)) {
+if ((X-Test-Path $arc_path) -and (X-Test-Path $templates_path) -and (X-Test-Path $extras_path)) {
+    Write-Host "Checking ArcDPS MD5 Hash for changes"
+
     $current_md5 = (Get-FileHash $arc_path -Algorithm MD5).Hash
     Write-Host "arcdps: Current MD5 Hash: $current_md5"
     $web_md5 = Invoke-WebRequest -URI $arc_md5_url -UseBasicParsing
