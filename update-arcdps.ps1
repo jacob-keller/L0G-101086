@@ -78,8 +78,16 @@ $mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanic
 # URL for the MD5 sum of the mechanics dll
 $mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
 
+if ($config.experimental_arcdps -eq $true) {
+    $arc_url = "https://www.deltaconnected.com/arcdps/dev/d3d9.dll"
+    $templates_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_buildtemplates.dll"
+    $extras_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_extras.dll"
+    # The experimental build doesn't have an md5sum file currently. :(
+    $arc_md5_url = $null
+}
+
 $run_update = $false
-if ((X-Test-Path $arc_path) -and (X-Test-Path $templates_path) -and (X-Test-Path $extras_path)) {
+if (($arc_md5_url -ne $null) -and (X-Test-Path $arc_path) -and (X-Test-Path $templates_path) -and (X-Test-Path $extras_path)) {
     Write-Host "Checking ArcDPS MD5 Hash for changes"
 
     $current_md5 = (Get-FileHash $arc_path -Algorithm MD5).Hash

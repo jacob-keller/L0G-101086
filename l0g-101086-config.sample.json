@@ -1,6 +1,7 @@
 {
     "config_version":  2,
     "debug_mode":  false,
+    "experimental_arcdps": false,
     "arcdps_logs":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs",
     "discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted",
     "extra_upload_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.uploadextras",
