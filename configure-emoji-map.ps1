@@ -58,7 +58,10 @@ $emoji_map = @{"Mursaat Overseer"="";
                "Keep Construct"="";
                "Matthias"="";
                "Deimos"="";
-               "Vale Guardian"=""}
+               "Vale Guardian"="";
+               "Conjured Amalgamate"="";
+               "Largos Twins"="";
+               "Qadim"="";}
 
 Write-Output "Fill in the discord emoji id you would like to use for each boss."
 Write-Output "To generate this, type \:emoji: ino a channel of your server."
