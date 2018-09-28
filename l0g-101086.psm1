@@ -392,6 +392,10 @@ $v2ConfigurationFields = $commonConfigurationFields +
 
  .Parameter fields
   The field definition
+
+ .Parameter RequiredFields
+  Specifies which fiels are required to exist. If a required field is missing, an error is
+  generated.
 #>
 Function Validate-Object-Fields {
     [CmdletBinding()]
@@ -481,6 +485,10 @@ Function Validate-Object-Fields {
 
  .Parameter config
   The configuration object to validate
+
+ .Parameter version
+  The expected configuration version, used to ensure that the config object matches
+  the configuration version used by the script requesting it.
 
  .Parameter RequiredParameters
   The parameters that are required by the invoking script
