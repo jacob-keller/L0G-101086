@@ -69,8 +69,7 @@ Add-Member -InputObject $config -NotePropertyName guilds -NotePropertyValue @($g
 $config.config_version = 2
 
 # Write the configuration file out
-Copy-Item -Path $config_file -Destination $backup_file
-$config | ConvertTo-Json -Depth 10 | Out-File -Force $config_file
+Write-Configuration $config $config_file $backup_file
 
 Read-Host -Prompt "Configured the discord account map. Press enter to exit"
 exit

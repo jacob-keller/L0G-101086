@@ -72,8 +72,7 @@ $emoji_map.GetEnumerator() | Sort-Object -Property { $_.Key } | ForEach-Object {
 $config.emoji_map = $emoji_map
 
 # Write the configuration file out
-Copy-Item -Path $config_file -Destination $backup_file
-$config | ConvertTo-Json -Depth 10 | Out-File -Force $config_file
+Write-Configuration $config $config_file $backup_file
 
 Read-Host -Prompt "Configured the emoji map. Press enter to exit"
 exit

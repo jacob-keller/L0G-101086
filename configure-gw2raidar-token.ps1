@@ -80,8 +80,7 @@ Write-Output "Obtained token..."
 $config.gw2raidar_token = $token_resp.token
 
 # Write the configuration out
-Copy-Item -Path $config_file -Destination $backup_file
-$config | ConvertTo-Json -Depth 10 | Out-File -Force $config_file
+Write-Configuration $config $config_file $backup_file
 
 Read-Host -Prompt "Configured GW2 Raidar token. Press enter to exit"
 exit
