@@ -242,8 +242,6 @@ Function Locate-Local-EVTC-Data ($area_id, $start_time) {
 
 # Main loop for getting gw2raidar links
 Do {
-    $areasResp = Invoke-RestMethod -Uri "${gw2raidar_url}/api/v2/areas" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
-
     try {
         $data = Invoke-RestMethod -Uri "${gw2raidar_url}${request}" -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
     } catch {
