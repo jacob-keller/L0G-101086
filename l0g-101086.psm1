@@ -710,3 +710,40 @@ Function Write-Exception {
     Write-Error ($e.Exception | Format-List -Force | Out-String) -ErrorAction Continue
     Write-Error ($e.InvocationInfo | Format-List -Force | Out-String) -ErrorAction Continue
 }
+
+<#
+ .Synopsis
+  Write configuration object back out to a file
+
+ .Description
+  Writes the given configuration object back out to a file. It will also convert the profile
+  directory back to %UserProfile% so that the config is more easily re-usable.
+
+ .Parameter config
+  The config object to print out
+
+ .Parameter file
+  The path to the configuration file
+#>
+Function Write-Configuration {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$Config,
+          [Parameter(Mandatory)][string]$ConfigFile,
+          [Parameter(Mandatory)][string]$BackupFile)
+
+    if (X-Test-Path $ConfigFile) {
+        if (X-Test-Path $BackupFile) {
+            throw "The backup file must be deleted prior to writing out the configuration file"
+        }
+        Move-Item $ConfigFile $BackupFile
+    }
+
+    # Make sure any changes are valid. Convert the UserProfile path back to %UserProfile%.
+    $writeConfig = (Validate-Configuration $Config $Config.config_version @() ToUserProfile)
+    if (-not $writeConfig) {
+        throw "The configuration object is not valid."
+    }
+
+    # Write out the configuration to disk
+    $writeConfig | ConvertTo-Json -Depth 10 | Out-File -Force $ConfigFile
+}
