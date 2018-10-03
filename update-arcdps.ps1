@@ -79,11 +79,24 @@ $mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanic
 $mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
 
 if ($config.experimental_arcdps -eq $true) {
-    $arc_url = "https://www.deltaconnected.com/arcdps/dev/d3d9.dll"
-    $templates_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_buildtemplates.dll"
-    $extras_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_extras.dll"
-    # The experimental build doesn't have an md5sum file currently. :(
-    $arc_md5_url = $null
+    $experimental_arc_url =  "https://www.deltaconnected.com/arcdps/dev/d3d9.dll"
+
+    # Check if the experimental build exists right now
+    try {
+        Invoke-WebRequest -URI $experimental_arc_url -UseBasicParsing -Method head
+
+        $arc_url = $experimental_arc_url
+        $templates_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_buildtemplates.dll"
+        $extras_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_extras.dll"
+        # The experimental build doesn't have an md5sum file currently. :(
+        $arc_md5_url = $null
+    } catch [System.net.WebException] {
+        if ($_.Exception.Response.StatusCode -eq "NotFound") {
+            Write-Host "No experimental version available. Downloading regular arcdps release"
+        } else {
+            throw $_.Exception
+        }
+    }
 }
 
 $run_update = $false
