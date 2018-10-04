@@ -184,13 +184,22 @@ ForEach($f in $files) {
     }
 
     try {
-        # Parse the evtc file and extract account names
-        $player_data = (& $simple_arc_parse players "${evtc}")
-        $players = $player_data.Split([Environment]::NewLine)
-
         # Parse the evtc header file and get the encounter name and id
         $evtc_header_data = (& $simple_arc_parse header "${evtc}")
+
+        if ([string]::IsNullOrEmpty($evtc_header_data)) {
+            throw "${evtc} is not recognized as a valid .evtc file by simpleArcParse."
+        }
+
         $evtc_header = ($evtc_header_data.Split([Environment]::NewLine))
+
+        # Parse the evtc file and extract account names
+        $player_data = (& $simple_arc_parse players "${evtc}")
+        if ([string]::IsNullOrEmpty($player_data)) {
+            $players = @()
+        } else {
+            $players = $player_data.Split([Environment]::NewLine)
+        }
 
         # Determine the ArcDPS release date of this encounter
         try {
