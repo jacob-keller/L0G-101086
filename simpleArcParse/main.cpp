@@ -112,7 +112,7 @@ struct evtc_skill {
 };
 
 /* combat event */
-struct evtc_cbtevent {
+struct evtc_cbtevent_v0 {
 	uint64_t time; /* timegettime() at time of event */
 	uint64_t src_agent; /* unique identifier */
 	uint64_t dst_agent; /* unique identifier */
@@ -145,6 +145,36 @@ struct evtc_cbtevent {
 	uint8_t is_shields; /* all or part damage was vs barrier/shield */
 	uint8_t result_local; /* internal tracking. garbage */
 	uint8_t ident_local; /* internal tracking. garbage */
+};
+
+struct evtc_cbtevent_v1 {
+	uint64_t time;
+	uint64_t src_agent;
+	uint64_t dst_agent;
+	int32_t value;
+	int32_t buff_dmg;
+	uint32_t overstack_value;
+	uint32_t skillid;
+	uint16_t src_instid;
+	uint16_t dst_instid;
+	uint16_t src_master_instid;
+	uint16_t dst_master_instid;
+	uint8_t iff;
+	uint8_t buff;
+	uint8_t result;
+	uint8_t is_activation;
+	uint8_t is_buffremove;
+	uint8_t is_ninety;
+	uint8_t is_fifty;
+	uint8_t is_moving;
+	uint8_t is_statechange;
+	uint8_t is_flanking;
+	uint8_t is_shields;
+	uint8_t is_offcycle;
+	uint8_t pad61;
+	uint8_t pad62;
+	uint8_t pad63;
+	uint8_t pad64;
 };
 
 static const string valid_types[] = {
@@ -186,7 +216,20 @@ static const streampos SEEKG_EVTC_FIRST_CBTEVENT(uint32_t agent_count, uint32_t 
 {
     return (SEEKG_EVTC_FIRST_SKILL(agent_count) + streampos(sizeof(evtc_skill) * skill_count));
 }
-static uint32_t EVTC_CBTEVENT_SIZE = sizeof(evtc_cbtevent);
+
+static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision)
+{
+    if (revision == 0) {
+        return sizeof(evtc_cbtevent_v0);
+    } else if (revision == 1) {
+        return sizeof(evtc_cbtevent_v1);
+    } else {
+        /* No easy way to return an error here, and the header parsing should
+         * have prevented this, so we'll just throw an exception
+         */
+        throw "Invalid EVTC cbtevent revision";
+    }
+}
 
 static const uint16_t vale_guardian_id  = 0x3C4E;
 static const uint16_t gorseval_id       = 0x3C45;
@@ -241,6 +284,7 @@ struct parsed_details {
 
     /* Extracted data */
     char arc_header[16];
+    uint8_t revision;
     uint16_t boss_id;
     const char *boss_name;
     uint32_t server_start;
@@ -286,6 +330,8 @@ parse_header(parsed_details& details, ifstream& file)
     if (details.arc_header[12] != '\0') {
         return -EINVAL;
     }
+
+    details.revision = 0;
 
     /* Make sure there is a NUL in the byte following the area id */
     if (details.arc_header[15] != '\0') {
@@ -520,7 +566,7 @@ calculate_cbt_event_count(parsed_details& details, ifstream& file)
     file.seekg(0, ios::end);
     cbtevent_length = file.tellg() - cbtevent_pos;
 
-    details.cbt_event_count = cbtevent_length / EVTC_CBTEVENT_SIZE;
+    details.cbt_event_count = cbtevent_length / EVTC_CBTEVENT_SIZE(details.revision);
 }
 
 /**
@@ -758,9 +804,19 @@ int main(int argc, char *argv[])
         /* Extract data for each player in the encounter */
         parse_all_player_agents(details, evtc_file);
     } else if (type == "success") {
-        parse_last_matching_event<evtc_cbtevent>(details, evtc_file, parse_reward_event);
+        if (details.revision == 0)
+            parse_last_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_reward_event);
+        else if (details.revision == 1)
+            parse_last_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_reward_event);
+        else
+            throw "Invalid EVTC cbtevent revision";
     } else if (type == "start_time") {
-        parse_first_matching_event<evtc_cbtevent>(details, evtc_file, parse_logstart_event);
+        if (details.revision == 0)
+            parse_first_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_logstart_event);
+        else if (details.revision == 1)
+            parse_first_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_logstart_event);
+        else
+            throw "Invalid EVTC cbtevent revision";
     }
 
     if (type == "header") {
