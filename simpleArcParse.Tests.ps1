@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v0.14' {
-        $version | Should BeExactly 'v0.14'
+    it 'version should be v1.0' {
+        $version | Should BeExactly 'v1.0'
     }
 }
 
@@ -71,6 +71,19 @@ $testEncounters = @(
                   'AndyJo.8794','AureliaSilvati.6049')
         success='SUCCESS'
         start_time=1527733808
+    }
+    @{
+        name='test-log-revision-1.evtc'
+        version='EVTC20181002'
+        boss_name='Vale Guardian'
+        boss_id='15438'
+        players=@('AureliaSilvati.6049', 'AndyJo.8794', 'diefour.1632',
+                  'Mr Hinky.2159', 'Draykrah.1980', 'miniusboye.3840',
+                  'Carilyra.6152', 'Serena Sedai.3064', 'That Guy.5704',
+                  'Agvir.9502')
+        success='SUCCESS'
+        start_time=1538615095
+
     }
 )
 

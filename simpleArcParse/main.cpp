@@ -180,6 +180,7 @@ struct evtc_cbtevent_v1 {
 static const string valid_types[] = {
     "version",
     "header",
+    "revision",
     "players",
     "success",
     "start_time",
@@ -283,7 +284,7 @@ struct parsed_details {
     streampos cbt_event_start;
 
     /* Extracted data */
-    char arc_header[16];
+    char arc_header[13];
     uint8_t revision;
     uint16_t boss_id;
     const char *boss_name;
@@ -304,6 +305,7 @@ struct parsed_details {
 static int
 parse_header(parsed_details& details, ifstream& file)
 {
+    char raw_header[16];
     /* The evtc file has a 16 byte header. It consists of
      * 4 bytes containing "EVTC", followed by 8 bytes
      * with a YYYYMMDD representing the arcdps build,
@@ -312,34 +314,39 @@ parse_header(parsed_details& details, ifstream& file)
      */
 
     file.seekg(SEEKG_EVTC_HEADER);
-    file.read(details.arc_header, 16);
+    file.read(raw_header, 16);
 
     /* Make sure we have the 4 bytes of EVTC */
-    if (strncmp(details.arc_header, "EVTC", 4)) {
+    if (strncmp(raw_header, "EVTC", 4)) {
         return -EINVAL;
     }
 
     /* Make sure the version is a number */
     for (int i = 4; i < 12; i++) {
-        if (!isdigit(details.arc_header[i])) {
+        if (!isdigit(raw_header[i])) {
             return -EINVAL;
         }
     }
 
-    /* Make sure there is a NUL following the YYYYMMDD */
-    if (details.arc_header[12] != '\0') {
+    /* Extract the main EVTC header string */
+    memcpy(details.arc_header, raw_header, 12);
+    details.arc_header[12] = '\0';
+
+    /* Extract the cbtevent revision */
+    details.revision = raw_header[12];
+
+    /* Only v0 and v1 are currently supported */
+    if (details.revision > 1) {
         return -EINVAL;
     }
 
-    details.revision = 0;
-
     /* Make sure there is a NUL in the byte following the area id */
-    if (details.arc_header[15] != '\0') {
+    if (raw_header[15] != '\0') {
         return -EINVAL;
     }
 
     /* extract the area id */
-    memcpy(&details.boss_id, &details.arc_header[13], sizeof(uint16_t));
+    memcpy(&details.boss_id, &raw_header[13], sizeof(uint16_t));
 
     switch (details.boss_id) {
     case vale_guardian_id:
@@ -769,7 +776,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v0.14" << endl;
+        cout << "v1.0" << endl;
         return 0;
     }
 
@@ -823,6 +830,8 @@ int main(int argc, char *argv[])
         cout << details.arc_header << endl;
         cout << details.boss_name << endl;
         cout << details.boss_id << endl;
+    } else if (type == "revision") {
+        cout << +details.revision << endl;
     } else if (type == "players") {
         for (auto& player : details.players) {
             cout << player.account << endl;
