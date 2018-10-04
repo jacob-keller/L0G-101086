@@ -665,7 +665,7 @@ parse_first_matching_event(parsed_details& details, ifstream& file, eventparser 
 }
 
 /**
- * parse_first_matching_event: parse combat events with a given parser
+ * parse_last_matching_event: parse combat events with a given parser
  * @details: structure to store EVTC data
  * @file: the file to scan
  * @parser: the parser to use
