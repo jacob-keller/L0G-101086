@@ -537,10 +537,10 @@ get_cbt_event_details(ifstream& file, streampos cbt_event_start, uint32_t cbteve
 {
     streampos event_index = cbt_event_start;
 
-    event_index += cbtevent * sizeof(evtc_cbtevent);
+    event_index += cbtevent * sizeof(cbt_details);
 
     file.seekg(event_index);
-    file.read((char *)&cbt_details, sizeof(evtc_cbtevent));
+    file.read((char *)&cbt_details, sizeof(cbt_details));
 }
 
 /**
