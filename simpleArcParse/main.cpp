@@ -632,7 +632,7 @@ parse_all_cbt_events(parsed_details& details, ifstream& file)
         get_cbt_event_details(file, details.cbt_event_start, event, event_details);
 
         for (parser = 0; parser < parsers_count; parser++) {
-            if (parsers[0](details, event_details))
+            if (parsers[parser](details, event_details))
                 break;
         }
     }
