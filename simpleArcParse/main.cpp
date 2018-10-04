@@ -532,8 +532,9 @@ calculate_cbt_event_count(parsed_details& details, ifstream& file)
  *
  * Extract a single combat event from the EVTC file.
  */
-static void
-get_cbt_event_details(ifstream& file, streampos cbt_event_start, uint32_t cbtevent, evtc_cbtevent& cbt_details)
+template<typename Event> static void
+get_cbt_event_details(ifstream& file, streampos cbt_event_start,
+                      uint32_t cbtevent, Event& cbt_details)
 {
     streampos event_index = cbt_event_start;
 
@@ -553,8 +554,8 @@ get_cbt_event_details(ifstream& file, streampos cbt_event_start, uint32_t cbteve
  * stores the success data in @details, and returns true. Otherwise it
  * returns false.
  */
-static bool
-parse_reward_event(parsed_details& details, evtc_cbtevent& event)
+template<typename Event> static bool
+parse_reward_event(parsed_details& details, Event& event)
 {
     if (event.is_statechange == CBTS_REWARD) {
         /* A reward event indicates that the boss was killed successfully */
@@ -574,8 +575,8 @@ parse_reward_event(parsed_details& details, evtc_cbtevent& event)
  * according to the server. If the event matches, this parser stores the start
  * time in @details and returns true. Otherwise it returns false.
  */
-static bool
-parse_logstart_event(parsed_details& details, evtc_cbtevent& event)
+template<typename Event> static bool
+parse_logstart_event(parsed_details& details, Event& event)
 {
     if (event.is_statechange == CBTS_LOGSTART &&
         event.src_agent == arcdps_src_agent) {
@@ -597,15 +598,18 @@ parse_logstart_event(parsed_details& details, evtc_cbtevent& event)
  * that the event matched. Returning false indicates that the event did
  * not match this parser.
  */
-typedef bool (*eventparser)(parsed_details& details, evtc_cbtevent& event);
+template<typename Event>
+using eventparser = bool (*)(parsed_details& details, Event& event);
 
 /* List of all current combat event parsers */
-static const eventparser parsers[] = {
-    parse_reward_event,
-    parse_logstart_event,
+template<typename Event>
+static const eventparser<Event> parsers[] = {
+    parse_reward_event<Event>,
+    parse_logstart_event<Event>,
 };
 
-static const int parsers_count = extent<decltype(parsers)>::value;
+template<typename Event>
+static const int parsers_count = extent<decltype(parsers<Event>)>::value;
 
 /**
  * parse_all_cbt_events: parse all combat events
@@ -621,18 +625,19 @@ static const int parsers_count = extent<decltype(parsers)>::value;
  *
  * This function is currently unused.
  */
+template<typename Event>
 static void __attribute__((unused))
 parse_all_cbt_events(parsed_details& details, ifstream& file)
 {
     unsigned int event, parser;
 
     for (event = 0; event < details.cbt_event_count; event++) {
-        evtc_cbtevent event_details;
+        Event event_details;
 
         get_cbt_event_details(file, details.cbt_event_start, event, event_details);
 
-        for (parser = 0; parser < parsers_count; parser++) {
-            if (parsers[parser](details, event_details))
+        for (parser = 0; parser < parsers_count<Event>; parser++) {
+            if (parsers<Event>[parser](details, event_details))
                 break;
         }
     }
@@ -650,12 +655,12 @@ parse_all_cbt_events(parsed_details& details, ifstream& file)
  * This function is intended to find a single combat event near the start of the
  * events, such as the log start time.
  */
-static void
-parse_first_matching_event(parsed_details& details, ifstream& file, eventparser parser)
+template<typename Event> static void
+parse_first_matching_event(parsed_details& details, ifstream& file, eventparser<Event> parser)
 {
     unsigned int event;
     for (event = 0; event < details.cbt_event_count; event++) {
-        evtc_cbtevent event_details;
+        Event event_details;
 
         get_cbt_event_details(file, details.cbt_event_start, event, event_details);
 
@@ -676,12 +681,12 @@ parse_first_matching_event(parsed_details& details, ifstream& file, eventparser 
  * This function is intended to find a single combat event near the end of
  * the events, such as the reward chests indicating success.
  */
-static void
-parse_last_matching_event(parsed_details& details, ifstream& file, eventparser parser)
+template<typename Event> static void
+parse_last_matching_event(parsed_details& details, ifstream& file, eventparser<Event> parser)
 {
     unsigned int event;
     for (event = details.cbt_event_count; event-- > 0;) {
-        evtc_cbtevent event_details;
+        Event event_details;
 
         get_cbt_event_details(file, details.cbt_event_start, event, event_details);
 
@@ -753,9 +758,9 @@ int main(int argc, char *argv[])
         /* Extract data for each player in the encounter */
         parse_all_player_agents(details, evtc_file);
     } else if (type == "success") {
-        parse_last_matching_event(details, evtc_file, parse_reward_event);
+        parse_last_matching_event<evtc_cbtevent>(details, evtc_file, parse_reward_event);
     } else if (type == "start_time") {
-        parse_first_matching_event(details, evtc_file, parse_logstart_event);
+        parse_first_matching_event<evtc_cbtevent>(details, evtc_file, parse_logstart_event);
     }
 
     if (type == "header") {
