@@ -92,7 +92,7 @@ enum gwlanguage {
 };
 
 /* define agent. stats range from 0-10 */
-typedef struct evtc_agent {
+struct evtc_agent {
 	uint64_t addr;
 	uint32_t prof;
 	uint32_t is_elite;
@@ -103,16 +103,16 @@ typedef struct evtc_agent {
 	int16_t condition;
 	int16_t pad2;
 	char name[64];
-} evtc_agent;
+};
 
 /* define skill */
-typedef struct evtc_skill {
+struct evtc_skill {
 	int32_t id;
 	char name[64];
-} evtc_skill;
+};
 
 /* combat event */
-typedef struct evtc_cbtevent {
+struct evtc_cbtevent {
 	uint64_t time; /* timegettime() at time of event */
 	uint64_t src_agent; /* unique identifier */
 	uint64_t dst_agent; /* unique identifier */
@@ -145,7 +145,7 @@ typedef struct evtc_cbtevent {
 	uint8_t is_shields; /* all or part damage was vs barrier/shield */
 	uint8_t result_local; /* internal tracking. garbage */
 	uint8_t ident_local; /* internal tracking. garbage */
-} evtc_cbtevent;
+};
 
 static const string valid_types[] = {
     "version",
