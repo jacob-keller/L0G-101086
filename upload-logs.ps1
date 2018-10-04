@@ -274,8 +274,11 @@ ForEach($f in $files) {
         # Remove the extra data for this object
         Remove-Item -Path $dir -Recurse
 
-        # Don't upload this encounter
-        continue
+        # If we failed to parse an encounter, it is likely due to either data corruption such as invalid
+        # evtc files being generated, or because the evtc file format has changed. Stop processing immediately
+        # so that the user can verify what is wrong, and intervene.
+        Read-Host -Prompt "Unable to process ${f}... Press any key to exit..."
+        exit
     } finally {
         # If the file was originally compressed, there's no need to keep around the uncompressed copy
         if ($f -ne $evtc -and (Test-Path $evtc)) {
