@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='players &quot;C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arcdps.uploadextras\20180516-181229.evtc\20180516-181229.evtc&quot;' />
+				<Option parameters='start_time &quot;C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arcdps.uploadextras\20181003-180903.evtc\20181003-180903.evtc.tmp&quot;' />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -21,7 +21,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='players &quot;C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\arcdps.uploadextras\20180516-181229.evtc\20180516-181229.evtc&quot;' />
+				<Option parameters='players &quot;C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\l0g-101086-test-data\test-log-revision-1.evtc&quot;' />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
