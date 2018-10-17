@@ -139,7 +139,9 @@ $commonConfigurationFields =
     }
     @{
         # Path to a folder for storing the JSON we send to a discord webhook
-        # Intended for debugging if the logs do not format correctly.
+        # Intended for debugging if the logs do not format correctly. If
+        # this is set to a non-existent directory, then the discord webhooks
+        # will not be saved.
         name="discord_json_data"
         type=[string]
         path=$true
