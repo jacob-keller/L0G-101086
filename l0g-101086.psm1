@@ -986,3 +986,165 @@ Function Load-From-EVTC {
 
     return $boss
 }
+
+<#
+ .Synopsis
+  Publish a discord embed to a webhook url
+
+ .Description
+  Take a JSON string representing a discord webhook embed and publish it to a
+  specified discord webhook URL
+
+ .Parameter guild
+  The guild to publish to
+
+ .Parameter embed_string
+  The discord webhook embed string
+#>
+Function Publish-Discord-Embed {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][object]$guild,
+          [Parameter(Mandatory)][string]$embed_string)
+
+    # Send this request to the discord webhook
+    Invoke-RestMethod -Uri $guild.webhook_url -Method Post -Body $embed_string
+}
+
+<#
+ .Synopsis
+  Format and publish a guild's encounters for the day
+
+ .Description
+  Format and publish a series of raid encounters to a particular guild's
+  discord webhook. Note, this function assumes that the array of bosses
+  all take place on the same day, and are run by the same guild. See
+  Format-And-Publish-All for a function which can handle arbitrary series
+  of boss encounters.
+
+ .Parameter config
+  The config object
+
+ .Parameter some_bosses
+  An array of boss objects which contain the necessary information to publish.
+  Note: assumes that the bosses all take place on a single day with a single guild.
+
+ .Parameter guild
+  The guild object of the publishing guild
+#>
+Function Format-And-Publish-Some {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][array]$some_bosses,
+          [Parameter(Mandatory)][object]$guild)
+
+    # List of players who partake in any boss for this day+guild
+    $players = @()
+
+    # List of webhook fields for this day+guild
+    $fields = @()
+
+    $emoji_map = $guild.emoji_map
+
+    # We sort the bosses based on server start time
+    ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
+        $name = $boss.name
+        $emoji = $emoji_map."$name"
+
+        $players += $boss.players
+        $dps_report = $boss.dps_report
+
+        # For each boss, we add a field object to the embed
+        #
+        # Note that PowerShell's default ConvertTo-Jsom does not handle unicode
+        # characters very well, so we use @NAME@ replacement strings to represent
+        # these characters, which we'll replace after calling ConvertTo-Json
+        # See Convert-Payload for more details
+        $boss_field = [PSCustomObject]@{
+                # Each boss is just an emoji followed by the full name
+                name = "${emoji} **${name}**"
+                inline = $true
+        }
+
+        $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`")`r`n@UNICODE-ZWS@"}
+
+        # Insert the boss field into the array
+        $fields += $boss_field
+    }
+
+    # Create a participants list separated by MIDDLE DOT unicode characters
+    $participants = (Get-Discord-Players $guild $players | Sort | Select-Object -Unique) -join " @MIDDLEDOT@ "
+
+    # Add a final field as the set of players.
+    if ($participants) {
+        $fields += [PSCustomObject]@{
+            name = "@EMDASH@ Raiders @EMDASH@"
+            value = "${participants}"
+        }
+    }
+
+    # Determine which wings we did
+    $wings = $($some_bosses | Sort-Object -Property {$_.time} | ForEach-Object {$_.wing} | Get-Unique) -join ", "
+
+    # Get the date based on the first boss in the list, since we assume all bosses were run on the same date
+    $date = Get-Date -Format "MMM d, yyyy" -Date $some_bosses[0].time
+
+    # Get the running guild based on the first boss in the list, since we assume all bosses were run by the same guild
+    $running_guild = Lookup-Guild $config $some_bosses[0].guild
+
+
+    # Create the data object
+    $data_object = [PSCustomObject]@{
+        title = "$($running_guild.name) Wings: ${wings} | ${date}"
+        color = 0xf9a825
+        fields = $fields
+	footer = [PSCustomObject]@{ text = "Created by /u/platinummyr" }
+    }
+    if ($running_guild.thumbnail) {
+        $thumbnail = [PSCustomObject]@{
+            url = $guild.thumbnail
+        }
+        $data_object | Add-Member @{thumbnail=$thumbnail}
+    }
+
+    # Create the payload object
+    $payload = [PSCustomObject]@{
+        embeds = @($data_object)
+    }
+
+    # Convert the payload to JSON suitable for the discord webhook API
+    $payload_content = (Convert-Payload $payload)
+
+    # if debug_mode is enabled, dump the embed contents to the console output
+    if ($config.debug_mode) {
+        $payload_content | Write-Output
+    }
+
+    # Use the current time to get a somewhat unique name for the recorded
+    # file. This way we can easily re-use older encounters. Alternatively
+    # we could try to find some unique way to hash the contents, so that re-posts
+    # would use the same time as before..? But whatever method needs to produce
+    # a unique string so that each published encounter is saved to a separate file
+    $datestamp = Get-Date -Date -Format "yyyyMMdd-HHmmss"
+    if (X-Test-Path $config.discord_json_data) {
+        # Use the running and publishing guilds in the name, but strip out the
+        # [] characters, as they can confuse io.path as wildcard characters.
+        $found = $running_guild.name -match '^\[.*\]$'
+        if ($found) {
+            $short_runner = $matches[1]
+        } else {
+            $short_runner = $running_guild.name
+        }
+        $found = $guild.name -match '^\[.*\]$'
+        if ($found) {
+            $short_publisher = $matches[1]
+        } else {
+            $short_publisher = $guild.name
+        }
+
+        # Store the complete JSON we generated for later debugging
+        $discord_json_file = [io.path]::combine($config.discord_json_data, "discord-webhook-$short_runner-$datestamp-published-on-$short_publisher.txt")
+        $payload_content | Out-File $discord_json_file
+    }
+
+    Publish-Discord-Embed $guild $payload_content
+}
