@@ -1148,3 +1148,87 @@ Function Format-And-Publish-Some {
 
     Publish-Discord-Embed $guild $payload_content
 }
+
+<#
+ .Synopsis
+  Split a collection of encounters into a nested hash
+
+ .Description
+  Take an array of bosses and split it into a nested hash keyed first
+  by the date the encounter was run, followed by the guild which ran the
+  encounter. This allows us to group together similar sets of encounters
+  and post by the date they were run.
+
+ .Parameter bosses
+  The array of bosses to split
+#>
+Function Split-Bosses {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][array]$bosses)
+
+    $split_bosses = @{}
+
+    $bosses | ForEach-Object {
+        # Create the array for this date if it doesn't exist yet
+        if (-not $split_bosses.ContainsKey($_.time.Date)) {
+            $split_bosses[$_.time.Date] = @{}
+        }
+
+        # Create the hash table for this guild if it doesn't exist yet
+        if (-not ($split_bosses[$_.time.Date]).ContainsKey($_.guild)) {
+            $split_bosses[$_.time.Date][$_.guild] = @()
+        }
+
+        $split_bosses[$_.time.Date][$_.guild] += ,@($_)
+    }
+
+    return $split_bosses
+}
+
+<#
+ .Synopsis
+  Format and publish a series of bosses to their respective discord channels
+
+ .Description
+  Publish a series of raid encounters to the discord channel configured for each guild.
+
+  The encounters are first split by the date and then by the guild. Each combination of
+  date and guild are then formatted and published to the respective guild's webhook url.
+
+  In addition, the encounter may be published to other guild channels marked as "everything"
+
+ .Parameter config
+  The config object
+
+ .Parameter bosses
+  An array of boss objects which contain the necessary information to publish
+#>
+Function Format-And-Publish-All {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][array]$bosses)
+
+    # Split the bosses into a set of nested hashes
+    $per_date = Split-Bosses $bosses
+
+
+    # For each date that encounters were run...
+    $per_date.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
+        $per_guild = $_.Value
+
+        # .. and for each guild that ran encounters that day...
+        $per_guild.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
+            $some_bosses = $_.Value
+
+            $guild = Lookup-Guild $config $_.Key
+
+            # ... Format and publish this guild's encounters for the day to the guild's channel
+            Format-And-Publish-Some $config $some_bosses $guild
+
+            # Also publish it to other guilds marked with "everything" and which have a different webhook URL
+            ForEach ($extra_guild in ( $config.guilds | where { ( $_.everything -eq $true ) -and ( $_.webhook_url -ne $guild.webhook_url ) } ) ) {
+                Format-And-Publish-Some $config $some_bosses $extra_guild
+            }
+        }
+    }
+}
