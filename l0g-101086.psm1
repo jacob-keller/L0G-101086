@@ -810,3 +810,32 @@ Function Convert-Payload {
     }
     return $json
 }
+
+<#
+ .Synopsis
+  Look up the guild object based on the name
+
+ .Description
+  Find the first matching guild object from configuration based on the
+  guild name. Returns $null if no guilds by that name exist in configuration
+
+ .Parameter config
+  The configuration object
+
+ .Parameter guild_name
+  The guild name to lookup
+#>
+
+Function Lookup-Guild {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][string]$guild_name)
+
+    ForEach ($guild in $config.guilds) {
+        if ($guild.name -eq $guild_name) {
+            return $guild
+        }
+    }
+
+    return $null
+}
