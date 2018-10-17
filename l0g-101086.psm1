@@ -839,3 +839,36 @@ Function Lookup-Guild {
 
     return $null
 }
+
+<#
+ .Synopsis
+  Convert GuildWars 2 account names to discord users
+
+ .Description
+  Given an array of GuildWars 2 account names, convert any known
+  player names into their discord equivalent. Unknown players will
+  be marked with italics markdown syntax.
+
+ .Parameter guild
+  The guild object to use for checking discord mappings
+
+ .Parameter accounts
+  The accounts to convert
+#>
+Function Get-Discord-Players {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][object]$guild,
+          [Parameter(Mandatory)][array]$accounts)
+
+    $names = @()
+
+    ForEach ($account in ($accounts | Sort)) {
+        if ($guild.discord_map."$account") {
+            $names += @($guild.discord_map."$account")
+        } elseif ($account -ne "") {
+            $names += @("_${account}_")
+        }
+    }
+
+    return $names
+}
