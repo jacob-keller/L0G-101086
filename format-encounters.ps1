@@ -518,32 +518,6 @@ Function Format-And-Publish($guild, $boss_per_date, $thumbnail, $server_name, $e
         embeds = @($data)
     }
 
-    # ConvertTo-JSON doesn't handle unicode characters very well, but we want to
-    # insert a zero-width space. To do so, we'll implement a variant that replaces
-    # a magic string with the expected value
-    #
-    # More strings can be added here if necessary. The initial string should be
-    # something innocuous which won't be generated as part of any URL or other
-    # generated text, and is unlikely to appear on accident
-    Function Convert-Payload($payload) {
-        # Convert the object into a JSON string, using an increased
-        # depth so that the ConvertTo-Json will completely convert
-        # the layered object into JSON.
-        $json = ($payload | ConvertTo-Json -Depth 10)
-
-        $unicode_map = @{"@UNICODE-ZWS@"="\u200b";
-                         "@BOXDASH@"="\u2500";
-                         "@EMDASH@"="\u2014";
-                         "@MIDDLEDOT@"="\u00B7"}
-
-        # Because ConvertTo-Json doesn't really handle all of the
-        # unicode characters, we need to insert these after the fact.
-        $unicode_map.GetEnumerator() | ForEach-Object {
-            $json = $json.replace($_.key, $_.value)
-        }
-        return $json
-    }
-
     if ($config.debug_mode) {
         (Convert-Payload $payload) | Write-Output
     } elseif (X-Test-Path $config.discord_json_data) {

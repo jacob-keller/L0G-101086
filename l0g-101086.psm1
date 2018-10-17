@@ -759,3 +759,52 @@ Function Write-Configuration {
     # Write out the configuration to disk
     $writeConfig | ConvertTo-Json -Depth 10 | Out-File -Force $ConfigFile
 }
+
+# ConvertTo-JSON doesn't handle unicode characters very well, but we want to
+# insert a zero-width space. To do so, we'll implement a variant that replaces
+# a magic string with the expected value
+#
+# More strings can be added here if necessary. The initial string should be
+# something innocuous which won't be generated as part of any URL or other
+# generated text, and is unlikely to appear on accident
+<#
+ .Synopsis
+  Convert encounter payload to a JSON string, converting some magic strings
+  to unicode
+
+ .Description
+  ConvertTo-JSON doesn't handle some unicode characters very well, and by
+  default doesn't have a depth large enough to convert the encounter structures
+  into JSON.
+
+  To handle this, Convert-Payload will convert the given payload data for a webhook
+  into JSON using -Depth 10. Additionally it will convert some magic strings which
+  represent unicode characters, so that we can insert the unicode characters properly.
+
+ .Parameter payload
+  The payload custom object to convert.
+#>
+Function Convert-Payload {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$payload)
+
+    # Convert the object into a JSON string, using an increased
+    # depth so that the ConvertTo-Json will completely convert
+    # the layered object into JSON.
+    $json = ($payload | ConvertTo-Json -Depth 10)
+
+    # Map some custom strings to their unicode equivalents. If we need
+    # to use other unicode characters, they should be added here.
+    $unicode_map = @{"@UNICODE-ZWS@"="\u200b";
+                     "@BOXDASH@"="\u2500";
+                     "@EMDASH@"="\u2014";
+                     "@MIDDLEDOT@"="\u00B7"}
+
+    # Because ConvertTo-Json doesn't really handle all of the
+    # unicode characters, we need to insert these after the fact by
+    # replacing the magic strings with unicode escape sequences.
+    $unicode_map.GetEnumerator() | ForEach-Object {
+        $json = $json.replace($_.key, $_.value)
+    }
+    return $json
+}
