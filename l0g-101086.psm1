@@ -872,3 +872,48 @@ Function Get-Discord-Players {
 
     return $names
 }
+
+<#
+ .Synopsis
+  Given a boss name, look up the associated raid wing or fractal CM
+
+ .Description
+  Convert the boss name into the equivalent wing. Additionally, convert the
+  fractal bosses into their respective CMs as well.
+
+ .Parameter boss_name
+  The boss name to lookup
+#>
+Function Convert-Boss-To-Wing {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$boss_name)
+
+    $wings = @{"Vale Guardian"=1;
+               "Gorseval"=1;
+               "Sabetha"=1;
+               "Slothasor"=2;
+               "Matthias"=2;
+               "Keep Construct"=3;
+               "Xera"=3;
+               "Cairn"=4;
+               "Mursaat Overseer"=4;
+               "Samarog"=4;
+               "Deimos"=4;
+               "Soulless Horror"=5;
+               "Dhuum"=5;
+               "Conjured Amalgamate"=6;
+               "Largos Twins"=6;
+               "Qadim"=6;
+               "MAMA (CM)"="99cm";
+               "Siax (CM)"="99cm";
+               "Ensolyss (CM)"="99cm";
+               "Skorvald (CM)"="100cm";
+               "Artsariiv (CM)"="100cm";
+               "Arkk (CM)"="100cm";}
+
+    try {
+        return $wings[$boss_name];
+    } catch {
+        return $null
+    }
+}
