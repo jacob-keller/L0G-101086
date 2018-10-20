@@ -988,10 +988,7 @@ Function Load-From-EVTC {
 
     # Get the dps.report link
     $dpsreport_json = [io.path]::combine($extras_path, "dpsreport.json")
-    if (-not (X-Test-Path $dpsreport_json)) {
-        # we may not have a dps.report link. Don't throw an exception in this case
-        $boss["dps_report"] = ""
-    } else {
+    if (X-Test-Path $dpsreport_json) {
         $boss["dps_report"] = (Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json).permalink
     }
 
@@ -1110,6 +1107,7 @@ Function Format-And-Publish-Some {
 
         $players += $boss.players
         $dps_report = $boss.dps_report
+        $gw2raidar = $boss.gw2raidar
 
         # For each boss, we add a field object to the embed
         #
@@ -1123,7 +1121,17 @@ Function Format-And-Publish-Some {
                 inline = $true
         }
 
-        $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`")`r`n@UNICODE-ZWS@"}
+        if ($dps_report -and $gw2raidar) {
+            # We put both the dps.report and gw2raidar link here,  separated by a MIDDLE DOT character
+            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2raidar} `"${gw2raidar}`")`r`n@UNICODE-ZWS@"}
+        } elif ($dps_report) {
+            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`")`r`n@UNICODE-ZWS@"}
+        } elif ($gw2raidar) {
+            $boss_field | Add-Member @{value="[gw2raidar](${gw2raidar} `"${gw2raidar}`")`r`n@UNICODE-ZWS@"}
+        } else {
+            # In the rare case we somehow end up here with no link, just put "N/A"
+            $boss_field | Add-Member @{value="N/A`r`n@UNICODE-ZWS@"}
+        }
 
         # Insert the boss field into the array
         $fields += $boss_field
