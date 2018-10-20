@@ -29,6 +29,47 @@ Function X-Test-Path {
 
 <#
  .Synopsis
+  Print output to the log file, or console.
+
+ .Description
+  Print output to the log file if it has been specified. Otherwise, output
+  will be displayed to the screen.
+
+ .Parameter string
+  The string to log
+#>
+Function Log-Output {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$string)
+
+    if ($script:logfile) {
+        Write-Output $string | Out-File -Append $script:logfile
+    } else {
+        Write-Output $string
+    }
+}
+
+<#
+ .Synopsis
+  Set the log file used by Log-Output
+
+ .Description
+  Set the log file used by the Log-Output function. If the log file has been
+  set, then Log-Output will log to the file. Otherwise it will log to the screen.
+  To clear the log file, set it to $null
+
+ .Parameter file
+  The file name to set for the log file (or $null to clear it)
+#>
+Function Set-Logfile {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$file)
+
+    $script:logfile = $file
+}
+
+<#
+ .Synopsis
   Convert UTC time to the local timezone
 
  .Description

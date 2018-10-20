@@ -27,7 +27,9 @@ if (-not $config) {
     exit
 }
 
-$logfile = $config.format_encounters_log
+if (-not $config.debug_mode) {
+    Set-Logfile $config.format_encounters_log
+}
 
 # Check that the start map folder has already been created
 if (-not (X-Test-Path $config.gw2raidar_start_map)) {
@@ -66,14 +68,6 @@ if (-not $config.last_format_file) {
 } elseif (-not (X-Test-Path (Split-Path $config.last_format_file))) {
     Read-Host -Prompt "The path for the last_format_file appears invalid. Press enter to exit"
     exit
-}
-
-Function Log-Output ($string) {
-    if ($config.debug_mode) {
-        Write-Output $string
-    } else {
-        Write-Output $string | Out-File -Append $logfile
-    }
 }
 
 # Loads account names from the local data directory

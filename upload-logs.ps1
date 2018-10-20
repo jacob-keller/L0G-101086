@@ -32,7 +32,10 @@ $last_upload_file = $config.last_upload_file
 $arcdps_logs = $config.arcdps_logs
 $gw2raidar_token = $config.gw2raidar_token
 $dpsreport_token = $config.dps_report_token
-$logfile = $config.upload_log_file
+
+if (-not $config.debug_mode) {
+    Set-Logfile $config.upload_log_file
+}
 
 # Simple storage format for extra ancillary data about uploaded files
 $extra_upload_data = $config.extra_upload_data
@@ -122,14 +125,6 @@ $dpsreport_url = "https://dps.report"
 
 Add-Type -Path $config.restsharp_path
 Add-Type -AssemblyName "System.IO.Compression.FileSystem"
-
-function Log-Output ($string) {
-    if ($config.debug_mode) {
-        Write-Output $string
-    } else {
-        Write-Output $string | Out-File -Append $logfile
-    }
-}
 
 # Determine the most recent release of ArcDPS
 $arcdps_headers = (Invoke-WebRequest -UseBasicParsing -Uri https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum).Headers
