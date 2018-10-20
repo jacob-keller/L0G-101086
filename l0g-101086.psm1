@@ -1099,10 +1099,16 @@ Function Format-And-Publish-Some {
     # Get the running guild based on the first boss in the list, since we assume all bosses were run by the same guild
     $running_guild = Lookup-Guild $config $some_bosses[0].guild
 
+    # Print "Fractals" if this is a set of fractals, otherwise print "Wings", determined from the first encounter
+    if ($some_bosses[0].is_fractal) {
+        $prefix = "Fractals"
+    } else {
+        $prefix = "Wings"
+    }
 
     # Create the data object
     $data_object = [PSCustomObject]@{
-        title = "$($running_guild.name) Wings: ${wings} | ${date}"
+        title = "$($running_guild.name) ${prefix}: ${wings} | ${date}"
         color = 0xf9a825
         fields = $fields
 	footer = [PSCustomObject]@{ text = "Created by /u/platinummyr" }
@@ -1132,7 +1138,7 @@ Function Format-And-Publish-Some {
     # we could try to find some unique way to hash the contents, so that re-posts
     # would use the same time as before..? But whatever method needs to produce
     # a unique string so that each published encounter is saved to a separate file
-    $datestamp = Get-Date -Date -Format "yyyyMMdd-HHmmss"
+    $datestamp = Get-Date -Format "yyyyMMdd-HHmmss"
     if (X-Test-Path $config.discord_json_data) {
         # Use the running and publishing guilds in the name, but strip out the
         # [] characters, as they can confuse io.path as wildcard characters.
@@ -1159,13 +1165,47 @@ Function Format-And-Publish-Some {
 
 <#
  .Synopsis
+  Get the sub element of a nested hash/array table
+
+ .Description
+  Given a hash table, get the sub element for a given key. If the key
+  is not yet contained by the hash table, then add a sub element using
+  the specified default value.
+
+  Used to extract and build up nested hashes, essentially creating
+  multi-dimensional hash tables.
+
+ .Parameter hash
+  The hash to grab a sub element from
+
+ .Parameter key
+  The key to find the sub element for
+
+ .Parameter default
+  The default value for a non-existent sub element.
+#>
+Function Get-SubHash {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][HashTable]$hash,
+          [Parameter(Mandatory)][object]$key)
+
+    if (-not $hash.ContainsKey($key)) {
+        $hash[$key] = @{}
+    }
+
+    return $hash[$key]
+}
+
+<#
+ .Synopsis
   Split a collection of encounters into a nested hash
 
  .Description
   Take an array of bosses and split it into a nested hash keyed first
   by the date the encounter was run, followed by the guild which ran the
-  encounter. This allows us to group together similar sets of encounters
-  and post by the date they were run.
+  encounter, and finally followed by whether it is a fractal or a raid.
+  This allows us to group together similar sets of encounters and post
+  them by the date they were run.
 
  .Parameter bosses
   The array of bosses to split
@@ -1174,23 +1214,23 @@ Function Split-Bosses {
     [CmdletBinding()]
     param([Parameter(Mandatory)][array]$bosses)
 
-    $split_bosses = @{}
+    $per_date = @{}
 
-    $bosses | ForEach-Object {
-        # Create the array for this date if it doesn't exist yet
-        if (-not $split_bosses.ContainsKey($_.time.Date)) {
-            $split_bosses[$_.time.Date] = @{}
+    foreach ($b in $bosses) {
+        # Get the per_guild hash for this date
+        $per_guild = Get-SubHash $per_date $b.time.Date
+
+        # Get the per_type hash for this guild+date
+        $per_type = Get-SubHash $per_guild $b.guild
+
+        # Add this boss to the list of bosses in this type+guild+date
+        if (-not $per_type.ContainsKey($b.is_fractal)) {
+            $per_type[$b.is_fractal] = @()
         }
-
-        # Create the hash table for this guild if it doesn't exist yet
-        if (-not ($split_bosses[$_.time.Date]).ContainsKey($_.guild)) {
-            $split_bosses[$_.time.Date][$_.guild] = @()
-        }
-
-        $split_bosses[$_.time.Date][$_.guild] += ,@($_)
+        $per_type[$b.is_fractal] += @($b)
     }
 
-    return $split_bosses
+    return $per_date
 }
 
 <#
@@ -1201,7 +1241,8 @@ Function Split-Bosses {
   Publish a series of raid encounters to the discord channel configured for each guild.
 
   The encounters are first split by the date and then by the guild. Each combination of
-  date and guild are then formatted and published to the respective guild's webhook url.
+  date and guild and type are then formatted and published to the respective guild's
+  webhook url.
 
   In addition, the encounter may be published to other guild channels marked as "everything"
 
@@ -1226,16 +1267,21 @@ Function Format-And-Publish-All {
 
         # .. and for each guild that ran encounters that day...
         $per_guild.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
-            $some_bosses = $_.Value
+            $per_type = $_.Value
 
             $guild = Lookup-Guild $config $_.Key
 
-            # ... Format and publish this guild's encounters for the day to the guild's channel
-            Format-And-Publish-Some $config $some_bosses $guild
+            # ... and for each type of encounter (fractal or raids)...
+            $per_type.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
+                $some_bosses = $_.Value
 
-            # Also publish it to other guilds marked with "everything" and which have a different webhook URL
-            ForEach ($extra_guild in ( $config.guilds | where { ( $_.everything -eq $true ) -and ( $_.webhook_url -ne $guild.webhook_url ) } ) ) {
-                Format-And-Publish-Some $config $some_bosses $extra_guild
+                # ... Format and publish this guild's encounters for the day to the guild's channel
+                Format-And-Publish-Some $config $some_bosses $guild
+
+                # Also publish it to other guilds marked with "everything" and which have a different webhook URL
+                ForEach ($extra_guild in ( $config.guilds | where { ( $_.everything -eq $true ) -and ( $_.webhook_url -ne $guild.webhook_url ) } ) ) {
+                    Format-And-Publish-Some $config $some_bosses $extra_guild
+                }
             }
         }
     }
