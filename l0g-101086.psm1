@@ -1035,6 +1035,13 @@ Function Load-From-EVTC {
     $boss["id"] = (Get-Content -Raw -Path $id_json | ConvertFrom-Json)
     $boss["is_fractal"] = Is-Fractal-Encounter $boss["id"]
 
+    # Get success status of this encounter
+    $success_json = [io.path]::combine($extras_path, "success.json")
+    if (-not (X-Test-Path $success_json)) {
+        throw "$evtc doesn't appear to have success data associated with it"
+    }
+    $boss["success"] = ((Get-Content -Raw -Path $success_json | ConvertFrom-Json) -eq "SUCCESS")
+
     return $boss
 }
 
