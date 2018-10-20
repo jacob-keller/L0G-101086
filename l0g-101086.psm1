@@ -1039,6 +1039,12 @@ Function Load-From-EVTC {
     }
     $boss["success"] = ((Get-Content -Raw -Path $success_json | ConvertFrom-Json) -eq "SUCCESS")
 
+    # Get the path to the evtc file
+    $evtc_json = [io.path]::combine($extras_path, "evtc.json")
+    if (X-Test-Path $evtc_json) {
+        $boss["evtc"] = (Get-Content -Raw -Path $evtc_json | ConvertFrom-Json)
+    }
+
     return $boss
 }
 

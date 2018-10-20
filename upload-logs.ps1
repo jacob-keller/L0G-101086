@@ -179,6 +179,9 @@ ForEach($f in $files) {
     }
 
     try {
+        # Save the path to the original evtc file
+        $f | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "evtc.json")
+
         # Parse the evtc header file and get the encounter name and id
         $evtc_header_data = (& $simple_arc_parse header "${evtc}")
 
