@@ -989,9 +989,11 @@ Function Load-From-EVTC {
     # Get the dps.report link
     $dpsreport_json = [io.path]::combine($extras_path, "dpsreport.json")
     if (-not (X-Test-Path $dpsreport_json)) {
-        throw "$evtc doesn't appear to have a dps.report link"
+        # we may not have a dps.report link. Don't throw an exception in this case
+        $boss["dps_report"] = ""
+    } else {
+        $boss["dps_report"] = (Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json).permalink
     }
-    $boss["dps_report"] = (Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json).permalink
 
     # Get the player account information
     $accounts_json = [io.path]::combine($extras_path, "accounts.json")
