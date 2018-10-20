@@ -984,6 +984,14 @@ Function Load-From-EVTC {
     # Get the wing for this encounter
     $boss["wing"] = Convert-Boss-To-Wing $boss["name"]
 
+    # Get whether this encounter is a fracal
+    $id_json = [io.path]::combine($extras_path, "id.json")
+    if (-not (X-Test-Path $id_json)) {
+        throw "$evtc doesn't appear to have an encounter id associated with i"
+    }
+    $boss["id"] = (Get-Content -Raw -Path $id_json | ConvertFrom-Json)
+    $boss["is_fractal"] = Is-Fractal-Encounter $boss["id"]
+
     return $boss
 }
 
