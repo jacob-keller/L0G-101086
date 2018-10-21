@@ -30,8 +30,6 @@ if (-not $config) {
 # Load relevant configuration variables
 $last_upload_file = $config.last_upload_file
 $arcdps_logs = $config.arcdps_logs
-$gw2raidar_token = $config.gw2raidar_token
-$dpsreport_token = $config.dps_report_token
 
 if (-not $config.debug_mode) {
     Set-Logfile $config.upload_log_file
@@ -119,9 +117,6 @@ if ($simple_arc_version -eq "") {
     Read-Host -Prompt "Please use version ${expected_simple_arc_version} instead. Press enter to exit"
     exit
 }
-
-$gw2raidar_url = "https://www.gw2raidar.com"
-$dpsreport_url = "https://dps.report"
 
 Add-Type -Path $config.restsharp_path
 Add-Type -AssemblyName "System.IO.Compression.FileSystem"
@@ -287,35 +282,7 @@ ForEach($f in $files) {
     # First, upload to gw2raidar, because it returns immediately and processes in the background
     Log-Output "Uploading ${name} to gw2raidar..."
     try {
-        $client = New-Object RestSharp.RestClient($gw2raidar_url)
-        $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")
-        $req.AddHeader("Authorization", "Token $gw2raidar_token") | Out-Null
-        $req.Method = [RestSharp.Method]::PUT
-
-        $req.AddFile("file", $f) | Out-Null
-
-        # Determine the tag used to upload
-        $tag = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_tag }
-        $category = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_category }
-
-        $req.AddParameter("tags", $tag) | Out-Null
-        $req.AddParameter("category", $category) | Out-Null
-
-        $resp = $client.Execute($req)
-
-        if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
-            throw "Request was not completed"
-        }
-
-        if ($resp.StatusCode -ne "OK") {
-            Log-Output $resp.Content
-            throw "Request failed with status $($resp.StatusCode)"
-        }
-
-        # Store the response data so we can use it in potential future gw2raidar APIs
-        $resp.Content | Out-File -FilePath (Join-Path $dir -ChildPath "gw2raidar.json")
-
-        Log-Output "Upload successful..."
+        UploadTo-Gw2Raidar $config $f $guild $dir
     } catch {
         Write-Exception $_
         Log-Output "Upload to gw2raidar failed..."
@@ -343,46 +310,7 @@ ForEach($f in $files) {
 
     Log-Output "Uploading ${name} to dps.report..."
     try {
-        $client = New-Object RestSharp.RestClient($dpsreport_url)
-        $req = New-Object RestSharp.RestRequest("/uploadContent")
-        $req.Method = [RestSharp.Method]::POST
-
-        # This depends on the json output being enabled
-        $req.AddParameter("json", "1") | Out-Null
-
-        # Enable weapon rotations if using raid heros
-        if ($dps_report_generator -ne "ei") {
-            $req.AddParameter("rotation_weap", "1") | Out-Null
-        }
-
-        # Include the dps.report user token
-        $req.AddParameter("userToken", $dpsreport_token)
-
-        # Set the generator if it was configured
-        if ($dps_report_generator) {
-            $req.AddParameter("generator", $dps_report_generator) | Out-Null
-        }
-
-        # Increase the default timeout
-        $req.Timeout = 300000
-
-        $req.AddFile("file", $f) | Out-Null
-
-        $resp = $client.Execute($req)
-
-        if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
-            throw "Request was not completed"
-        }
-
-        if ($resp.StatusCode -ne "OK") {
-            $json_resp = ConvertFrom-Json $resp.Content
-            Log-Output $json_resp.error
-            throw "Request failed with status $($resp.StatusCode)"
-        }
-
-        $resp.Content | Out-File -FilePath (Join-Path $dir -ChildPath "dpsreport.json")
-
-        Log-Output "Upload successful..."
+        UploadTo-DpsReport $config $f $dir
     } catch {
         Write-Exception $_
         Log-Output "Upload to dps.report failed..."

@@ -1350,3 +1350,134 @@ Function Format-And-Publish-All {
         }
     }
 }
+
+<#
+ .Synopsis
+  Upload a file to dps.report
+
+ .Description
+  Upload a file to the dps.report website, and store the returned contents
+  of the upload. This includes the dps.report permalink.
+
+ .Parameter config
+  The configuration object
+
+ .Parameter file
+  The file to upload to dps.report
+
+ .Parameter extras_dir
+  The path to the extras directory for storing extra data about this file
+#>
+Function UploadTo-DpsReport {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][string]$file,
+          [Parameter(Mandatory)][string]$extras_dir)
+
+    # Determine what generator to use
+    $valid_generators = @( "rh", "ei" )
+    $dps_report_generator = $config.dps_report_generator.Trim()
+    if ($dps_report_generator -and -not $valid_generators.Contains($dps_report_generator)) {
+        throw "Unknown dps.report generator $dps_report_generator"
+    }
+
+    $client = New-Object RestSharp.RestClient("https://dps.report")
+    $req = New-Object RestSharp.RestRequest("/uploadContent")
+    $req.Method = [RestSharp.Method]::POST
+
+    # This depends on the json output being enabled
+    $req.AddParameter("json", "1") | Out-Null
+
+    # Enable weapon rotations if using raid heros
+    if ($dps_report_generator -eq "rh") {
+        $req.AddParameter("rotation_weap", "1") | Out-Null
+    }
+
+    # Include the dps.report user token
+    $req.AddParameter("userToken", $config.dpsreport_token)
+
+    # Set the generator if it was configured
+    if ($dps_report_generator) {
+        $req.AddParameter("generator", $dps_report_generator) | Out-Null
+    }
+
+    # Increase the default timeout, otherwise we might cancel before the upload finishes
+    $req.Timeout = 300000
+
+    $req.AddFile("file", $file) | Out-Null
+
+    $resp = $client.Execute($req)
+
+    if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
+        throw "Request was not completed"
+    }
+
+    if ($resp.StatusCode -ne "OK") {
+        $json_resp = ConvertFrom-Json $resp.Content
+        Log-Output $json_resp.error
+        throw "Request failed with status $($resp.StatusCode)"
+    }
+
+    $resp.Content | Out-File -FilePath (Join-Path $extras_dir -ChildPath "dpsreport.json")
+
+    Log-Output "Upload successful..."
+}
+
+<#
+ .Synopsis
+  Upload a file to Gw2 Raidar
+
+ .Description
+  Upload a file to the gw2raidar website, including tag information. Store the
+  reported upload id into the extras directory. For now, this does not include
+  obtaining the permalink, due to the way that gw2raidar processes encounters.
+
+ .Parameter config
+  The configuration object
+
+ .Parameter file
+  The file to upload to gw2raidar
+
+ .Parameter guild
+  The guild which ran this encounter, used to determine what tags to insert
+
+ .Parameter extras_dir
+  The path to the extras directory for storing extra data about this file
+#>
+Function UploadTo-Gw2Raidar {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][string]$file,
+          [Parameter(Mandatory)][string]$guild,
+          [Parameter(Mandatory)][string]$extras_dir)
+
+    $client = New-Object RestSharp.RestClient("https://www.gw2raidar.com")
+    $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")
+    $req.AddHeader("Authorization", "Token $config.gw2raidar_token") | Out-Null
+    $req.Method = [RestSharp.Method]::PUT
+
+    $req.AddFile("file", $file) | Out-Null
+
+    # Determine the tag used to upload
+    $tag = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_tag }
+    $category = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_category }
+
+    $req.AddParameter("tags", $tag) | Out-Null
+    $req.AddParameter("category", $category) | Out-Null
+
+    $resp = $client.Execute($req)
+
+    if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
+        throw "Request was not completed"
+    }
+
+    if ($resp.StatusCode -ne "OK") {
+        Log-Output $resp.Content
+        throw "Request failed with status $($resp.StatusCode)"
+    }
+
+    # Store the response data so we can use it in potential future gw2raidar APIs
+    $resp.Content | Out-File -FilePath (Join-Path $extras_dir -ChildPath "gw2raidar.json")
+
+    Log-Output "Upload successful..."
+}
