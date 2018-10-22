@@ -1130,9 +1130,9 @@ Function Format-And-Publish-Some {
         if ($dps_report -and $gw2raidar) {
             # We put both the dps.report and gw2raidar link here,  separated by a MIDDLE DOT character
             $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2raidar} `"${gw2raidar}`")`r`n@UNICODE-ZWS@"}
-        } elif ($dps_report) {
+        } elseif ($dps_report) {
             $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`")`r`n@UNICODE-ZWS@"}
-        } elif ($gw2raidar) {
+        } elseif ($gw2raidar) {
             $boss_field | Add-Member @{value="[gw2raidar](${gw2raidar} `"${gw2raidar}`")`r`n@UNICODE-ZWS@"}
         } else {
             # In the rare case we somehow end up here with no link, just put "N/A"
