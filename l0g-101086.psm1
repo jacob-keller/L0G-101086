@@ -1453,7 +1453,7 @@ Function UploadTo-Gw2Raidar {
 
     $client = New-Object RestSharp.RestClient("https://www.gw2raidar.com")
     $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")
-    $req.AddHeader("Authorization", "Token $config.gw2raidar_token") | Out-Null
+    $req.AddHeader("Authorization", "Token $($config.gw2raidar_token)") | Out-Null
     $req.Method = [RestSharp.Method]::PUT
 
     $req.AddFile("file", $file) | Out-Null
