@@ -961,6 +961,31 @@ Function Convert-Boss-To-Wing {
 
 <#
  .Synopsis
+  Get the abbreviated name for a boss, if there is one
+
+ .Description
+  Some boss names are a bit too long when displayed in an embed, and result in
+  unwanted spacing of multiple bosses when viewed in the desktop view. To fix this
+  we abbreviate some of them to a shorter version that doesn't cause the embeds to
+  have awkward spacing.
+
+ .Parameter boss_name
+  The boss name to abbreviate
+#>
+Function Get-Abbreviated-Name {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$boss_name)
+
+    if ($boss_name -eq "Conjured Amalgamate") {
+        return "C. Amalgamate"
+    }
+
+    # Currently no other boss has an abbreviation, so just return the full name
+    return $boss_name
+}
+
+<#
+ .Synopsis
   Create a boss hashtable from a local EVTC folder
 
  .Description
@@ -1020,6 +1045,9 @@ Function Load-From-EVTC {
         throw "$evtc doesn't appear to have an encounter name associated with it"
     }
     $boss["name"] = (Get-Content -Raw -Path $encounter_json | ConvertFrom-Json)
+
+    # Get an abbreviated name, if there is one
+    $boss["shortname"] = Get-Abbreviated-Name $boss["name"]
 
     # Get the wing for this encounter
     $boss["wing"] = Convert-Boss-To-Wing $boss["name"]
@@ -1108,7 +1136,8 @@ Function Format-And-Publish-Some {
 
     # We sort the bosses based on server start time
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
-        $name = $boss.name
+        # Use the shortened name
+        $name = $boss.shortname
         $emoji = $emoji_map."$name"
 
         $players += $boss.players
