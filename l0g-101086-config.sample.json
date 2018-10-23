@@ -18,6 +18,8 @@
     "gw2raidar_token":  "",
     "dps_report_token":  "",
     "dps_report_generator":  "ei",
+    "upload_dps_report": "successful",
+    "upload_gw2raidar": "all",
     "guilds":  [
                    {
                        "name":  "[guild]",

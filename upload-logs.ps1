@@ -279,10 +279,18 @@ ForEach($f in $files) {
         }
     }
 
-    # First, upload to gw2raidar, because it returns immediately and processes in the background
+    # Determine if the encounter was successful or not
+    $encounter_status = Get-Content -Raw -Path (Join-Path -Path $dir -ChildPath "success.json") | ConvertFrom-Json
+    if ($encounter_status -ne "SUCCESS") {
+        $success = $true
+    } else {
+        $success = $false
+    }
+
+    # Upload to gw2raidar (if configured) first, because the server processes in the background.
     Log-Output "Uploading ${name} to gw2raidar..."
     try {
-        UploadTo-Gw2Raidar $config $f $guild $dir
+        UploadTo-Gw2Raidar $config $f $guild $dir $success
     } catch {
         Write-Exception $_
         Log-Output "Upload to gw2raidar failed..."
@@ -301,16 +309,10 @@ ForEach($f in $files) {
         exit
     }
 
-    # We opted to only upload successful logs to dps.report, but all logs to gw2raidar.
-    # You could remove this code if you want dps.report links for all encounters.
-    $status = Get-Content -Raw -Path (Join-Path -Path $dir -ChildPath "success.json") | ConvertFrom-Json
-    if ($status -ne "SUCCESS") {
-        continue
-    }
-
+    # Then upload to dps.report (if configured) because the server will block until a permalink is available
     Log-Output "Uploading ${name} to dps.report..."
     try {
-        UploadTo-DpsReport $config $f $dir
+        UploadTo-DpsReport $config $f $dir $success
     } catch {
         Write-Exception $_
         Log-Output "Upload to dps.report failed..."

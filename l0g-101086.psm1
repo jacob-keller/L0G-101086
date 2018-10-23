@@ -281,6 +281,26 @@ $commonConfigurationFields =
         name="dps_report_generator"
         type=[string]
     }
+    @{
+        # If set, configures whether and how to upload to dps.report
+        # "no" disables uploading to dps.report entirely
+        # "successful" causes only successful encounters to be uploaded
+        # "all" causes all encounters to be uploaded.
+        # The default is "successful"
+        name="upload_dps_report"
+        type=[string]
+        validStrings=@("no", "successful", "all")
+    }
+    @{
+        # If set, configures whether and how to upload to gw2raidar
+        # "no" disables uploading to gw2raidar entirely
+        # "successful" causes only successful encounters to be uploaded
+        # "all" causes all encounters to be uploaded.
+        # The default is "successful"
+        name="upload_gw2raidar"
+        type=[string]
+        validStrings=@("no", "successful", "all")
+    }
 )
 
 <#
@@ -540,6 +560,14 @@ Function Validate-Object-Fields {
                 $Object."$($field.name)" = $null
             } else {
                 $Object."$($field.name)" = $ValidatedSubObjects
+            }
+        } elseif ($field.validStrings) {
+            if (-not $field.validStrings.Contains($Object."$($field.name)")) {
+                $fieldname = $field.name
+                $value = $Object."$fieldname"
+                Write-Host "$value is not a valid value for $fieldname"
+
+                $invalid = $true
             }
         }
 
@@ -1388,6 +1416,11 @@ Function Format-And-Publish-All {
   Upload a file to the dps.report website, and store the returned contents
   of the upload. This includes the dps.report permalink.
 
+  If upload_dps_report is configured "all" then all encounters will be
+  uploaded. If it is "successful" then only the successful encounters will be
+  uploaded. If it is "no", then this function will return immediately and will not
+  upload any encounter to dps.report
+
  .Parameter config
   The configuration object
 
@@ -1396,12 +1429,34 @@ Function Format-And-Publish-All {
 
  .Parameter extras_dir
   The path to the extras directory for storing extra data about this file
+
+ .Parameter success
+  True if the encounter was a success, false otherwise
 #>
 Function UploadTo-DpsReport {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][string]$file,
-          [Parameter(Mandatory)][string]$extras_dir)
+          [Parameter(Mandatory)][string]$extras_dir,
+          [Parameter(Mandatory)][bool]$success)
+
+    $upload = $config.upload_dps_report
+    if (-not $upload) {
+        $upload = "successful"
+    }
+
+    if ($upload -eq "no") {
+        return
+    } elseif ($upload -eq "successful") {
+        if (-not $success) {
+            return
+        }
+    } elseif ($upload -eq "all") {
+        # Upload everything
+    } else {
+        # We verify the config value is already valid so this should never happen
+        throw "Invalid configuration value for upload_dps_report"
+    }
 
     # Determine what generator to use
     $valid_generators = @( "rh", "ei" )
@@ -1461,6 +1516,11 @@ Function UploadTo-DpsReport {
   reported upload id into the extras directory. For now, this does not include
   obtaining the permalink, due to the way that gw2raidar processes encounters.
 
+  If upload_gw2raidar is configured "all" then all encounters will be
+  uploaded. If it is "successful" then only the successful encounters will be
+  uploaded. If it is "no", then this function will return immediately and will not
+  upload any encounter to gw2raidar
+
  .Parameter config
   The configuration object
 
@@ -1472,13 +1532,36 @@ Function UploadTo-DpsReport {
 
  .Parameter extras_dir
   The path to the extras directory for storing extra data about this file
+
+ .Parameter success
+  True if the encounter was a success, false otherwise.
 #>
 Function UploadTo-Gw2Raidar {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][string]$file,
           [Parameter(Mandatory)][string]$guild,
-          [Parameter(Mandatory)][string]$extras_dir)
+          [Parameter(Mandatory)][string]$extras_dir,
+          [Parameter(Mandatory)][bool]$success)
+
+    $upload = $config.upload_gw2raidar
+    if (-not $upload) {
+        $upload = "all"
+    }
+
+    if ($upload -eq "no") {
+        return
+    } elseif ($upload -eq "successful") {
+        if (-not $success) {
+            return
+        }
+    } elseif ($upload -eq "all") {
+        # Upload everything
+    } else {
+        # We verify the config value is already valid so this should never happen
+        throw "Invalid configuration value for upload_gw2raidar"
+    }
+
 
     $client = New-Object RestSharp.RestClient("https://www.gw2raidar.com")
     $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")
