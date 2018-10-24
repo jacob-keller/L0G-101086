@@ -1627,6 +1627,14 @@ Function Get-GW2-Raidar-Links {
     $request = "$raidar_url/api/v2/encounters?since=${since}&limit=25"
     $max_link_count = 100
 
+    # TODO: should this be inlined directly with the missing data code, in
+    # order to avoid the hash from growing out of bounds? Right now the code
+    # is limited to 100 encounters, which means that we can't individually
+    # find the link for a gw2raidar encounter which is too old. In practice
+    # this isn't a problem now, but could be if we want to find the link
+    # for a really old, possibly failed encounter. Ultimately this is due to
+    # the nature of gw2raidar API...
+
     # Hash object for storing encounter permalinks based on their server start time
     $raidar_links = @{}
 
