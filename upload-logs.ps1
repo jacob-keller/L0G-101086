@@ -16,8 +16,6 @@ $RequiredParameters = @(
     "last_upload_file"
     "arcdps_logs"
     "upload_log_file"
-    "gw2raidar_token"
-    "dps_report_token"
     "guilds"
 )
 
@@ -66,15 +64,15 @@ if (-not (X-Test-Path $arcdps_logs)) {
     exit
 }
 
-# We absolutely require a gw2raidar token
-if (-not $config.gw2raidar_token) {
-    Read-Host -Prompt "This script requires a gw2raidar authentication token. Press enter to exit"
+# Require a gw2raidar token if gw2raidar uploading is enabled
+if ((-not $config.gw2raidar_token) -and ($config.upload_gw2raidar -ne "no")) {
+    Read-Host -Prompt "Uploading to gw2raidar requires a gw2raidar authentication token. Press enter to exit"
     exit
 }
 
-# Require a dps.report token
-if (-not $config.dps_report_token) {
-    Read-Host -Prompt "This script requires a dps.report authentication token. Press enter to exit"
+# Require a dps.report token if dps.report uploading is enabled
+if ((-not $config.dps_report_token) -and ($config.upload_dps_report -ne "no")) {
+    Read-Host -Prompt "Uploading to dps.report requires an authentication token. Press enter to exit"
     exit
 }
 
