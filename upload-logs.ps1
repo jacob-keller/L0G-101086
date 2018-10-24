@@ -10,7 +10,6 @@ Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildP
 # See l0g-101086.psm1 for descriptions of each configuration field
 $RequiredParameters = @(
     "extra_upload_data"
-    "gw2raidar_start_map"
     "restsharp_path"
     "simple_arc_parse_path"
     "last_upload_file"
@@ -35,7 +34,6 @@ if (-not $config.debug_mode) {
 
 # Simple storage format for extra ancillary data about uploaded files
 $extra_upload_data = $config.extra_upload_data
-$gw2raidar_start_map = $config.gw2raidar_start_map
 $simple_arc_parse = $config.simple_arc_parse_path
 
 # Determine what generator to use
@@ -76,17 +74,12 @@ if ((-not $config.dps_report_token) -and ($config.upload_dps_report -ne "no")) {
     exit
 }
 
-# Create the startmap directory if it doesn't exist
-if (-not $gw2raidar_start_map) {
-    Read-Host -Prompt "A gw2raidar start map directory must be configured. Press enter to exit"
-    exit
-} elseif (-not (X-Test-Path $gw2raidar_start_map)) {
-    try {
-        New-Item -ItemType directory -Path $gw2raidar_start_map
-    } catch {
-        Write-Exception $_
-        Read-Host -Prompt "Unable to create $gw2raidar_start_map. Press enter to exit"
-        exit
+# Notify the user that they should remove the start map directory
+if ($gw2raidar_start_map) {
+    if (X-Test-Path $gw2raidar_start_map) {
+        Log-Output "The gw2raidar_start_map directory and configuration variable are no longer necessary. It is now safe to remove them."
+    } else {
+        Log-Output "The gw2raidar_start_map configuration variable is no longer necessary, and is safe to remove."
     }
 }
 
@@ -245,20 +238,6 @@ ForEach($f in $files) {
         $start_time | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "servertime.json")
 
         Log-Output "Start Time: ${start_time}"
-
-        # Generate a map between start time and the evtc file name
-        $map_dir = Join-Path -Path $gw2raidar_start_map -ChildPath $start_time
-        if (Test-Path -Path $map_dir) {
-            $recorded_name = Get-Content -Raw -Path (Join-Path -Path $map_dir -ChildPath "evtc.json") | ConvertFrom-Json
-            if ($recorded_name -ne $name) {
-                Log-Output "$recorded_name was already mapped to this start time...!"
-            }
-        } else {
-            # Make the mapping directory
-            New-Item -ItemType Directory -Path $map_dir
-
-            $name | ConvertTo-Json | Out-File -FilePath (Join-Path $map_dir -ChildPath "evtc.json")
-        }
     } catch {
         Write-Exception $_
 

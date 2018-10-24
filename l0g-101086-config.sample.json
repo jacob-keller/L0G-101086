@@ -5,7 +5,6 @@
     "arcdps_logs":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs",
     "discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted",
     "extra_upload_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.uploadextras",
-    "gw2raidar_start_map":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.startmap",
     "last_format_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_time.json",
     "last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_logs_time.json",
     "simple_arc_parse_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\simpleArcParse\\bin\\Release\\simpleArcParse.exe",

@@ -196,9 +196,9 @@ $commonConfigurationFields =
         path=$true
     }
     @{
-        # Path to a folder which will act as a mini database mapping encounter start times
-        # together to the local EVTC file and extra upload data. This is used so that we
-        # can correlate gw2raidar logs with the local data and dps.report links
+        # Deprecated configuration for path to store a "database" mapping encounter start
+        # times to the local EVTC extra upload data. This is no longer used as the
+        # functionality has been replaced with a better process.
         name="gw2raidar_start_map"
         type=[string]
         path=$true
