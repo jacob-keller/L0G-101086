@@ -76,9 +76,9 @@ $next_format_time = Get-Date
 # Search the extras directory for all evtc directories with a time newer than the last format time.
 if (Test-Path $config.last_format_file) {
     $last_upload_time = Get-Content -Raw -Path $config.last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
-    $dirs = @(Get-ChildItem -Directory -Include @("*.evtc") -LiteralPath $config.extra_upload_data | Where-Object { $_.LastWriteTime -gt $last_format_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.Name})
+    $dirs = @(Get-ChildItem -Directory -Include @("*.evtc") -LiteralPath $config.extra_upload_data | Where-Object { $_.CreationTime -gt $last_format_time} | Sort-Object -Property CreationTime | ForEach-Object {$_.Name})
 } else {
-    $dirs = @(Get-ChildItem -Directory -Include @("*.evtc") -LiteralPath $config.extra_upload_data | Sort-Object -Property LastWriteTime | ForEach-Object {$_.Name})
+    $dirs = @(Get-ChildItem -Directory -Include @("*.evtc") -LiteralPath $config.extra_upload_data | Sort-Object -Property CreationTime | ForEach-Object {$_.Name})
 }
 
 if ($dirs) {
