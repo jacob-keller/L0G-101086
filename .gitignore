@@ -3,7 +3,6 @@ GW2EI
 RaidHeros
 *.dll
 *.dll.back
-*.lnk
 arcdps.cbtlogs
 arcdps.mechanics
 ev-encounters-list.txt
