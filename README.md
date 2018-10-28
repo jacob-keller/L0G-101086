@@ -52,12 +52,12 @@ or compile them yourself manually. simpleArcParse code is available in the
 RestSharp is available on its [GitHub
 page](https://github.com/restsharp/RestSharp)
 
-The scripts rely on a configuration file writtein in JSON for setup. See the
+The scripts rely on a configuration file written in in JSON for setup. See the
 [configuration](#the-configuration-file) section for more details about the
 various options and controls available.
 
 Once you've updated the sample configuration and renamed it, you should be
-ablt to run the [upload-logs](#upload-logs.ps1) script to upload logs to
+able to run the [upload-logs](#upload-logs.ps1) script to upload logs to
 dps.report and/or gw2raidar. Then you can run the
 [format-encounters](#format-encounters.ps1) script to create and publish a
 comment with links to the different encounters run since the last time you ran
@@ -192,10 +192,10 @@ Specifies the path to the log file for the [upload-logs.ps1](#upload-logs.ps1)
 script. Useful output will be stored in this file, and it may be useful for
 debugging, or checking if files have been uploaded properly.
 
-### format_encoutners_log
+### format_encounters_log
 
 Specifies the path to the log file for the
-[format-encounters.ps1](#format-encoutners.ps1) script. Useful output will be
+[format-encounters.ps1](#format-encounters.ps1) script. Useful output will be
 stored in this file, and it may be useful for debugging why some encounters
 are not posted properly.
 
