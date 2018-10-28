@@ -17,3 +17,5 @@ format_encounters_log.txt
 format_encounters_time.json
 l0g-101086-config.json
 simpleArcParse/simpleArcParse.depend
+l0g-101086-pub.cer
+l0g-101086-cert.pfx
