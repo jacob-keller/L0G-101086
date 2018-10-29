@@ -923,7 +923,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.0" << endl;
+        cout << "v1.1" << endl;
         return 0;
     }
 
