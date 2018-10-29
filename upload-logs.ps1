@@ -240,7 +240,7 @@ ForEach($f in $files) {
         Log-Output "Start Time: ${start_time}"
 
         # Parse the evtc to determine if the encounter was a challenge mote
-        $is_cm = (& $simpleArc_parse is_cm "${evtc}")
+        $is_cm = (& $simple_arc_parse is_cm "${evtc}")
         $is_cm | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "is_cm.json")
 
         Log-Output "Challenge Mote: ${is_cm}"
