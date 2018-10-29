@@ -1109,6 +1109,15 @@ Function Load-From-EVTC {
         $boss["evtc"] = (Get-Content -Raw -Path $evtc_json | ConvertFrom-Json)
     }
 
+    # Get whether the encounter was a challenge mote
+    $is_cm_json = [io.path]::combine($extras_path, "is_cm.json")
+    if (X-Test-Path $is_cm_json) {
+        $is_cm = (Get-Content -Raw -Path $is_cm_json | ConvertFrom-Json)
+        if ($is_cm -eq "YES") {
+            $boss["is_cm"] = $true
+        }
+    }
+
     return $boss
 }
 
@@ -1175,6 +1184,10 @@ Function Format-And-Publish-Some {
         # Use the shortened name
         $name = $boss.shortname
         $emoji = $emoji_map."$name"
+
+        if ($boss.is_cm -eq $true) {
+            $name += " (CM)"
+        }
 
         $players += $boss.players
         $dps_report = $boss.dps_report

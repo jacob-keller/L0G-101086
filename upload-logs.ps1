@@ -238,6 +238,13 @@ ForEach($f in $files) {
         $start_time | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "servertime.json")
 
         Log-Output "Start Time: ${start_time}"
+
+        # Parse the evtc to determine if the encounter was a challenge mote
+        $is_cm = (& $simpleArc_parse is_cm "${evtc}")
+        $is_cm | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "is_cm.json")
+
+        Log-Output "Challenge Mote: ${is_cm}"
+
     } catch {
         Write-Exception $_
 
