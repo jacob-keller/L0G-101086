@@ -184,6 +184,8 @@ static const string valid_types[] = {
     "players",
     "success",
     "start_time",
+    "boss_maxhealth",
+    "is_cm",
 };
 
 static const int valid_types_size = extent<decltype(valid_types)>::value;
@@ -271,9 +273,23 @@ static const uint64_t arcdps_src_agent = 0x637261;
 /* is_elite value indicating a non-player object */
 static const uint32_t EVTC_AGENT_NON_PLAYER_AGENT = 0xffffffff;
 
+/* upper bits of profession indicating whether this agent is a gadget */
+static const uint32_t EVTC_AGENT_GADGET_AGENT = 0xffff0000;
+
+/* lower bits of profession indicating species id of this agent */
+static const uint32_t EVTC_AGENT_SPECIES_ID_MASK = 0x0000ffff;
+
+
+
 struct player_details {
     string character;
     string account;
+};
+
+enum is_boss_cm {
+    CM_UNKNOWN,
+    CM_NO,
+    CM_YES,
 };
 
 struct parsed_details {
@@ -288,6 +304,9 @@ struct parsed_details {
     uint8_t revision;
     uint16_t boss_id;
     const char *boss_name;
+    uint64_t boss_src_agent;
+    uint64_t boss_maxhealth;
+    enum is_boss_cm is_cm;
     uint32_t server_start;
     bool encounter_success;
     vector<player_details> players;
@@ -420,6 +439,7 @@ parse_header(parsed_details& details, ifstream& file)
         break;
     case kenut_id:
         /* This shouldn't end up in a real evtc file, but for completeness sake... */
+        details.boss_id = nikare_id;
         details.boss_name = "Largos Twins";
         break;
     case qadim_id:
@@ -534,6 +554,46 @@ parse_all_player_agents(parsed_details& details, ifstream& file)
 }
 
 /**
+ * parse_boss_agent: extract boss agent details
+ * @detals: EVTC parsed data structure
+ * @file: the EVTC file to read
+ *
+ * Loops over every agent searching for the agent associated with
+ * the boss creature, extracting useful information about the boss
+ * and storing it in the @details structure.
+ */
+static void
+parse_boss_agent(parsed_details& details, ifstream& file)
+{
+    unsigned int agent;
+
+    for (agent = 0; agent < details.agent_count; agent++) {
+        evtc_agent agent_details;
+        uint16_t species_id;
+
+        /* Copy the agent details from the file */
+        get_agent_details(file, agent, agent_details);
+
+        /* If this is a player agent, then skip it */
+        if (agent_details.is_elite != EVTC_AGENT_NON_PLAYER_AGENT) {
+            continue;
+        }
+
+        /* If this is a gadget, then skip it */
+        if ((agent_details.prof & EVTC_AGENT_GADGET_AGENT) == EVTC_AGENT_GADGET_AGENT) {
+            continue;
+        }
+
+        species_id = agent_details.prof & EVTC_AGENT_SPECIES_ID_MASK;
+
+        if (species_id == details.boss_id) {
+            details.boss_src_agent = agent_details.addr;
+            break;
+        }
+    }
+}
+
+/**
  * parse_skill_count: extract the number of skills
  * @details: the EVTC parsed data structure
  * @file: the file to read from
@@ -642,6 +702,29 @@ parse_logstart_event(parsed_details& details, Event& event)
 }
 
 /**
+ * parse_boss_maxhealth_event: Parser for CBTS_MAXHEALTHUPDATE events
+ * @details: structure to hold parsed EVTC data
+ * @event: the combat event to parse
+ *
+ * Checks if the event is a CBTS_MAXHEALTHUPDATE event that matches the
+ * boss id we've found for the encounter. This will enable obtaining the
+ * maximum health for the boss, which is useful for determining if an encounter
+ * is a Challenge Mote variant. If the event matches, the parser stores the
+ * maximum health in the @details and returns true. Otherwise it returns false.
+ */
+template<typename Event> static bool
+parse_boss_maxhealth_event(parsed_details& details, Event& event)
+{
+    if (event.is_statechange == CBTS_MAXHEALTHUPDATE &&
+        event.src_agent == details.boss_src_agent) {
+        details.boss_maxhealth = event.dst_agent;
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * eventparser: typedef for combat event parsers
  * @details: the structure storing parsed EVTC data
  * @event: the combat event to parse
@@ -659,6 +742,7 @@ template<typename Event>
 static const eventparser<Event> parsers[] = {
     parse_reward_event<Event>,
     parse_logstart_event<Event>,
+    parse_boss_maxhealth_event<Event>,
 };
 
 template<typename Event>
@@ -748,6 +832,69 @@ parse_last_matching_event(parsed_details& details, ifstream& file, eventparser<E
     }
 }
 
+/**
+ * detect_challenge_mote: Detect if the encounter was a challenge mote
+ * @details: structure to store EVTC data
+ * @file: the file to scan
+ *
+ * Using data already scanned about the encounter, determine if the evtc
+ * file represents a challenge mote encounter or not. If we are unable
+ * to determine this accurately, set is_cm to CM_UNKNOWN.
+ */
+static void
+detect_challenge_mote(parsed_details& details, ifstream& file)
+{
+    if (details.boss_id == nikare_id) {
+        if (details.boss_maxhealth > 18000000) {
+            details.is_cm = CM_YES;
+        } else {
+            details.is_cm = CM_NO;
+        }
+    } else if (details.boss_id == overseer_id) {
+        if (details.boss_maxhealth > 25000000) {
+            details.is_cm = CM_YES;
+        } else {
+            details.is_cm = CM_NO;
+        }
+    } else if (details.boss_id == deimos_id) {
+        if (details.boss_maxhealth > 40000000) {
+            details.is_cm = CM_YES;
+        } else {
+            details.is_cm = CM_NO;
+        }
+    } else if (details.boss_id == samarog_id) {
+        if (details.boss_maxhealth > 30000000) {
+            details.is_cm = CM_YES;
+        } else {
+            details.is_cm = CM_NO;
+        }
+    } else if (details.boss_id == dhuum_id) {
+        if (details.boss_maxhealth > 35000000) {
+            details.is_cm = CM_YES;
+        } else {
+            details.is_cm = CM_NO;
+        }
+    } else if (details.boss_id == qadim_id) {
+        if (details.boss_maxhealth > 21000000) {
+            details.is_cm = CM_YES;
+        } else {
+            details.is_cm = CM_NO;
+        }
+    } else if (details.boss_id == cairn_id) {
+        /* Cairn CM is detected by checking for a specific skill */
+        details.is_cm = CM_UNKNOWN;
+    } else if (details.boss_id == horror_id) {
+        /* Soulless Horor CM is detected by checking the necrosis debuff */
+        details.is_cm = CM_UNKNOWN;
+    } else if (details.boss_id == conjured_amalgamate_id) {
+        /* Conjured Amalgamate is checking for a specific buff */
+        details.is_cm = CM_UNKNOWN;
+    } else {
+        /* Other encounters do not have challenge motes */
+        details.is_cm = CM_NO;
+    }
+}
+
 /* Main control function */
 int main(int argc, char *argv[])
 {
@@ -824,6 +971,18 @@ int main(int argc, char *argv[])
             parse_first_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_logstart_event);
         else
             throw "Invalid EVTC cbtevent revision";
+    } else if (type == "boss_maxhealth" || type == "is_cm") {
+        parse_boss_agent(details, evtc_file);
+        if (details.revision == 0)
+            parse_first_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_boss_maxhealth_event);
+        else if (details.revision == 1)
+            parse_first_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_boss_maxhealth_event);
+        else
+            throw "Invalid EVTC cbtevent revision";
+    }
+
+    if (type == "is_cm") {
+        detect_challenge_mote(details, evtc_file);
     }
 
     if (type == "header") {
@@ -844,6 +1003,21 @@ int main(int argc, char *argv[])
         }
     } else if (type == "start_time") {
         cout << details.server_start << endl;
+    } else if (type == "boss_maxhealth") {
+        cout << details.boss_maxhealth << endl;
+    } else if (type == "is_cm") {
+        switch (details.is_cm) {
+        case CM_NO:
+            cout << "NO" << endl;
+            break;
+        case CM_YES:
+            cout << "YES" << endl;
+            break;
+        case CM_UNKNOWN:
+        default:
+            cout << "UNKNOWN" << endl;
+            break;
+        }
     }
 
     return 0;

@@ -21,7 +21,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='players &quot;C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\l0g-101086-test-data\test-log-revision-1.evtc&quot;' />
+				<Option parameters='is_cm &quot;C:\Users\Administrator\Documents\Guild Wars 2\addons\arcdps\l0g-101086-test-data\test-log-revision-1.evtc&quot;' />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
