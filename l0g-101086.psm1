@@ -1005,7 +1005,7 @@ Function Get-Abbreviated-Name {
     param([Parameter(Mandatory)][string]$boss_name)
 
     if ($boss_name -eq "Conjured Amalgamate") {
-        return "C. Amalgamate"
+        return "Amalgamate"
     }
 
     # Currently no other boss has an abbreviation, so just return the full name
