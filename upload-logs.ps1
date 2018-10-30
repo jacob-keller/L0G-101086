@@ -265,7 +265,7 @@ ForEach($f in $files) {
 
     # Determine if the encounter was successful or not
     $encounter_status = Get-Content -Raw -Path (Join-Path -Path $dir -ChildPath "success.json") | ConvertFrom-Json
-    if ($encounter_status -ne "SUCCESS") {
+    if ($encounter_status -eq "SUCCESS") {
         $success = $true
     } else {
         $success = $false
