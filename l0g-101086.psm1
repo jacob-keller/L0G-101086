@@ -1183,7 +1183,7 @@ Function Format-And-Publish-Some {
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
         # Use the shortened name
         $name = $boss.shortname
-        $emoji = $emoji_map."$name"
+        $emoji = $emoji_map."$($boss.name)"
 
         if ($boss.is_cm -eq $true) {
             $name += " (CM)"
