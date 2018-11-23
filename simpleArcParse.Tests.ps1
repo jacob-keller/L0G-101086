@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v1.1' {
-        $version | Should BeExactly 'v1.1'
+    it 'version should be v1.2.0' {
+        $version | Should BeExactly 'v1.2.0'
     }
 }
 
@@ -49,6 +49,7 @@ $testEncounters = @(
                   'That Guy.5704','Dreggon.6598')
         success='FAILURE'
         start_time=1526264306
+        end_time=1526264944
     }
     @{
         name='siax-cm100-test-log-1.evtc'
@@ -59,6 +60,7 @@ $testEncounters = @(
                   'Draykrah.1980','grimfare.4319')
         success='SUCCESS'
         start_time=1527740549
+        end_time=1527740762
     }
     @{
         name='matthias-test-log-1.evtc'
@@ -71,6 +73,7 @@ $testEncounters = @(
                   'AndyJo.8794','AureliaSilvati.6049')
         success='SUCCESS'
         start_time=1527733808
+        end_time=1527734099
     }
     @{
         name='test-log-revision-1.evtc'
@@ -83,6 +86,7 @@ $testEncounters = @(
                   'Agvir.9502')
         success='SUCCESS'
         start_time=1538615095
+        end_time=1538615342
 
     }
 )
@@ -123,6 +127,13 @@ ForEach ($encounter in $testEncounters) {
 
         it "should extract encounter start time" {
             $success | Should BeExactly $encounter.start_time
+        }
+    }
+    describe "$($encounter.name) end_time" {
+        $success = (& $simpleArcParse end_time (Join-Path $test_data_dir $encounter.name))
+
+        it "should extract encounter end time" {
+            $success | Should BeExactly $encounter.end_time
         }
     }
 }

@@ -184,6 +184,7 @@ static const string valid_types[] = {
     "players",
     "success",
     "start_time",
+    "end_time",
     "boss_maxhealth",
     "is_cm",
 };
@@ -308,6 +309,7 @@ struct parsed_details {
     uint64_t boss_maxhealth;
     enum is_boss_cm is_cm;
     uint32_t server_start;
+    uint32_t server_end;
     bool encounter_success;
     vector<player_details> players;
 };
@@ -702,6 +704,28 @@ parse_logstart_event(parsed_details& details, Event& event)
 }
 
 /**
+ * parse_logend_event: Parser for CBTS_LOGEND events
+ * @details: structure to hold parsed EVTC data
+ * @event: the combat event to parse
+ *
+ * Checks if the event is a CBTS_LOGEND event which indicates the end time
+ * according to the server. If the event matches, this parser stores the end
+ * time in @details and returns true. Otherwise it returns false.
+ */
+template<typename Event> static bool
+parse_logend_event(parsed_details& details, Event& event)
+{
+    if (event.is_statechange == CBTS_LOGEND &&
+        event.src_agent == arcdps_src_agent) {
+        /* The log end event indicates the server time when logs ended */
+        details.server_end = event.value;
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * parse_boss_maxhealth_event: Parser for CBTS_MAXHEALTHUPDATE events
  * @details: structure to hold parsed EVTC data
  * @event: the combat event to parse
@@ -742,6 +766,7 @@ template<typename Event>
 static const eventparser<Event> parsers[] = {
     parse_reward_event<Event>,
     parse_logstart_event<Event>,
+    parse_logend_event<Event>,
     parse_boss_maxhealth_event<Event>,
 };
 
@@ -923,7 +948,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.1" << endl;
+        cout << "v1.2.0" << endl;
         return 0;
     }
 
@@ -971,6 +996,13 @@ int main(int argc, char *argv[])
             parse_first_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_logstart_event);
         else
             throw "Invalid EVTC cbtevent revision";
+    } else if (type == "end_time") {
+        if (details.revision == 0)
+            parse_last_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_logend_event);
+        else if (details.revision == 1)
+            parse_last_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_logend_event);
+        else
+            throw "Invalid EVTC cbtevent revision";
     } else if (type == "boss_maxhealth" || type == "is_cm") {
         parse_boss_agent(details, evtc_file);
         if (details.revision == 0)
@@ -1003,6 +1035,8 @@ int main(int argc, char *argv[])
         }
     } else if (type == "start_time") {
         cout << details.server_start << endl;
+    } else if (type == "end_time") {
+        cout << details.server_end << endl;
     } else if (type == "boss_maxhealth") {
         cout << details.boss_maxhealth << endl;
     } else if (type == "is_cm") {

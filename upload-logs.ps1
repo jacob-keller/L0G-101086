@@ -97,7 +97,7 @@ if (-not $extra_upload_data) {
 }
 
 # Make sure that simpleArcParse version matches our expectation
-$expected_simple_arc_version = "v1.1"
+$expected_simple_arc_version = "v1.2.0"
 $simple_arc_version = (& $simple_arc_parse version)
 if ($simple_arc_version -eq "") {
     Write-Host "Unable to determine the version of simpleArcParse"
@@ -331,8 +331,8 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # SIG # Begin signature block
 # MIIFZAYJKoZIhvcNAQcCoIIFVTCCBVECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUi68IoN+ednAWBwQjLB85iRxi
-# 80qgggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUK2320+2XFLH6jwEOxoO0Z9VS
+# JBSgggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
 # AQsFADAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwHhcNMTgxMDI4MDU1MzQzWhcN
 # MTkxMDI4MDYxMzQzWjAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwggEiMA0GCSqG
 # SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXGkNeGuDBzVQwrOwaZx8ovS5BfaSsG5xx
@@ -351,11 +351,11 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # j/LuvKgyF94xggHMMIIByAIBATArMBcxFTATBgNVBAMMDEphY29iIEtlbGxlcgIQ
 # FFuA0ERIe5ZFRAzvqUXg0TAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUXBWmMZcwn9yVUqm5v0Wl
-# nLjIP5wwDQYJKoZIhvcNAQEBBQAEggEACNId2eFkkoyToKguHE/MfAOj2NS+9xJl
-# tqs+hE6MjzU0gjIPpZIY9NcS/aVelYWtrwYJc9eds7E0xsloE6DrTkrhbpoTPYfW
-# JRuwTgOaZezBv0iiwREEqRLKplegBrWXGR4fSw9WCY99RGogWuRPQ6WuZM3IJ+7b
-# WZJ0w/1M9UBqQaJbt4pK7FwGHIIUFmuQRBHAx84Hjl4YVWJVPdOCqumEWr0Gue+x
-# Rq2U+Uduw3CmYxb+R00i2AR0Lf5iG8lCUpTbCgzZ92jRYc5ggi7fL5FWrOuj60lE
-# ze4zqpCoKUxhqH3cL8Aptvln2X+yTMfG+TREP3jwdN+8bTSCrEKqsQ==
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUFs89F1n74VVk/1PvJEHw
+# +zRD7uEwDQYJKoZIhvcNAQEBBQAEggEAbqGmACCd6zvdXa41r6TPaF2Vbxo6+1I7
+# pGqvEaffFYDGgHtsCn20+vjQgJ+wHlrr/uMxXOBB3Me+kxjRIub2E32n6wCYgxMv
+# FIGnpUCuuYoA5huuLT0NUjp60+g+mrmUGN/2QTVDCcXZomqX/HxmLSTu9tqd1WTL
+# LPPgBzmiWuD/ucdQmmglqze5tyPS4OaGIk/0NB7PLesADfClYDxRLXo7fyntJd0s
+# xKkqtQVo7WSeJOjz9uxwI0ZEVZI2s8dL3SQszCs4x28qlxU9dSrTGwrKSTcmEiBy
+# y7Lp+vWQTUqoxkDGQSGYiNjhZZYocgDlGr6cXdn3w67yFhG4aXCtNA==
 # SIG # End signature block
