@@ -249,6 +249,18 @@ ForEach($f in $files) {
 
         Log-Output "Start Time: ${start_time}"
 
+        # Parse the evtc combat events to determine the server end time, then calculate a duration in seconds
+        $end_time = (& $simple_arc_parse end_time "${evtc}")
+        if ($end_time -le $start_time) {
+            Log-Output "End Time: ${end_time}"
+            Log-Output "The end time in the log file is less than the start time. Skipping duration calculation."
+        } else {
+            $duration = $end_time - $start_time
+            $duration | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "duration.json")
+
+            Log-Output "Encounter duration: ${duration}"
+        }
+
         # Parse the evtc to determine if the encounter was a challenge mote
         $is_cm = (& $simple_arc_parse is_cm "${evtc}")
         $is_cm | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "is_cm.json")
@@ -331,8 +343,8 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # SIG # Begin signature block
 # MIIFZAYJKoZIhvcNAQcCoIIFVTCCBVECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUK2320+2XFLH6jwEOxoO0Z9VS
-# JBSgggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUUAPga5FvCZD+ubu5AiCVGlr9
+# n6+gggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
 # AQsFADAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwHhcNMTgxMDI4MDU1MzQzWhcN
 # MTkxMDI4MDYxMzQzWjAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwggEiMA0GCSqG
 # SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXGkNeGuDBzVQwrOwaZx8ovS5BfaSsG5xx
@@ -351,11 +363,11 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # j/LuvKgyF94xggHMMIIByAIBATArMBcxFTATBgNVBAMMDEphY29iIEtlbGxlcgIQ
 # FFuA0ERIe5ZFRAzvqUXg0TAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUFs89F1n74VVk/1PvJEHw
-# +zRD7uEwDQYJKoZIhvcNAQEBBQAEggEAbqGmACCd6zvdXa41r6TPaF2Vbxo6+1I7
-# pGqvEaffFYDGgHtsCn20+vjQgJ+wHlrr/uMxXOBB3Me+kxjRIub2E32n6wCYgxMv
-# FIGnpUCuuYoA5huuLT0NUjp60+g+mrmUGN/2QTVDCcXZomqX/HxmLSTu9tqd1WTL
-# LPPgBzmiWuD/ucdQmmglqze5tyPS4OaGIk/0NB7PLesADfClYDxRLXo7fyntJd0s
-# xKkqtQVo7WSeJOjz9uxwI0ZEVZI2s8dL3SQszCs4x28qlxU9dSrTGwrKSTcmEiBy
-# y7Lp+vWQTUqoxkDGQSGYiNjhZZYocgDlGr6cXdn3w67yFhG4aXCtNA==
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU2dCJauAY8KfBn+VBS59+
+# BNY0IN0wDQYJKoZIhvcNAQEBBQAEggEAyeZbu4HXOQLTeMp49FwKOoYF6YLup9ZB
+# GZxFJZIWl6K/Wu5MqzUXFeGOkBnx+c8ze1pTzFVCcQYYO9YQHXVHwv7IU139Do9x
+# sWFIAhOJRRDkvG/yVncXDWhbwXQa6SM1kuOtrMpyLgcoC9q52JoRCSi+Fskxxj4m
+# PCs9apxlneZssyCpqQq1AL4wSTnoPySkohC8WHrpxfgRK4jaC5sht27C2WCp7Ws4
+# dgOAGNppZ0vu6/iJeTzIEDLH7p6YwF1Iq9JLBItunXqwlINKKfI4pNnp+nB3gWRl
+# QrdtCmQBUHYO88L/DPTXnvCp84SoeuR/XuQRy4SoZAhtYSqsED0pcw==
 # SIG # End signature block

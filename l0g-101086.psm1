@@ -1075,6 +1075,16 @@ Function Load-From-EVTC {
     $boss["servertime"] = [int]$servertime
     $boss["time"] = ConvertFrom-UnixDate $servertime
 
+    # Get the encounter duration (in difference of unix timestamps)
+    $duration_json = [io.path]::combine($extras_path, "duration.json")
+    if (X-Test-Path $duration_json) {
+        $duration = (Get-Content -Raw -Path $duration_json | ConvertFrom-Json)
+        $boss["duration"] = [int]$duration
+        $span = New-TimeSpan -Seconds $duration
+        $duration_string = "$([math]::floor($span.TotalMinutes))m $($span.Seconds.ToString("00"))s"
+        $boss["duration_string"] = $duration_string
+    }
+
     # Get the encounter name
     $encounter_json = [io.path]::combine($extras_path, "encounter.json")
     if (-not (X-Test-Path $encounter_json)) {
@@ -1205,17 +1215,29 @@ Function Format-And-Publish-Some {
                 inline = $true
         }
 
+
+
         if ($dps_report -and $gw2raidar) {
             # We put both the dps.report and gw2raidar link here,  separated by a MIDDLE DOT character
-            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2raidar} `"${gw2raidar}`")`r`n@UNICODE-ZWS@"}
+            $link_string = "[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2raidar} `"${gw2raidar}`")"
         } elseif ($dps_report) {
-            $boss_field | Add-Member @{value="[dps.report](${dps_report} `"${dps_report}`")`r`n@UNICODE-ZWS@"}
+            $link_string = "[dps.report](${dps_report} `"${dps_report}`")"
         } elseif ($gw2raidar) {
-            $boss_field | Add-Member @{value="[gw2raidar](${gw2raidar} `"${gw2raidar}`")`r`n@UNICODE-ZWS@"}
+            $link_string = "[gw2raidar](${gw2raidar} `"${gw2raidar}`")"
         } else {
             # In the rare case we somehow end up here with no link, just put "N/A"
-            $boss_field | Add-Member @{value="N/A`r`n@UNICODE-ZWS@"}
+            $link_string = "N/A"
         }
+
+        # If we have a duration string, add it to the end of the links
+        if ($boss.duration_string) {
+            $link_string += " ($($boss.duration_string))"
+        }
+
+        # Add a new line and a zero-width space, to trick discord into adding extra padding
+        $link_string += "`r`n@UNICODE-ZWS@"
+
+        $boss_field | Add-Member @{value=$link_string}
 
         # Insert the boss field into the array
         $fields += $boss_field
@@ -1723,8 +1745,8 @@ Function Save-Gw2-Raidar-Links {
 # SIG # Begin signature block
 # MIIFZAYJKoZIhvcNAQcCoIIFVTCCBVECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5fGK8wvVBIaj7BMEIE778qGR
-# 9legggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUCwDmWx9fVozMZzlC/N9yiXFu
+# fOmgggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
 # AQsFADAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwHhcNMTgxMDI4MDU1MzQzWhcN
 # MTkxMDI4MDYxMzQzWjAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwggEiMA0GCSqG
 # SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXGkNeGuDBzVQwrOwaZx8ovS5BfaSsG5xx
@@ -1743,11 +1765,11 @@ Function Save-Gw2-Raidar-Links {
 # j/LuvKgyF94xggHMMIIByAIBATArMBcxFTATBgNVBAMMDEphY29iIEtlbGxlcgIQ
 # FFuA0ERIe5ZFRAzvqUXg0TAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUnM7gz8WyDsYZOhz8lPgx
-# HUI1V98wDQYJKoZIhvcNAQEBBQAEggEALvkwhCE5Iylr+2o7hcDWsUK0CgZeA9So
-# mIZlOJ0XWwWeEdCOeKt4rhdqne/aKWfvjoaudn1xAJV0eiXg2xfJPbdv/wn1zanZ
-# h/mVFl0L3dENw5I84p45neq+eATN8ZNn243BpjYxAoU/q4DqH9MO3t+JY3cG7iUd
-# f2MtrW1AoDjfMzE+NQuubeT5iPlZGv4V9W54drrHpKZ8dXGYQUzw38aFGZegPxTz
-# cG1tdVeVjltj6YuPbeEKr+e3I+8JD8JshudCWul7w7nRa82K18QthgVoiq3tttXa
-# U+hB1IvVqhJbqXbuoiWHQUataDOYFzMEYsVeFQiXEMZcfwaKVgZ5fg==
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUFNa9PuMkEivNNNdOGESq
+# nXqzRjkwDQYJKoZIhvcNAQEBBQAEggEAav2PuNSgD7vXrOdiYynJWUfG0oot18CH
+# 76SqTClgiRGdJFzKPt7AQ10L7/fdVNAp8AGjxBuB7Fb+ZS7OSyG+Rymrv2Eschm6
+# BJKpNKifU5owQEM1xfJgBw9DeIMq7Nbr+bt2uQ1Q9Y6gcvInm+eHXGaImCeV4Tsi
+# G0pekUsZqvqKcfPt/HLcd3er1dwuxczWthdZzeyw25TNFpVyjLViKKxH+L+equ5r
+# tltFfVVAfyimXits33GR9sBkF/U+IGshcLG8oPJmefNJhThwVvr8ehzHBRBwRRdS
+# 5Aw0Yvwspd4noSKL6XxIiyep7lDr3O6OfgwMTLcFXebqTrCPS6WUXA==
 # SIG # End signature block
