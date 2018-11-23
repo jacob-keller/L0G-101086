@@ -121,7 +121,7 @@ ForEach ($encounter in $testEncounters) {
     describe "$($encounter.name) start_time" {
         $success = (& $simpleArcParse start_time (Join-Path $test_data_dir $encounter.name))
 
-        it "should extract encounter failure" {
+        it "should extract encounter start time" {
             $success | Should BeExactly $encounter.start_time
         }
     }
