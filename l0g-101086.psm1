@@ -433,6 +433,14 @@ $v2ValidGuildFields =
         type=[bool]
         optional=$true
     }
+    @{
+        # If set to true, format-encounters will show the approximate duration that
+        # the encounter took as part of the link line. If set to false, this duration
+        # will not be displayed. Defaults to true.
+        name="show_duration"
+        type=[bool]
+        optional=$true
+    }
 )
 
 $v2ConfigurationFields = $commonConfigurationFields +
@@ -1229,8 +1237,16 @@ Function Format-And-Publish-Some {
             $link_string = "N/A"
         }
 
+        # Determine if we want to add durations. By default we will, unless they are
+        # explicitely disabled in the guild configuration.
+        if ($guild.add_duration -eq $true -or $guild.add_duration -eq $null) {
+            $add_duration = $true
+        } else {
+            $add_duration = $false
+        }
+
         # If we have a duration string, add it to the end of the links
-        if ($boss.duration_string) {
+        if ($add_duration -and $boss.duration_string) {
             $link_string += " ($($boss.duration_string))"
         }
 
@@ -1745,8 +1761,8 @@ Function Save-Gw2-Raidar-Links {
 # SIG # Begin signature block
 # MIIFZAYJKoZIhvcNAQcCoIIFVTCCBVECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUCwDmWx9fVozMZzlC/N9yiXFu
-# fOmgggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUl6O0ASuJV5pyoHMdWleOhXI8
+# /lygggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
 # AQsFADAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwHhcNMTgxMDI4MDU1MzQzWhcN
 # MTkxMDI4MDYxMzQzWjAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwggEiMA0GCSqG
 # SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXGkNeGuDBzVQwrOwaZx8ovS5BfaSsG5xx
@@ -1765,11 +1781,11 @@ Function Save-Gw2-Raidar-Links {
 # j/LuvKgyF94xggHMMIIByAIBATArMBcxFTATBgNVBAMMDEphY29iIEtlbGxlcgIQ
 # FFuA0ERIe5ZFRAzvqUXg0TAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUFNa9PuMkEivNNNdOGESq
-# nXqzRjkwDQYJKoZIhvcNAQEBBQAEggEAav2PuNSgD7vXrOdiYynJWUfG0oot18CH
-# 76SqTClgiRGdJFzKPt7AQ10L7/fdVNAp8AGjxBuB7Fb+ZS7OSyG+Rymrv2Eschm6
-# BJKpNKifU5owQEM1xfJgBw9DeIMq7Nbr+bt2uQ1Q9Y6gcvInm+eHXGaImCeV4Tsi
-# G0pekUsZqvqKcfPt/HLcd3er1dwuxczWthdZzeyw25TNFpVyjLViKKxH+L+equ5r
-# tltFfVVAfyimXits33GR9sBkF/U+IGshcLG8oPJmefNJhThwVvr8ehzHBRBwRRdS
-# 5Aw0Yvwspd4noSKL6XxIiyep7lDr3O6OfgwMTLcFXebqTrCPS6WUXA==
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUygMixF+qJ3CCHvrBBGwJ
+# kpDGs3MwDQYJKoZIhvcNAQEBBQAEggEAssCuQufNySTAo5Kn1zRUjjdVGIdMva2V
+# bk1d2H58fa3Bk/MG5pZVNdqlLahV/fpY53+nl8lDRKI1FBawYvC/N+pUADn7/VgY
+# W7YVjBHvuOzhfE4wgKDuxb2Mmd3G43XYhqXKlCVx8ttpuGzUmG+ofZS/QU2AtJkU
+# 60DW1qPP7q7/XOk2YR/YLOyEgW1/+jTIjd+781dooa/mVYXf/Dwfmnx5Ic+IPQkV
+# 9SUgHCJP73ooMFF960g3r7BoZwubtc1ZUxB9qxcjRhNBc9zF0xhpcUNXc2Ca4JBN
+# L4wYgKPvFkJaW6VfvZ0rXP4hlsOnUKSKgospZ8V8t1Bj/xrseG3nKw==
 # SIG # End signature block
