@@ -159,6 +159,16 @@ ForEach($f in $files) {
         if (-not (X-Test-Path $evtc)) {
             $evtc = Join-Path -Path $dir -ChildPath "${name}.tmp"
         }
+
+        # Sometimes the evtc.zip stores the uncompressed file without the .evtc
+        if (-not (X-Test-Path $evtc)) {
+            $evtc = Join-Path -Path $dir -ChildPath ([io.fileinfo]$name).basename
+        }
+
+        if (-not (X-Test-Path $evtc)) {
+            throw "${evtc} is compressed, but does not appear to contain the correct contents"
+        }
+
     } else {
         # if the file was not compressed originally, we don't need to copy it
         $evtc = $f
@@ -321,8 +331,8 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # SIG # Begin signature block
 # MIIFZAYJKoZIhvcNAQcCoIIFVTCCBVECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFFg7P1Lqjg9YmgHKifD5dv9P
-# cuagggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUi68IoN+ednAWBwQjLB85iRxi
+# 80qgggMCMIIC/jCCAeagAwIBAgIQFFuA0ERIe5ZFRAzvqUXg0TANBgkqhkiG9w0B
 # AQsFADAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwHhcNMTgxMDI4MDU1MzQzWhcN
 # MTkxMDI4MDYxMzQzWjAXMRUwEwYDVQQDDAxKYWNvYiBLZWxsZXIwggEiMA0GCSqG
 # SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXGkNeGuDBzVQwrOwaZx8ovS5BfaSsG5xx
@@ -341,11 +351,11 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # j/LuvKgyF94xggHMMIIByAIBATArMBcxFTATBgNVBAMMDEphY29iIEtlbGxlcgIQ
 # FFuA0ERIe5ZFRAzvqUXg0TAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUhDvL0wVFVV+QU3qgdXJH
-# fz7L/YMwDQYJKoZIhvcNAQEBBQAEggEAI5gKwi1FE25rh6GbS05obmlgdiTpG0I7
-# cF0St6A8mLkLP+9Pows8yi9qpxHpuW/ft4QS/jYutAt2Jbw84j7swo4nP7wjkF4J
-# 1VSCL+OUeFYlQqcINLEHv6VaXqr+0pOLNx2hR9RPo0m9B1dtsYJgZuyFJayLf5IZ
-# yaEFgUuG+52h8X0sAgxEj0br60F82if97OLgpEkB6nA7fn4YySdVuqQwcS6r0aDs
-# QlI7jjcJXeaB/3KKM5ZgB3DH9SavLhyIeUbP3jlmH8ndU92Z+K4oRWVn90Cwv7GN
-# UARzQ71O+9+AZGWW6TXenZnrIINTyJMoiilYP9AU9I2v7GeI0C4d3w==
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUXBWmMZcwn9yVUqm5v0Wl
+# nLjIP5wwDQYJKoZIhvcNAQEBBQAEggEACNId2eFkkoyToKguHE/MfAOj2NS+9xJl
+# tqs+hE6MjzU0gjIPpZIY9NcS/aVelYWtrwYJc9eds7E0xsloE6DrTkrhbpoTPYfW
+# JRuwTgOaZezBv0iiwREEqRLKplegBrWXGR4fSw9WCY99RGogWuRPQ6WuZM3IJ+7b
+# WZJ0w/1M9UBqQaJbt4pK7FwGHIIUFmuQRBHAx84Hjl4YVWJVPdOCqumEWr0Gue+x
+# Rq2U+Uduw3CmYxb+R00i2AR0Lf5iG8lCUpTbCgzZ92jRYc5ggi7fL5FWrOuj60lE
+# ze4zqpCoKUxhqH3cL8Aptvln2X+yTMfG+TREP3jwdN+8bTSCrEKqsQ==
 # SIG # End signature block
