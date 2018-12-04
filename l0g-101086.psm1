@@ -1725,53 +1725,75 @@ Function UploadTo-Gw2Raidar {
 
 <#
  .Synopsis
-  Obtain a list of gw2raidar encounters
+  Obtain a hash table of gw2raidar permalinks matched to the unix timestamp
+  of that encounter.  
 
  .Description
-  Fetch the list of gw2raidar encounters via the HTTP REST API. Create and
-  return a hash object which connects gw2raidar permalinks to the server
-  start times.
+  Attempt to fetch the permalinks for all encounters between two unix timestamps
+  and return them in a hash table keyed on the unix timestamp of each encounter.
+
+  To make this efficient, we use bisection across the total set of encounters,
+  so that we can efficiently find the start and end of the section to report.
+
+  This should allow reporting only the minimum number of links, and avoid
+  scanning the entire gw2raidar API if the timestamp range was small.
 
  .Parameter config
   The config object
 
  .Parameter since
   Unix timestamp of earliest encoutner to return
+
+ .Parameter until
+  Unix timestamp of the latest encounter to return
 #>
 Function Get-GW2-Raidar-Links {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][int]$since)
+          [Parameter(Mandatory)][int]$since,
+          [Parameter(Mandatory)][int]$until)
 
-    # Initial request URL
     $raidar_url = "https://gw2raidar.com"
-    $request = "$raidar_url/api/v2/encounters?since=${since}&limit=25"
-    $max_link_count = 100
-
-    # TODO: should this be inlined directly with the missing data code, in
-    # order to avoid the hash from growing out of bounds? Right now the code
-    # is limited to 100 encounters, which means that we can't individually
-    # find the link for a gw2raidar encounter which is too old. In practice
-    # this isn't a problem now, but could be if we want to find the link
-    # for a really old, possibly failed encounter. Ultimately this is due to
-    # the nature of gw2raidar API...
 
     # Hash object for storing encounter permalinks based on their server start time
     $raidar_links = @{}
+    
+    # Initial request URL
+    $limit=25
+    $request = "$raidar_url/api/v2/encounters?since=${since}&limit=${limit}"
+    $lowest_page = 0
+    $current_page = 0
+    $pages = 0
 
     do {
+        # Assume that no encounters are after our $until time
+        $after = $false
+
         # Get some encounters
         $data = Invoke-RestMethod -Uri $request -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
+
+        # Determine the number of pages we could check
+        if ($pages -eq 0) {
+            $pages = [int][Math]::Ceiling($data.count / $limit)
+        }
 
         ForEach ($encounter in $data.results) {
             # Store the permalink for this server start time
             $raidar_links[$encounter.started_at] = "$raidar_url/encounter/$($encounter.url_id)"
+
+            # If this encounter is newer than $until, we probably want to skip back some
+            if ($encounter.started_at -gt $until) {
+                $after = $true
+            }
         }
 
-        # Sanity check to avoid attempting to grab too many links
-        if ($raidar_links.count -ge $max_link_count) {
-            throw "Attempted to obtain more than $max_link_count gw2raidar links..."
+        # Ok, if no encounter was newer than our $until timestamp, we know this is the lowest
+        # page so far that could include 
+        if (-not $after) {
+            $lowest_page = $current_page
         }
+
+        # Now, we want to figure out what the next page should be.
 
         $request = $data.next
     } while ($request)
@@ -1808,8 +1830,22 @@ Function Save-Gw2-Raidar-Links {
     # Get the earliest servertime for a missing encounter
     $since = $missing[0].servertime
 
-    # Obtain gw2raidar links mapped to their start time
-    $raidar_links = Get-GW2-Raidar-Links $config $since
+    # Set the maximum hash size to be 250 or three times the size of the
+    # missing array, whichever is larger. This should ensure that we will
+    # dig far enough back through gw2raidar history if we're expecting to find
+    # a lot of links.
+    $max_hash_size = $missing.count * 3
+    if ($max_hash_size -lt 250) {
+        $max_hash_size = 250
+    }
+
+    # Note: this is likely to fail if we're requesting a single encounter
+    # which is very old. There is currently no good method of finding such
+    # a permalink, since we have to crawl the gw2raidar api. This is due
+    # to the inability to scan the gw2raidar API forwards from a given time.
+
+    # Obtain gw2raidar links mapped to their start time.
+    $raidar_links = Get-GW2-Raidar-Links $config $since $max_hash_size
 
     ForEach ($boss in $missing) {
         if ($raidar_links.Contains($boss.servertime)) {
