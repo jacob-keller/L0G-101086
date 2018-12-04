@@ -1469,7 +1469,7 @@ Function Format-And-Publish-All {
 
 <#
  .Synopsis
-  Upload a file to dps.report
+  Maybe upload a file to dps.report
 
  .Description
   Upload a file to the dps.report website, and store the returned contents
@@ -1479,6 +1479,9 @@ Function Format-And-Publish-All {
   uploaded. If it is "successful" then only the successful encounters will be
   uploaded. If it is "no", then this function will return immediately and will not
   upload any encounter to dps.report
+
+  If you wish to manually force upload of specific encounters, ignoring the
+  configuration, use UploadTo-DpsReport instead.
 
  .Parameter config
   The configuration object
@@ -1492,7 +1495,7 @@ Function Format-And-Publish-All {
  .Parameter success
   True if the encounter was a success, false otherwise
 #>
-Function UploadTo-DpsReport {
+Function Maybe-UploadTo-DpsReport {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][string]$file,
@@ -1516,6 +1519,36 @@ Function UploadTo-DpsReport {
         # We verify the config value is already valid so this should never happen
         throw "Invalid configuration value for upload_dps_report"
     }
+
+    UploadTo-DpsReport $config $file $extras_dir
+}
+
+<#
+ .Synopsis
+  Maybe upload a file to dps.report
+
+ .Description
+  Upload a file to the dps.report website, and store the returned contents
+  of the upload. This includes the dps.report permalink.
+
+  This function always uploads to dps.report regardless of the configuration.
+  Use Maybe-UploadTo-DpsReport if you wish to honor the configuration settings
+  for uploading.
+
+ .Parameter config
+  The configuration object
+
+ .Parameter file
+  The file to upload to dps.report
+
+ .Parameter extras_dir
+  The path to the extras directory for storing extra data about this file
+#>
+Function UploadTo-DpsReport {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][string]$file,
+          [Parameter(Mandatory)][string]$extras_dir)
 
     # Determine what generator to use
     $valid_generators = @( "rh", "ei" )
@@ -1568,10 +1601,10 @@ Function UploadTo-DpsReport {
 
 <#
  .Synopsis
-  Upload a file to Gw2 Raidar
+  Maybe upload a file to Gw2 Raidar
 
  .Description
-  Upload a file to the gw2raidar website, including tag information. Store the
+  Maybe upload a file to the gw2raidar website, including tag information. Store the
   reported upload id into the extras directory. For now, this does not include
   obtaining the permalink, due to the way that gw2raidar processes encounters.
 
@@ -1579,6 +1612,9 @@ Function UploadTo-DpsReport {
   uploaded. If it is "successful" then only the successful encounters will be
   uploaded. If it is "no", then this function will return immediately and will not
   upload any encounter to gw2raidar
+
+  If you wish to manually force upload of specific encounters, ignoring the
+  configuration, use UploadTo-Gw2Raidar instead.
 
  .Parameter config
   The configuration object
@@ -1595,7 +1631,7 @@ Function UploadTo-DpsReport {
  .Parameter success
   True if the encounter was a success, false otherwise.
 #>
-Function UploadTo-Gw2Raidar {
+Function Maybe-UploadTo-Gw2Raidar {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][string]$file,
@@ -1621,6 +1657,40 @@ Function UploadTo-Gw2Raidar {
         throw "Invalid configuration value for upload_gw2raidar"
     }
 
+    UploadTo-Gw2Raidar $config $file $guild $extras_dir
+}
+
+<#
+ .Synopsis
+  Upload a file to Gw2 Raidar
+
+ .Description
+  Upload a file to the gw2raidar website, including tag information. Store the
+  reported upload id into the extras directory. For now, this does not include
+  obtaining the permalink, due to the way that gw2raidar processes encounters.
+
+  This function always uploads to gw2raidar regardless of the configuration.
+  Use Maybe-UploadTo-Gw2Raidar if you wish to honor the configuration settings
+  for uploading.
+
+ .Parameter config
+  The configuration object
+
+ .Parameter file
+  The file to upload to gw2raidar
+
+ .Parameter guild
+  The guild which ran this encounter, used to determine what tags to insert
+
+ .Parameter extras_dir
+  The path to the extras directory for storing extra data about this file
+#>
+Function UploadTo-Gw2Raidar {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][string]$file,
+          [Parameter(Mandatory)][string]$guild,
+          [Parameter(Mandatory)][string]$extras_dir)
 
     $client = New-Object RestSharp.RestClient("https://www.gw2raidar.com")
     $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")

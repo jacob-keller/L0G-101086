@@ -296,7 +296,7 @@ ForEach($f in $files) {
     # Upload to gw2raidar (if configured) first, because the server processes in the background.
     Log-Output "Uploading ${name} to gw2raidar..."
     try {
-        UploadTo-Gw2Raidar $config $f $guild $dir $success
+        Maybe-UploadTo-Gw2Raidar $config $f $guild $dir $success
     } catch {
         Write-Exception $_
         Log-Output "Upload to gw2raidar failed..."
@@ -318,7 +318,7 @@ ForEach($f in $files) {
     # Then upload to dps.report (if configured) because the server will block until a permalink is available
     Log-Output "Uploading ${name} to dps.report..."
     try {
-        UploadTo-DpsReport $config $f $dir $success
+        Maybe-UploadTo-DpsReport $config $f $dir $success
     } catch {
         Write-Exception $_
         Log-Output "Upload to dps.report failed..."
