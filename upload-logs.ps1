@@ -124,9 +124,9 @@ $arcdps_release_date = (Get-Date -Date ($arcdps_headers['Last-Modified'])).Date
 # last write time, and then we return the full path of that file.
 if (Test-Path $last_upload_file) {
     $last_upload_time = Get-Content -Raw -Path $last_upload_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
-    $files = @(Get-ChildItem -Recurse -File -Include @(".evtc.zip", "*.evtc") -LiteralPath $arcdps_logs | Where-Object { $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ( $_.Name -Like "*.evtc.zip" -or $_.Name -Like "*.evtc" ) -and $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 } else {
-    $files = @(Get-ChildItem -Recurse -File -Include @(".evtc.zip", "*.evtc") -LiteralPath $arcdps_logs | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { $_.Name -Like "*.evtc.zip" -or $_.Name -Like "*.evtc" } | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 }
 
 $next_upload_time = Get-Date
