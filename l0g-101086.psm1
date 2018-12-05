@@ -1550,6 +1550,9 @@ Function UploadTo-DpsReport {
           [Parameter(Mandatory)][string]$file,
           [Parameter(Mandatory)][string]$extras_dir)
 
+    # Make sure that RestSharp is loaded
+    Add-Type -Path $config.restsharp_path
+
     # Determine what generator to use
     $valid_generators = @( "rh", "ei" )
     $dps_report_generator = $config.dps_report_generator.Trim()
@@ -1691,6 +1694,9 @@ Function UploadTo-Gw2Raidar {
           [Parameter(Mandatory)][string]$file,
           [Parameter(Mandatory)][string]$guild,
           [Parameter(Mandatory)][string]$extras_dir)
+
+    # Make sure that RestSharp is loaded
+    Add-Type -Path $config.restsharp_path
 
     $client = New-Object RestSharp.RestClient("https://www.gw2raidar.com")
     $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")
