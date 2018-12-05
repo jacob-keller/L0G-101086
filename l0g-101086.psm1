@@ -1731,6 +1731,93 @@ Function UploadTo-Gw2Raidar {
 
 <#
  .Synopsis
+  Search for the compressed evtc file of a boss hash table and save its path
+
+ .Description
+  Given a boss hash table, attempt to locate the compressed EVTC file within
+  the uploaded logs. If we find it, store the link as a json file in the
+  upload extras folder. Additionally update the boss hash table with this info
+
+ .Parameter config
+  The config object
+
+ .Parameter boss
+  A boss hash table to update
+#>
+Function SearchFor-EVTC-File {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][HashTable]$boss)
+
+    # Get the evtc name from the extras path
+    $evtc_name = Split-Path -Leaf $boss["extras_path"]
+
+    # Try to find the file, searching for both compressed and uncompressed files
+    $files = @(Get-ChildItem -Recurse -File -LiteralPath $config.arcdps_logs | Where-Object { $_.Name -eq "${evtc_name}" -or $_.Name -eq "${evtc_name}.zip" } | ForEach-Object {$_.FullName})
+
+    # Throw an error if we didn't find the file
+    if ($files.Count -eq 0) {
+        throw "Unable to find the EVTC log file for ${evtc_name}."
+    }
+
+    # Throw an error if we found too many files
+    if ($files.Count -gt 1) {
+        throw "Found the following potential compressed EVTC files fore ${evtc_name}: $($files -join ',')"
+    }
+
+    # We found exactly one file, so this must have been the EVTC file
+    $files[0] | ConvertTo-Json | Out-File -FilePath (Join-Path $boss["extras_path"] -ChildPath "evtc.json")
+    $boss["evtc"] = $files[0]
+}
+
+<#
+ .Synopsis
+  Upload a boss to dps.report
+
+ .Description
+  Given a boss hash table, check and see if it was previously uploaded
+  to dps.report. If not, upload it, save the permalink, and update
+  the boss hash table to reflect the new permalink.
+
+  Used to enable easily uploading an individual encounter, possibly even if
+  it didn't succeed before.
+
+ .Parameter config
+  The config object
+
+ .Parameter boss
+  The boss hash table to upload
+#>
+Function Complete-UploadTo-DpsReport {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][HashTable]$boss)
+
+
+    # First, check if we already have a dps_report link
+    if ($boss.Contains("dps_report")) {
+        return
+    }
+
+    # Some older versions of upload-logs.ps1 would not save the
+    # path to the evtc. If this is an old encounter, attempt to search
+    # for and find this data now
+    if (-not $boss.Contains("evtc")) {
+        SearchFor-EVTC-File $config $boss
+    }
+
+    # It wasn't previously uploaded, so lets do that now
+    UploadTo-DpsReport $config $boss["evtc"] $boss["extras_path"]
+
+    # After the upload, update the hash table to include the new dps.report link
+    $dpsreport_json = [io.path]::combine($boss["extras_path"], "dpsreport.json")
+    if (X-Test-Path $dpsreport_json) {
+        $boss["dps_report"] = (Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json).permalink
+    }
+}
+
+<#
+ .Synopsis
   Obtain a list of gw2raidar encounters
 
  .Description
