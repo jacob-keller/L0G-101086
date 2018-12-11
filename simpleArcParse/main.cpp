@@ -177,6 +177,81 @@ struct evtc_cbtevent_v1 {
 	uint8_t pad64;
 };
 
+static const uint8_t cbtevent_revision_v0 = 0;
+static const uint8_t cbtevent_revision_v1 = 1;
+
+static const size_t cbtevent_sizes[] = {
+    sizeof(evtc_cbtevent_v0),
+    sizeof(evtc_cbtevent_v1),
+};
+
+static const uint8_t max_cbtevent_revision = 1;
+static_assert(max_cbtevent_revision < extent<decltype(cbtevent_sizes)>::value,
+              "Invalid maximum cbtevent revision");
+static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision);
+
+/* The evtc_cbtevent structure is used to abstract away the layout differences
+ * of the different versions of the cbtevent data in evtc_cbtevent_v0 and
+ * evtc_cbtevent_v1 data structures. Because of this, we need to write accessor
+ * functions in the class. However, much of this code is boiler plate. Almost
+ * every field has the same name. A few fields have different sizes, but can be
+ * easily type-casted up to the larger size.
+ *
+ * This macro is provided as a convenient way to define accessors for the most common
+ * fields that do not need any special handling between versions. Otherwise
+ * we would end up duplicating this boiler plate revision version check many times.
+ */
+#define CBTEVENT_ACCESSOR(type, field)                          \
+    type field() {                                              \
+        if (revision == cbtevent_revision_v0)                   \
+            return (type)(raw.v0.field);                        \
+        else if (revision == cbtevent_revision_v1)              \
+            return (type)(raw.v1.field);                        \
+        else                                                    \
+            throw "Invalid cbtevent revision";                  \
+    }
+
+/* Abstraction of the various evtc_cbtevent versions */
+class evtc_cbtevent {
+private:
+    union {
+        evtc_cbtevent_v0 v0;
+        evtc_cbtevent_v1 v1;
+    } raw;
+    uint8_t revision;
+public:
+    evtc_cbtevent(ifstream& file, uint8_t revision,
+                  streampos cbt_event_start,
+                  uint32_t cbtevent);
+
+    CBTEVENT_ACCESSOR(uint8_t, is_statechange)
+    CBTEVENT_ACCESSOR(uint64_t, src_agent)
+    CBTEVENT_ACCESSOR(uint64_t, dst_agent)
+    CBTEVENT_ACCESSOR(uint32_t, value)
+};
+
+/**
+ * evtc_cbtevent - Construct an EVTC combat event from the file
+ * @file: the file to read
+ * @revision: the combat event revision
+ * @cbt_event_start: where in the file combat events start
+ * @cbtevent: which combat event number to read
+ *
+ * Construct an evtc_cbtevent item by reading from the given file.
+ */
+evtc_cbtevent::evtc_cbtevent(ifstream& file, uint8_t revision,
+                             streampos cbt_event_start,
+                             uint32_t cbtevent)
+{
+    streampos event_index = cbt_event_start;
+
+    event_index += cbtevent * EVTC_CBTEVENT_SIZE(revision);
+
+    file.seekg(event_index);
+    file.read((char *)&this->raw, EVTC_CBTEVENT_SIZE(revision));
+    this->revision = revision;
+}
+
 static const string valid_types[] = {
     "version",
     "header",
@@ -223,16 +298,11 @@ static const streampos SEEKG_EVTC_FIRST_CBTEVENT(uint32_t agent_count, uint32_t 
 
 static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision)
 {
-    if (revision == 0) {
-        return sizeof(evtc_cbtevent_v0);
-    } else if (revision == 1) {
-        return sizeof(evtc_cbtevent_v1);
-    } else {
-        /* No easy way to return an error here, and the header parsing should
-         * have prevented this, so we'll just throw an exception
-         */
+    if (revision > max_cbtevent_revision)
         throw "Invalid EVTC cbtevent revision";
-    }
+
+    return cbtevent_sizes[revision];
+
 }
 
 static const uint16_t vale_guardian_id  = 0x3C4E;
@@ -639,27 +709,6 @@ calculate_cbt_event_count(parsed_details& details, ifstream& file)
 }
 
 /**
- * get_cbt_event_details: extract a combat event from the EVTC file
- * @file: the EVTC file to read
- * @cbt_event_start: the position where combat events start
- * @cbtevent: the combat event number to read
- * @cbt_details: structure to store combat event data
- *
- * Extract a single combat event from the EVTC file.
- */
-template<typename Event> static void
-get_cbt_event_details(ifstream& file, streampos cbt_event_start,
-                      uint32_t cbtevent, Event& cbt_details)
-{
-    streampos event_index = cbt_event_start;
-
-    event_index += cbtevent * sizeof(cbt_details);
-
-    file.seekg(event_index);
-    file.read((char *)&cbt_details, sizeof(cbt_details));
-}
-
-/**
  * parse_reward_event: Parser for CBTS_REWARD events
  * @details: structure to hold parsed EVTC data
  * @event: the combat event to parse
@@ -669,10 +718,10 @@ get_cbt_event_details(ifstream& file, streampos cbt_event_start,
  * stores the success data in @details, and returns true. Otherwise it
  * returns false.
  */
-template<typename Event> static bool
-parse_reward_event(parsed_details& details, Event& event)
+static bool
+parse_reward_event(parsed_details& details, evtc_cbtevent& event)
 {
-    if (event.is_statechange == CBTS_REWARD) {
+    if (event.is_statechange() == CBTS_REWARD) {
         /* A reward event indicates that the boss was killed successfully */
         details.encounter_success = true;
         return true;
@@ -690,13 +739,13 @@ parse_reward_event(parsed_details& details, Event& event)
  * according to the server. If the event matches, this parser stores the start
  * time in @details and returns true. Otherwise it returns false.
  */
-template<typename Event> static bool
-parse_logstart_event(parsed_details& details, Event& event)
+static bool
+parse_logstart_event(parsed_details& details, evtc_cbtevent& event)
 {
-    if (event.is_statechange == CBTS_LOGSTART &&
-        event.src_agent == arcdps_src_agent) {
+    if (event.is_statechange() == CBTS_LOGSTART &&
+        event.src_agent() == arcdps_src_agent) {
         /* The log start event indicates the server time when logs started */
-        details.server_start = event.value;
+        details.server_start = event.value();
         return true;
     }
 
@@ -712,13 +761,13 @@ parse_logstart_event(parsed_details& details, Event& event)
  * according to the server. If the event matches, this parser stores the end
  * time in @details and returns true. Otherwise it returns false.
  */
-template<typename Event> static bool
-parse_logend_event(parsed_details& details, Event& event)
+static bool
+parse_logend_event(parsed_details& details, evtc_cbtevent& event)
 {
-    if (event.is_statechange == CBTS_LOGEND &&
-        event.src_agent == arcdps_src_agent) {
+    if (event.is_statechange() == CBTS_LOGEND &&
+        event.src_agent() == arcdps_src_agent) {
         /* The log end event indicates the server time when logs ended */
-        details.server_end = event.value;
+        details.server_end = event.value();
         return true;
     }
 
@@ -736,12 +785,12 @@ parse_logend_event(parsed_details& details, Event& event)
  * is a Challenge Mote variant. If the event matches, the parser stores the
  * maximum health in the @details and returns true. Otherwise it returns false.
  */
-template<typename Event> static bool
-parse_boss_maxhealth_event(parsed_details& details, Event& event)
+static bool
+parse_boss_maxhealth_event(parsed_details& details, evtc_cbtevent& event)
 {
-    if (event.is_statechange == CBTS_MAXHEALTHUPDATE &&
-        event.src_agent == details.boss_src_agent) {
-        details.boss_maxhealth = event.dst_agent;
+    if (event.is_statechange() == CBTS_MAXHEALTHUPDATE &&
+        event.src_agent() == details.boss_src_agent) {
+        details.boss_maxhealth = event.dst_agent();
         return true;
     }
 
@@ -758,20 +807,17 @@ parse_boss_maxhealth_event(parsed_details& details, Event& event)
  * that the event matched. Returning false indicates that the event did
  * not match this parser.
  */
-template<typename Event>
-using eventparser = bool (*)(parsed_details& details, Event& event);
+using eventparser = bool (*)(parsed_details& details, evtc_cbtevent& event);
 
 /* List of all current combat event parsers */
-template<typename Event>
-static const eventparser<Event> parsers[] = {
-    parse_reward_event<Event>,
-    parse_logstart_event<Event>,
-    parse_logend_event<Event>,
-    parse_boss_maxhealth_event<Event>,
+static const eventparser parsers[] = {
+    parse_reward_event,
+    parse_logstart_event,
+    parse_logend_event,
+    parse_boss_maxhealth_event,
 };
 
-template<typename Event>
-static const int parsers_count = extent<decltype(parsers<Event>)>::value;
+static const int parsers_count = extent<decltype(parsers)>::value;
 
 /**
  * parse_all_cbt_events: parse all combat events
@@ -787,19 +833,17 @@ static const int parsers_count = extent<decltype(parsers<Event>)>::value;
  *
  * This function is currently unused.
  */
-template<typename Event>
 static void __attribute__((unused))
 parse_all_cbt_events(parsed_details& details, ifstream& file)
 {
     unsigned int event, parser;
 
     for (event = 0; event < details.cbt_event_count; event++) {
-        Event event_details;
+        evtc_cbtevent event_details = evtc_cbtevent(file, details.revision,
+                                                    details.cbt_event_start, event);
 
-        get_cbt_event_details(file, details.cbt_event_start, event, event_details);
-
-        for (parser = 0; parser < parsers_count<Event>; parser++) {
-            if (parsers<Event>[parser](details, event_details))
+        for (parser = 0; parser < parsers_count; parser++) {
+            if (parsers[parser](details, event_details))
                 break;
         }
     }
@@ -817,14 +861,14 @@ parse_all_cbt_events(parsed_details& details, ifstream& file)
  * This function is intended to find a single combat event near the start of the
  * events, such as the log start time.
  */
-template<typename Event> static void
-parse_first_matching_event(parsed_details& details, ifstream& file, eventparser<Event> parser)
+static void
+parse_first_matching_event(parsed_details& details, ifstream& file, eventparser parser)
 {
     unsigned int event;
     for (event = 0; event < details.cbt_event_count; event++) {
-        Event event_details;
-
-        get_cbt_event_details(file, details.cbt_event_start, event, event_details);
+        evtc_cbtevent event_details = evtc_cbtevent(file, details.revision,
+                                                    details.cbt_event_start,
+                                                    event);
 
         if (parser(details, event_details))
             break;
@@ -843,14 +887,14 @@ parse_first_matching_event(parsed_details& details, ifstream& file, eventparser<
  * This function is intended to find a single combat event near the end of
  * the events, such as the reward chests indicating success.
  */
-template<typename Event> static void
-parse_last_matching_event(parsed_details& details, ifstream& file, eventparser<Event> parser)
+static void
+parse_last_matching_event(parsed_details& details, ifstream& file, eventparser parser)
 {
     unsigned int event;
     for (event = details.cbt_event_count; event-- > 0;) {
-        Event event_details;
-
-        get_cbt_event_details(file, details.cbt_event_start, event, event_details);
+        evtc_cbtevent event_details = evtc_cbtevent(file, details.revision,
+                                                    details.cbt_event_start,
+                                                    event);
 
         if (parser(details, event_details))
             break;
@@ -948,7 +992,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.2.0" << endl;
+        cout << "v1.2.1" << endl;
         return 0;
     }
 
@@ -983,34 +1027,14 @@ int main(int argc, char *argv[])
         /* Extract data for each player in the encounter */
         parse_all_player_agents(details, evtc_file);
     } else if (type == "success") {
-        if (details.revision == 0)
-            parse_last_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_reward_event);
-        else if (details.revision == 1)
-            parse_last_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_reward_event);
-        else
-            throw "Invalid EVTC cbtevent revision";
+        parse_last_matching_event(details, evtc_file, parse_reward_event);
     } else if (type == "start_time") {
-        if (details.revision == 0)
-            parse_first_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_logstart_event);
-        else if (details.revision == 1)
-            parse_first_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_logstart_event);
-        else
-            throw "Invalid EVTC cbtevent revision";
+        parse_first_matching_event(details, evtc_file, parse_logstart_event);
     } else if (type == "end_time") {
-        if (details.revision == 0)
-            parse_last_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_logend_event);
-        else if (details.revision == 1)
-            parse_last_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_logend_event);
-        else
-            throw "Invalid EVTC cbtevent revision";
+        parse_last_matching_event(details, evtc_file, parse_logend_event);
     } else if (type == "boss_maxhealth" || type == "is_cm") {
         parse_boss_agent(details, evtc_file);
-        if (details.revision == 0)
-            parse_first_matching_event<evtc_cbtevent_v0>(details, evtc_file, parse_boss_maxhealth_event);
-        else if (details.revision == 1)
-            parse_first_matching_event<evtc_cbtevent_v1>(details, evtc_file, parse_boss_maxhealth_event);
-        else
-            throw "Invalid EVTC cbtevent revision";
+        parse_first_matching_event(details, evtc_file, parse_boss_maxhealth_event);
     }
 
     if (type == "is_cm") {
