@@ -1246,7 +1246,11 @@ Function Format-And-Publish-Some {
         }
 
         # If we have a duration string, add it to the end of the links
-        if ($add_duration -and $boss.duration_string) {
+        # However, show "(FAILED)" for encounters which are failures instead
+        # of showing a duration.
+        if (-not $boss.success) {
+            $link_string += " (FAILED)"
+        } elseif ($add_duration -and $boss.duration_string) {
             $link_string += " ($($boss.duration_string))"
         }
 
