@@ -123,6 +123,86 @@ Function ConvertTo-UnixDate {
 
 <#
  .Synopsis
+  Check simpleArcParse version to ensure it is compatible with the script
+
+ .Description
+  Given the version string reported by simpleArcParse, check if it is expected
+  to be compatible with this version of the script.
+
+  A simpleArcParse version is considered compatible if it has the correct major
+  and minor version. The patch version is ignored for these purposes. This assumes
+  that the versioning of simpleArcParse follows the Semantic Versioning outlined at
+  https://semver.org/
+
+  As of v1.2.0, the first version to have 3 digits, this should be the case.
+
+  Returns $true if the version is compatible, $false otherwise
+
+ .Parameter version
+  The version string, as reported by "(& $simple_arc_parse version)"
+#>
+Function Check-SimpleArcParse-Version {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$version)
+
+    $expected_major_ver = 1
+    $expected_minor_ver = 2
+    $expected_patch_ver = 0
+
+    $expected_version = "v${expected_major_ver}.${expected_minor_ver}.${expected_patch_ver}"
+
+    if ($version -eq "") {
+        Write-Host "Unable to determine the version of simpleArcParse"
+        Write-Host "Please use the $expected_version release of simpleArcParse"
+        return $false
+    }
+
+    $found = $version -match 'v(\d+)\.(\d+)\.(\d+)'
+    if (-not $found) {
+        Write-Host "simpleArcParse version '${verison}' doesn't make any sense"
+        Write-Host "Please use the $expected_version release of simpleArcParse"
+        return $false
+    }
+
+    # Extract the actual major.minor.patch numbers
+    $actual_major_ver = [int]($matches[1])
+    $actual_minor_ver = [int]($matches[2])
+    $actual_patch_ver = [int]($matches[3])
+
+    # The major version is bumped when there are incompatibilities between the scripts
+    # and the simpleArcParse output. If the major versions are not an exact match,
+    # then assume we cannot possibly work.
+    if ($actual_major_ver -ne $expected_major_ver) {
+        Write-Host "simpleArcParse has major version ${actual_major_ver}, but we expected major version ${expected_major_ver}"
+        Write-Host "Please upgrade to the $expected_version release of simpleArcParse"
+        return $false
+    }
+
+    # Ok, we know the major version is an exact match, check the minor version
+
+    # If the minor version is *less* than the required minor version, we cannot run as we will miss a newly added feature
+    if ($actual_minor_ver -lt $expected_minor_ver) {
+        Write-Host "simpleArcParse has minor version ${actual_minor_ver}, but we expected at least minor version ${expected_minor_ver}"
+        Write-Host "Please upgrade to the $expected_version release of simpleArcParse"
+        return $false
+    } elseif ($actual_minor_ver -gt $expected_minor_ver) {
+        # Log non-fatal messages to the output file instead of the console
+        Log-Output "simpleArcParse $version is newer than the expected $expected_version"
+        return $true
+    }
+
+    # At this point, we know that the minor version is an exact match too. Check the patch version to log a warning only
+    if ($actual_patch_ver -lt $expected_patch_ver) {
+        Log-Output "You are using simpleArcParse ${version}, but ${expected_version} has been released, with possible bug fixes. You may want to upgrade."
+    } elseif ($actual_patch_ver -gt $expected_patch_ver) {
+        Log-Output "simpleArcParse $version is newer than the expected $expected_version"
+    }
+
+    return $true
+}
+
+<#
+ .Synopsis
   Returns the NoteProperties of a PSCustomObject
 
  .Description
