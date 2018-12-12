@@ -85,7 +85,6 @@ Function ConvertFrom-UTC {
     [TimeZone]::CurrentTimeZone.ToLocalTime($time)
 }
 
-
 <#
  .Synopsis
   Convert a Unix timestamp to a DateTime object
@@ -119,6 +118,52 @@ Function ConvertTo-UnixDate {
     param([Parameter(Mandatory)][DateTime]$Date)
     $UnixEpoch = [DateTime]'1/1/1970'
     (New-TimeSpan -Start $UnixEpoch -End $Date).TotalSeconds
+}
+
+<#
+ .Synopsis
+  Check if a filename extension is for a (un)compressed EVTC file
+
+ .Description
+  Return $true if the given filename matches one of the known EVTC file
+  extensions for compressed or uncompressed EVTC log files.
+
+ .Parameter filename
+  The filename to check the extension of
+#>
+Function ExtensionIs-EVTC {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$filename)
+    return ($filename -Like "*.evtc.zip" -or $filename -Like "*.evtc" -or $filename -Like "*.zevtc")
+}
+
+<#
+ .Synopsis
+  Given the EVTC file name, determine the uncompressed EVTC name
+
+ .Description
+  Determine the uncompressed name of the EVTC file, based on the file name.
+
+ .Parameter filename
+  The EVTC file to determine the uncompressed name of
+#>
+Function Get-UncompressedEVTC-Name {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$filename)
+
+    if ($filename -Like "*.evtc") {
+        # This filename is uncompressed already
+        return $filename
+    } elseif ($filename -Like "*.evtc") {
+        # We have two extensions, so remove the first one
+        return [io.path]::GetFileNameWithoutExtension($filename)
+    } elseif ($filename -Like "*.zevtc") {
+        # Strip the ".zevtc", and add back ".evtc"
+        $name = [io.path]::GetFileNameWithoutExtension($filename)
+        return "${name}.evtc"
+    } else {
+        throw "${filename} has an unrecognized extension"
+    }
 }
 
 <#

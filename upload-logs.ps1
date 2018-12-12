@@ -118,9 +118,9 @@ $arcdps_release_date = (Get-Date -Date ($arcdps_headers['Last-Modified'])).Date
 # last write time, and then we return the full path of that file.
 if (Test-Path $last_upload_file) {
     $last_upload_time = Get-Content -Raw -Path $last_upload_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
-    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ( $_.Name -Like "*.evtc.zip" -or $_.Name -Like "*.evtc" ) -and $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ( ExtensionIs-EVTC $_.Name ) -and $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 } else {
-    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { $_.Name -Like "*.evtc.zip" -or $_.Name -Like "*.evtc" } | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ExtensionIs-EVTC $_.Name } | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 }
 
 $next_upload_time = Get-Date
@@ -130,7 +130,7 @@ Log-Output "~~~"
 
 # Main loop to generate and upload gw2raidar and dps.report files
 ForEach($f in $files) {
-    $name = [io.path]::GetFileNameWithoutExtension($f)
+    $name = Get-UncompressedEVTC-Name $f
     Log-Output "---"
     Log-Output "Saving ancillary data for ${name}..."
 
@@ -143,18 +143,18 @@ ForEach($f in $files) {
     # Make the ancillary data directory
     New-Item -ItemType Directory -Path $dir
 
-    if ($f -Like "*.evtc.zip") {
+    if ($f -ne $name) {
         # simpleArcParse cannot deal with compressed data, so we must uncompress
         # it first, before passing the file to the simpleArcParse program
         [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
         $evtc = Join-Path -Path $dir -ChildPath $name
 
-        # Sometimes the evtc.zip file stores the uncompressed file suffixed with .tmp
+        # Sometimes the zip file stores the uncompressed file suffixed with .tmp
         if (-not (X-Test-Path $evtc)) {
             $evtc = Join-Path -Path $dir -ChildPath "${name}.tmp"
         }
 
-        # Sometimes the evtc.zip stores the uncompressed file without the .evtc
+        # Sometimes the zip file stores the uncompressed file without the .evtc
         if (-not (X-Test-Path $evtc)) {
             $evtc = Join-Path -Path $dir -ChildPath ([io.fileinfo]$name).basename
         }
