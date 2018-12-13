@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v1.2.1' {
-        $version | Should BeExactly 'v1.2.1'
+    it 'version should be v1.3.0' {
+        $version | Should BeExactly 'v1.3.0'
     }
 }
 
@@ -50,6 +50,7 @@ $testEncounters = @(
         success='FAILURE'
         start_time=1526264306
         end_time=1526264944
+        duration=637789
     }
     @{
         name='siax-cm100-test-log-1.evtc'
@@ -61,6 +62,7 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1527740549
         end_time=1527740762
+        duration=197016
     }
     @{
         name='matthias-test-log-1.evtc'
@@ -74,6 +76,7 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1527733808
         end_time=1527734099
+        duration=282143
     }
     @{
         name='test-log-revision-1.evtc'
@@ -87,7 +90,7 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1538615095
         end_time=1538615342
-
+        duration=236913
     }
 )
 
@@ -134,6 +137,12 @@ ForEach ($encounter in $testEncounters) {
 
         it "should extract encounter end time" {
             $success | Should BeExactly $encounter.end_time
+        }
+    }
+    describe "$($encounter.name) duration" {
+        $success = (& $simpleArcParse duration (Join-Path $test_data_dir $encounter.name))
+        it "should extract encounter duration" {
+            $success | Should BeExactly $encounter.duration
         }
     }
 }

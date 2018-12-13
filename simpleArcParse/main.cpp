@@ -228,6 +228,7 @@ public:
     CBTEVENT_ACCESSOR(uint64_t, src_agent)
     CBTEVENT_ACCESSOR(uint64_t, dst_agent)
     CBTEVENT_ACCESSOR(uint32_t, value)
+    CBTEVENT_ACCESSOR(uint64_t, time)
 };
 
 /**
@@ -262,6 +263,7 @@ static const string valid_types[] = {
     "end_time",
     "boss_maxhealth",
     "is_cm",
+    "duration",
 };
 
 static const int valid_types_size = extent<decltype(valid_types)>::value;
@@ -380,6 +382,8 @@ struct parsed_details {
     enum is_boss_cm is_cm;
     uint32_t server_start;
     uint32_t server_end;
+    uint64_t precise_start;
+    uint64_t precise_end;
     bool encounter_success;
     vector<player_details> players;
 };
@@ -746,6 +750,7 @@ parse_logstart_event(parsed_details& details, evtc_cbtevent& event)
         event.src_agent() == arcdps_src_agent) {
         /* The log start event indicates the server time when logs started */
         details.server_start = event.value();
+        details.precise_start = event.time();
         return true;
     }
 
@@ -768,11 +773,48 @@ parse_logend_event(parsed_details& details, evtc_cbtevent& event)
         event.src_agent() == arcdps_src_agent) {
         /* The log end event indicates the server time when logs ended */
         details.server_end = event.value();
+        details.precise_end = event.time();
         return true;
     }
 
     return false;
 }
+
+/**
+ * parse_precise_end: Parser for precise time encounter end
+ * @details: structure to hold parsed EVTC data
+ * @event: the combat event to parse
+ *
+ * Searches for the precise time when the encounter ended. This is either
+ * the time() at CBTS_REWARD, if the encounter is successful. Otherwise, we
+ * just fall back to the CBTS_LOGEND time(). This should be more precise
+ * than simply subtracting logend from logstart, as events can continue appearing
+ * in the log file after the boss is dead.
+ *
+ * Returns true if the CBTS_REWARD event was found, otherwise false.
+ */
+static bool
+parse_precise_end(parsed_details& details, evtc_cbtevent& event)
+{
+    if (event.is_statechange() == CBTS_LOGEND &&
+        event.src_agent() == arcdps_src_agent) {
+
+        /* Only assign the precise_end time if it hasn't yet been found */
+        if (!details.precise_end)
+            details.precise_end = event.time();
+
+        /* Keep searching for the CBTS_REWARD event */
+        return false;
+    }
+
+    if (event.is_statechange() == CBTS_REWARD) {
+        details.precise_end = event.time();
+        return true;
+    }
+
+    return false;
+}
+
 
 /**
  * parse_boss_maxhealth_event: Parser for CBTS_MAXHEALTHUPDATE events
@@ -815,6 +857,7 @@ static const eventparser parsers[] = {
     parse_logstart_event,
     parse_logend_event,
     parse_boss_maxhealth_event,
+    parse_precise_end,
 };
 
 static const int parsers_count = extent<decltype(parsers)>::value;
@@ -992,7 +1035,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.2.1" << endl;
+        cout << "v1.3.0" << endl;
         return 0;
     }
 
@@ -1035,6 +1078,9 @@ int main(int argc, char *argv[])
     } else if (type == "boss_maxhealth" || type == "is_cm") {
         parse_boss_agent(details, evtc_file);
         parse_first_matching_event(details, evtc_file, parse_boss_maxhealth_event);
+    } else if (type == "duration") {
+        parse_first_matching_event(details, evtc_file, parse_logstart_event);
+        parse_last_matching_event(details, evtc_file, parse_precise_end);
     }
 
     if (type == "is_cm") {
@@ -1076,6 +1122,9 @@ int main(int argc, char *argv[])
             cout << "UNKNOWN" << endl;
             break;
         }
+    } else if (type == "duration") {
+        if (details.precise_end >= details.precise_start)
+            cout << (details.precise_end - details.precise_start) << endl;
     }
 
     return 0;
