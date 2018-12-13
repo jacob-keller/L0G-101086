@@ -237,23 +237,15 @@ ForEach($f in $files) {
 
         Log-Output "Outcome: ${evtc_success}"
 
+        # Extract the precise duration in milliseconds
+        $precise_duration = (& $simple_arc_parse duration "${evtc}")
+        $precise_duration | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "precise_duration.json")
+
         # Parse the evtc combat events to determine the server start time
         $start_time = (& $simple_arc_parse start_time "${evtc}")
         $start_time | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "servertime.json")
 
         Log-Output "Start Time: ${start_time}"
-
-        # Parse the evtc combat events to determine the server end time, then calculate a duration in seconds
-        $end_time = (& $simple_arc_parse end_time "${evtc}")
-        if ($end_time -le $start_time) {
-            Log-Output "End Time: ${end_time}"
-            Log-Output "The end time in the log file is less than the start time. Skipping duration calculation."
-        } else {
-            $duration = $end_time - $start_time
-            $duration | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "duration.json")
-
-            Log-Output "Encounter duration: ${duration}"
-        }
 
         # Parse the evtc to determine if the encounter was a challenge mote
         $is_cm = (& $simple_arc_parse is_cm "${evtc}")

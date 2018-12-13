@@ -1208,14 +1208,25 @@ Function Load-From-EVTC {
     $boss["servertime"] = [int]$servertime
     $boss["time"] = ConvertFrom-UnixDate $servertime
 
-    # Get the encounter duration (in difference of unix timestamps)
-    $duration_json = [io.path]::combine($extras_path, "duration.json")
-    if (X-Test-Path $duration_json) {
-        $duration = (Get-Content -Raw -Path $duration_json | ConvertFrom-Json)
-        $boss["duration"] = [int]$duration
-        $span = New-TimeSpan -Seconds $duration
-        $duration_string = "$([math]::floor($span.TotalMinutes))m $($span.Seconds.ToString("00"))s"
+    $precise_duration_json = [io.path]::combine($extras_path, "precise_duration.json")
+    if (X-Test-Path $precise_duration_json) {
+        $precise_duration = (Get-Content -Raw -Path $precise_duration_json | ConvertFrom-Json)
+        $boss["duration"] = [int]($precise_duration / 1000)
+        $span = [TimeSpan]::FromMilliseconds($precise_duration)
+        $minutes = New-TimeSpan -Minutes ([math]::floor($span.TotalMinutes))
+        $millis = $span - $minutes
+        $duration_string = "$($minutes.Minutes)m $(($millis.TotalMilliseconds / 1000).ToString("00.00"))s"
         $boss["duration_string"] = $duration_string
+    } else {
+        # Get the encounter duration (in difference of unix timestamps)
+        $duration_json = [io.path]::combine($extras_path, "duration.json")
+        if (X-Test-Path $duration_json) {
+            $duration = (Get-Content -Raw -Path $duration_json | ConvertFrom-Json)
+            $boss["duration"] = [int]$duration
+            $span = New-TimeSpan -Seconds $duration
+            $duration_string = "$([math]::floor($span.TotalMinutes))m $($span.Seconds.ToString("00"))s"
+            $boss["duration_string"] = $duration_string
+        }
     }
 
     # Get the encounter name
