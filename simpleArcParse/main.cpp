@@ -376,7 +376,7 @@ struct parsed_details {
     char arc_header[13];
     uint8_t revision;
     uint16_t boss_id;
-    const char *boss_name;
+    string boss_name;
     uint64_t boss_src_agent;
     uint64_t boss_maxhealth;
     enum is_boss_cm is_cm;
@@ -1035,7 +1035,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.3.0" << endl;
+        cout << "v1.3.1" << endl;
         return 0;
     }
 
