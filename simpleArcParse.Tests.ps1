@@ -55,7 +55,7 @@ $testEncounters = @(
     }
     @{
         name='siax-cm100-test-log-1.evtc'
-        version='EVTC20180508'
+        version='EVTC20180526'
         boss_name='Siax (CM)'
         boss_id=17028
         players=@('reapex.8546','Serena Sedai.3064','Hexus.8207',
@@ -67,7 +67,7 @@ $testEncounters = @(
     }
     @{
         name='matthias-test-log-1.evtc'
-        version='EVTC20180508'
+        version='EVTC20180526'
         boss_name='Matthias'
         boss_id='16115'
         players=@('Mr Hinky.2159','Serena Sedai.3064','Draykrah.1980',
@@ -100,7 +100,7 @@ ForEach ($encounter in $testEncounters) {
         $result = ParseHeader(Join-Path $test_data_dir $encounter.name)
 
         it "EVTC version should be $($encounter.version)" {
-            $result[0] = $encounter.version
+            $result[0]  | Should BeExactly $encounter.version
         }
         it "boss name should be $($encounter.boss_name)" {
             $result[1] | Should BeExactly $encounter.boss_name
