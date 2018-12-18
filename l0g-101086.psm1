@@ -191,8 +191,8 @@ Function Check-SimpleArcParse-Version {
     param([Parameter(Mandatory)][string]$version)
 
     $expected_major_ver = 1
-    $expected_minor_ver = 2
-    $expected_patch_ver = 1
+    $expected_minor_ver = 4
+    $expected_patch_ver = 0
 
     $expected_version = "v${expected_major_ver}.${expected_minor_ver}.${expected_patch_ver}"
 

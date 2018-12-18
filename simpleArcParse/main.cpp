@@ -331,6 +331,9 @@ static const uint16_t nikare_id              = 21105;
 static const uint16_t kenut_id               = 21089;
 static const uint16_t qadim_id               = 20934;
 
+/* Wintersday Freezie encounter */
+static const uint16_t freezie_id             = 21333;
+
 /* Fractal 99 CM boss encounters */
 static const uint16_t mama_cm_id        = 0x427d;
 static const uint16_t siax_cm_id        = 0x4284;
@@ -520,6 +523,9 @@ parse_header(parsed_details& details, ifstream& file)
         break;
     case qadim_id:
         details.boss_name = "Qadim";
+        break;
+    case freezie_id:
+        details.boss_name = "Freezie";
         break;
 
     default:
@@ -1035,7 +1041,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.3.1" << endl;
+        cout << "v1.4.0" << endl;
         return 0;
     }
 
