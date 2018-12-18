@@ -44,9 +44,10 @@ $testEncounters = @(
         version='EVTC20180508'
         boss_name='Dhuum'
         boss_id=19450
-        players=@('Mr Hinky.2159','Serena Sedai.3064','AsianBagels.8413','Draykrah.1980',
-                  'diefour.1632','Hiredhit.4190','miniusboye.3840','Mithos.5182',
-                  'That Guy.5704','Dreggon.6598')
+        players=@('Mr Hinky.2159', 'Serena Sedai.3064', 'AsianBagels.8413',
+	          'Draykrah.1980', 'diefour.1632', 'Hiredhit.4190',
+		  'miniusboye.3840', 'Mithos.5182', 'That Guy.5704',
+		  'Dreggon.6598')
         success='FAILURE'
         start_time=1526264306
         end_time=1526264944
