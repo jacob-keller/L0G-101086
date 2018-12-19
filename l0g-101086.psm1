@@ -416,6 +416,7 @@ $commonConfigurationFields =
         type=[string]
         validStrings=@("no", "successful", "all")
         alternativeStrings=@{"none"="no"; "yes"="all"}
+        default="successful"
     }
     @{
         # If set, configures whether and how to upload to gw2raidar
@@ -427,6 +428,7 @@ $commonConfigurationFields =
         type=[string]
         validStrings=@("no", "successful", "all")
         alternativeStrings=@{"none"="no"; "yes"="all"}
+        default="successful"
     }
 )
 
@@ -559,6 +561,7 @@ $v2ValidGuildFields =
         name="everything"
         type=[bool]
         optional=$true
+        default=$false
     }
     @{
         # If set to true, format-encounters will show the approximate duration that
@@ -567,6 +570,7 @@ $v2ValidGuildFields =
         name="show_duration"
         type=[bool]
         optional=$true
+        default=$true
     }
 )
 
@@ -649,7 +653,10 @@ Function Validate-Object-Fields {
     foreach ($field in $Fields) {
         # Make sure required parameters are available
         if (-not (Get-Member -InputObject $Object -Name $field.name)) {
-            if ($field.name -in $RequiredFields) {
+            # optional fields with a default value are never required. If not present, set their default value
+            if ($field.optional -or $field.default) {
+                $Object | Add-Member -Name $field.name -Value $field.default -MemberType NoteProperty
+            } elseif ($field.name -in $RequiredFields) {
                 Write-Host "$($field.name) is a required parameter for this script."
                 $invalid = $true
             }
