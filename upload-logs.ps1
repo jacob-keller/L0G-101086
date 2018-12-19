@@ -58,7 +58,7 @@ if (-not (X-Test-Path $simple_arc_parse)) {
 
 # Make sure that the arcdps_logs folder exists
 if (-not (X-Test-Path $arcdps_logs)) {
-    Read-Host -Prompt "Can't locate $arcdp_logs. Press enter to exit."
+    Read-Host -Prompt "Can't locate $arcdps_logs. Press enter to exit."
     exit
 }
 
