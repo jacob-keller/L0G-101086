@@ -539,6 +539,15 @@ $v2ValidGuildFields =
         type=[bool]
     }
     @{
+        # Set this to true if the guild should be considered for raid encounters.
+        # If set to false, raid encounters will never be posted to this guild.
+        # Defaults to true if not specified
+        name="raids"
+        type=[bool]
+        optional=$true
+        default=$true
+    }
+    @{
         # Set of gw2 account names associated with this guild, mapped to
         # their discord account ids. Used as the primary mechanism to determine
         # which guild the encounter was run by, as well as for posting player pings
@@ -894,7 +903,7 @@ Function Determine-Guild {
     if (Is-Fractal-Encounter $id) {
         $AvailableGuilds = $Guilds | where { $_.fractals }
     } else {
-        $AvailableGuilds = $Guilds
+        $AvailableGuilds = $Guilds | where { $_.raids }
     }
 
     $GuildData = $AvailableGuilds | ForEach-Object {

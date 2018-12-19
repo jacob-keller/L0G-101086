@@ -322,12 +322,19 @@ for this guild. The IDs are server specific, so they must be emojis uploaded
 to that server. See [Configuring Emojis](#configuring-emojis) for more
 details.
 
+##### raids
+
+A boolean indicating if this guild should have raid encounters posted to it. If
+set to false, then the guild will not be assigned as the owner of a raid
+encounter. If set to true, then the raid encounter may be posted
+to this discord webook URL. If not set, the default is true.
+
 ##### fractals
 
-A boolean indicatinf if this guild should have fractal encounters posted to
+A boolean indicating if this guild should have fractal encounters posted to
 it. If set to false, then this guild will not be assigned as the owner of a
 fractal encounter. If set to true, then fractal encounters may be posted to
-this discord webhook URL in addition to the raid encounters.
+this discord webhook URL.
 
 ##### everything
 
