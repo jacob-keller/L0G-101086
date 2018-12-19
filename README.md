@@ -345,6 +345,12 @@ If set to true, all posts will also be copied to this guild's discord webhook
 URL. Useful to have a single server which receives all posts, while other
 guild discords only receive posts for their own guild.
 
+##### show_duration
+
+An optional configuration setting that can be used to disable showing the
+encounter duration when publishing. Set to false to disable including the
+duration when formatting the encounters. If the value is not set, it will
+default to true.
 
 ##### simpleArcParse
 
