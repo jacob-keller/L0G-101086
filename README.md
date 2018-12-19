@@ -244,10 +244,11 @@ for the old RaidHeros. It is recommended to use "ei".
 
 ### upload_dps_report
 
-Set to true to "none" to disable uploading to dps.report. Set to "successful"
+Set to true to "no" to disable uploading to dps.report. Set to "successful"
 to enable uploading only the successful encounters to dps.report. Set to "all"
 to upload all encounters to dps.report. The default is to upload only
-successful encounters.
+successful encounters. Note that "none" is an alternative spelling of "no", and
+"yes" is an alternative spelling of "all".
 
 ### upload_gw2raidar
 
@@ -255,7 +256,8 @@ Set to "no" to disable uploading to gw2raidar. Set to "successful" to only
 upload successful encounters to gw2raidar. Set to "all" to upload all
 encounters to gw2raidar. The default is to upload all encounters to gw2raidar,
 as the website uses this information to generate useful statistics across all
-logs uploaded.
+logs uploaded. Note that "none" is an alternative spelling of "no", and "yes"
+is an alternative spelling of "all"
 
 ### guilds
 
