@@ -263,7 +263,10 @@ is an alternative spelling of "all"
 
 The guild subsection is used to configure which "guild" an encounter was run
 by. This is primarily used as a method to allow posting different enounters to
-different guild discords.
+different guild discords. Note that guilds is an array object, so the
+configuration file supports multiple different guilds, with their own options.
+See the l0g-101086-config.multipleguilds.json for an example configuration file
+that has multiple guilds configured.
 
 ##### name
 
