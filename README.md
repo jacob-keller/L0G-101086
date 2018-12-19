@@ -251,7 +251,7 @@ successful encounters.
 
 ### upload_gw2raidar
 
-Set to "none" to disable uploading to gw2raidar. Set to "successful" to only
+Set to "no" to disable uploading to gw2raidar. Set to "successful" to only
 upload successful encounters to gw2raidar. Set to "all" to upload all
 encounters to gw2raidar. The default is to upload all encounters to gw2raidar,
 as the website uses this information to generate useful statistics across all
