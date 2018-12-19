@@ -46,19 +46,19 @@ if ($dps_report_generator -and -not $valid_generators.Contains($dps_report_gener
 
 # Make sure RestSharp.dll exists
 if (-not (X-Test-Path $config.restsharp_path)) {
-    Read-Host -Prompt "This script requires RestSharp to be installed. Press enter to exit"
+    Read-Host -Prompt "The RestSharp.dll is expected to be located at '$($config.restsharp_path)', but doesn't appear to exist. Please download RestSharp.dll and update the configuration. Press enter to exit"
     exit
 }
 
 # Make sure that simpleArcParse has been correctly generated
 if (-not (X-Test-Path $simple_arc_parse)) {
-    Read-Host -Prompt "simpleArcParse must be installed for this script to work. Press enter to exit"
+    Read-Host -Prompt "simpleArcParse is expected to be located at '${simple_arc_parse}', but doesn't appear to exist. Please download simpleArcParse and update the configuration. Press enter to exit"
     exit
 }
 
 # Make sure that the arcdps_logs folder exists
 if (-not (X-Test-Path $arcdps_logs)) {
-    Read-Host -Prompt "Can't locate $arcdps_logs. Press enter to exit."
+    Read-Host -Prompt "The arcdps.cbtlogs folder is expected to be located at '${arcdps_logs}', but doesn't appear to exist. Please update the configuration. Press enter to exit."
     exit
 }
 
