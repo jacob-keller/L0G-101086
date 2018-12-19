@@ -415,6 +415,7 @@ $commonConfigurationFields =
         name="upload_dps_report"
         type=[string]
         validStrings=@("no", "successful", "all")
+        alternativeStrings=@{"none"="no"; "yes"="all"}
     }
     @{
         # If set, configures whether and how to upload to gw2raidar
@@ -425,6 +426,7 @@ $commonConfigurationFields =
         name="upload_gw2raidar"
         type=[string]
         validStrings=@("no", "successful", "all")
+        alternativeStrings=@{"none"="no"; "yes"="all"}
     }
 )
 
@@ -695,10 +697,21 @@ Function Validate-Object-Fields {
                 $Object."$($field.name)" = $ValidatedSubObjects
             }
         } elseif ($field.validStrings) {
-            if (-not $field.validStrings.Contains($Object."$($field.name)")) {
-                $fieldname = $field.name
-                $value = $Object."$fieldname"
-                Write-Host "$value is not a valid value for $fieldname"
+            # First, canonicalize strings
+            $fieldname = $field.name
+            $raw_value = $Object."$fieldname"
+
+            if ($field.alternativeStrings -and $field.alternativeStrings.Contains($raw_value)) {
+                $value = $field.alternativeStrings[$raw_value]
+
+                # Update the Object value to match the canonical representation
+                $Object."$fieldname" = $value
+            } else {
+                $value = $raw_value
+            }
+
+            if (-not $field.validStrings.Contains($value)) {
+                Write-Host "${raw_value} is not a valid value for $fieldname"
 
                 $invalid = $true
             }
