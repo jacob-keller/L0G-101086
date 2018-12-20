@@ -1698,6 +1698,8 @@ Function Maybe-UploadTo-DpsReport {
         throw "Invalid configuration value for upload_dps_report"
     }
 
+    Log-Output "Uploading ${file} to dps.report..."
+
     UploadTo-DpsReport $config $file $extras_dir
 }
 
@@ -1837,6 +1839,8 @@ Function Maybe-UploadTo-Gw2Raidar {
         # We verify the config value is already valid so this should never happen
         throw "Invalid configuration value for upload_gw2raidar"
     }
+
+    Log-Output "Uploading ${file} to gw2raidar..."
 
     UploadTo-Gw2Raidar $config $file $guild $extras_dir
 }
