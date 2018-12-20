@@ -137,8 +137,9 @@ ForEach($f in $files) {
     $dir = Join-Path -Path $extra_upload_data -ChildPath $name
     if (X-Test-Path $dir) {
         Log-Output "Ancillary data appears to have already been created"
-        If (-not (Test-Path -dir $dir)) {
+        If (-not (Test-Path -PathType Container -Path $dir)) {
             Log-Output "Ancillary data path '$dir' is not a directory?"
+            Log-Output "Please move or delete '$dir' and try again."
             Write-Output "Unable to process '$dir'. See log file for more details"
             Read-Host -Prompt "Press any key to exit..."
             exit
