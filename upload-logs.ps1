@@ -135,13 +135,27 @@ ForEach($f in $files) {
     Log-Output "Saving ancillary data for ${name}..."
 
     $dir = Join-Path -Path $extra_upload_data -ChildPath $name
-    if (Test-Path -Path $dir) {
-        Log-Output "Ancillary data appears to have already been created... Overwriting"
+    if (X-Test-Path $dir) {
+        Log-Output "Ancillary data appears to have already been created"
+        If (-not (Test-Path -dir $dir)) {
+            Log-Output "Ancillary data path '$dir' is not a directory?"
+            Write-Output "Unable to process '$dir'. See log file for more details"
+            Read-Host -Prompt "Press any key to exit..."
+            exit
+        }
+        Log-Output "Overwriting..."
         Remove-Item -Recurse -Force $dir
     }
 
     # Make the ancillary data directory
-    New-Item -ItemType Directory -Path $dir
+    try {
+        New-Item -ItemType Directory -Path $dir
+    } catch {
+        Write-Exception $_
+        Log-Output "Unable to create extra upload directory '$dir'"
+        Read-Host -Prompt "Unable to process ${f}... Press any key to exit..."
+        exit
+    }
 
     if ($f -ne $name) {
         # simpleArcParse cannot deal with compressed data, so we must uncompress
