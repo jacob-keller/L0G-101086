@@ -1570,7 +1570,7 @@ Function Get-SubHash {
 #>
 Function Split-Bosses {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][array]$bosses)
+    param([Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses)
 
     $per_date = @{}
 
@@ -1613,7 +1613,7 @@ Function Split-Bosses {
 Function Format-And-Publish-All {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][array]$bosses)
+          [Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses)
 
     # Split the bosses into a set of nested hashes
     $per_date = Split-Bosses $bosses
