@@ -1370,7 +1370,12 @@ Function Format-And-Publish-Some {
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
         # Use the shortened name
         $name = $boss.shortname
+
+        # Use the full name first, if that's not found, try the short name
         $emoji = $emoji_map."$($boss.name)"
+        if (-not $emoji) {
+            $emoji = $emoji_map."$($boss.shortname)"
+        }
 
         if ($boss.is_cm -eq $true) {
             $name += " (CM)"
