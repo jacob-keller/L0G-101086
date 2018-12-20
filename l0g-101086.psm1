@@ -152,10 +152,10 @@ Function Get-UncompressedEVTC-Name {
     param([Parameter(Mandatory)][string]$filename)
 
     if ($filename -Like "*.evtc") {
-        # This filename is uncompressed already
-        return $filename
-    } elseif ($filename -Like "*.evtc") {
-        # We have two extensions, so remove the first one
+        # This filename is already correct, so just strip the directory
+        return [io.path]::GetFileName($filename)
+    } elseif ($filename -Like "*.evtc.zip") {
+        # We have two extensions, so only remove the first one
         return [io.path]::GetFileNameWithoutExtension($filename)
     } elseif ($filename -Like "*.zevtc") {
         # Strip the ".zevtc", and add back ".evtc"
