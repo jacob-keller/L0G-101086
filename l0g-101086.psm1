@@ -1170,6 +1170,10 @@ Function Get-Abbreviated-Name {
         return "Amalgamate"
     }
 
+    if ($boss_name -eq "Skorvald the Shattered (CM)") {
+        return "Skorvald (CM)"
+    }
+
     # Currently no other boss has an abbreviation, so just return the full name
     return $boss_name
 }
