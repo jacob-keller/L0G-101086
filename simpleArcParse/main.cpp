@@ -882,7 +882,7 @@ static const int parsers_count = extent<decltype(parsers)>::value;
  *
  * This function is currently unused.
  */
-static void __attribute__((unused))
+[[gnu::unused]] static void
 parse_all_cbt_events(parsed_details& details, ifstream& file)
 {
     unsigned int event, parser;
