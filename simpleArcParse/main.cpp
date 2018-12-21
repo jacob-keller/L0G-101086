@@ -1041,7 +1041,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.4.0" << endl;
+        cout << "v1.4.1" << endl;
         return 0;
     }
 
