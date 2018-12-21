@@ -81,7 +81,7 @@ if (Test-Path $config.last_format_file) {
     $dirs = @(Get-ChildItem -Directory -Filter "*.evtc" -LiteralPath $config.extra_upload_data | Sort-Object -Property CreationTime | ForEach-Object {$_.Name})
 }
 
-if ($dirs) {
+if ($dirs -and $dirs.Length -gt 0) {
     # Load each of the evtc directories as a boss hash table
     $bosses = @()
     foreach($d in $dirs) {
