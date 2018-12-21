@@ -158,7 +158,7 @@ ForEach($f in $files) {
         exit
     }
 
-    if ($f -ne $name) {
+    if (ExtensionIs-CompressedEVTC $f) {
         # simpleArcParse cannot deal with compressed data, so we must uncompress
         # it first, before passing the file to the simpleArcParse program
         [io.compression.zipfile]::ExtractToDirectory($f, $dir) | Out-Null
@@ -177,7 +177,6 @@ ForEach($f in $files) {
         if (-not (X-Test-Path $evtc)) {
             throw "${evtc} is compressed, but does not appear to contain the correct contents"
         }
-
     } else {
         # if the file was not compressed originally, we don't need to copy it
         $evtc = $f

@@ -120,6 +120,44 @@ Function ConvertTo-UnixDate {
     (New-TimeSpan -Start $UnixEpoch -End $Date).TotalSeconds
 }
 
+
+<#
+ .Synopsis
+  Check if an EVTC filename is expected to be compressed
+
+ .Description
+  Return $true if the filename matches known compressed EVTC file extensions,
+  false otherwise.
+
+ Similar to ExtensionIs-EVTC, but checks for only compressed filenames
+
+ .Parameter filename
+  The filename to check the extension of
+#>
+Function ExtensionIs-CompressedEVTC {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$filename)
+    return ($filename -Like "*.evtc.zip" -or $filename -Like "*.zevtc")
+}
+
+<#
+ .Synopsis
+  Check if an EVTC filename is expected to be compressed
+
+ .Description
+  Return $true if the filename matches known uncompressed EVTC extension
+
+ Similar to ExtensionIs-CompressedEVTC, but checks for only uncompressed filenames
+
+ .Parameter filename
+  The filename to check the extension of
+#>
+Function ExtensionIs-UncompressedEVTC {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$filename)
+    return ($filename -Like "*.evtc")
+}
+
 <#
  .Synopsis
   Check if a filename extension is for a (un)compressed EVTC file
@@ -134,7 +172,7 @@ Function ConvertTo-UnixDate {
 Function ExtensionIs-EVTC {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$filename)
-    return ($filename -Like "*.evtc.zip" -or $filename -Like "*.evtc" -or $filename -Like "*.zevtc")
+    return ((ExtensionIs-UncompressedEVTC $filename) -or (ExtensionIs-CompressedEVTC $filename))
 }
 
 <#
