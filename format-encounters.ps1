@@ -22,9 +22,7 @@ if (-not $config) {
     exit
 }
 
-if (-not $config.debug_mode) {
-    Set-Logfile $config.format_encounters_log
-}
+Set-Logfile $config.format_encounters_log
 
 # Require a gw2raidar token for obtaining permalinks if gw2raidar uploading is enabled
 if ((-not $config.gw2raidar_token) -and ($config.upload_gw2raidar -ne "no")) {

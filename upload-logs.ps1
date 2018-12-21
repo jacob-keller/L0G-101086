@@ -28,9 +28,7 @@ if (-not $config) {
 $last_upload_file = $config.last_upload_file
 $arcdps_logs = $config.arcdps_logs
 
-if (-not $config.debug_mode) {
-    Set-Logfile $config.upload_log_file
-}
+Set-Logfile $config.upload_log_file
 
 # Simple storage format for extra ancillary data about uploaded files
 $extra_upload_data = $config.extra_upload_data
