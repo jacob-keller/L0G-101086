@@ -1404,7 +1404,7 @@ Function Format-And-Publish-Some {
 
     $emoji_map = $guild.emoji_map
 
-    Log-Output "Publishing $(some_bosses.Length) encounters to $($guild.name)'s discord"
+    Log-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
 
     # We sort the bosses based on server start time
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
