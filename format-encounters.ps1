@@ -82,6 +82,8 @@ if (Test-Path $config.last_format_file) {
 }
 
 if ($dirs -and $dirs.Length -gt 0) {
+    Log-And-Write-Output "Found $($dirs.Length) EVTC files to format and post"
+
     # Load each of the evtc directories as a boss hash table
     $bosses = @()
     foreach($d in $dirs) {

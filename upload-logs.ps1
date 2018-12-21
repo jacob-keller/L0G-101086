@@ -128,11 +128,19 @@ Log-Output "~~~"
 Log-Output "Uploading arcdps logs at $next_upload_time..."
 Log-Output "~~~"
 
+$total = $files.Length
+$done = 0
+
+if ($total -gt 0 ) {
+    Log-And-Write-Output "Found ${total} EVTC files to upload"
+}
+
 # Main loop to generate and upload gw2raidar and dps.report files
 ForEach($f in $files) {
+    $done++
     $name = Get-UncompressedEVTC-Name $f
     Log-Output "---"
-    Log-Output "Saving ancillary data for ${name}..."
+    Log-And-Write-Output "(${done}/${total}) Saving ancillary data for ${name}..."
 
     $dir = Join-Path -Path $extra_upload_data -ChildPath $name
     if (X-Test-Path $dir) {
