@@ -28,4 +28,6 @@ simpleArcParse/simpleArcParse.vcxproj.filters
 simpleArcParse/simpleArcParse.vcxproj.user
 simpleArcParse/x64
 simpleArcParse/x86
+simpleArcParse/Debug
+simpleArcParse/Release
 
