@@ -22,3 +22,10 @@ simpleArcParse/simpleArcParse.cbp
 l0g-101086-pub.cer
 l0g-101086-cert.pfx
 *.lnk
+simpleArcParse/.vs/
+simpleArcParse/simpleArcParse.vcxproj
+simpleArcParse/simpleArcParse.vcxproj.filters
+simpleArcParse/simpleArcParse.vcxproj.user
+simpleArcParse/x64
+simpleArcParse/x86
+
