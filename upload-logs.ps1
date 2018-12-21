@@ -149,7 +149,7 @@ ForEach($f in $files) {
             Log-And-Write-Output "Ancillary data path '$dir' is not a directory?"
             Log-And-Write-Output "Please move or delete '$dir' and try again."
             Write-Output "Unable to process '$dir'. See log file for more details"
-            Read-Host -Prompt "Press any key to exit..."
+            Read-Host -Prompt "Press enter to exit..."
             exit
         }
         Log-Output "Overwriting..."
@@ -162,7 +162,7 @@ ForEach($f in $files) {
     } catch {
         Write-Exception $_
         Log-And-Write-Output "Unable to create extra upload directory '$dir'"
-        Read-Host -Prompt "Unable to process ${f}... Press any key to exit..."
+        Read-Host -Prompt "Unable to process ${f}... Press enter to exit..."
         exit
     }
 
@@ -284,7 +284,7 @@ ForEach($f in $files) {
         # If we failed to parse an encounter, it is likely due to either data corruption such as invalid
         # evtc files being generated, or because the evtc file format has changed. Stop processing immediately
         # so that the user can verify what is wrong, and intervene.
-        Read-Host -Prompt "Unable to process ${f}... Press any key to exit..."
+        Read-Host -Prompt "Unable to process ${f}... Press enter to exit..."
         exit
     } finally {
         # If the file was originally compressed, there's no need to keep around the uncompressed copy
