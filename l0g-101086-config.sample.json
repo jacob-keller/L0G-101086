@@ -3,7 +3,7 @@
     "debug_mode":  false,
     "experimental_arcdps": false,
     "arcdps_logs":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs",
-    "discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\evraids.formatted",
+    "discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.webhook_posts",
     "extra_upload_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.uploadextras",
     "last_format_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_time.json",
     "last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_logs_time.json",
