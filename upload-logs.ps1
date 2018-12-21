@@ -96,8 +96,16 @@ if (-not $extra_upload_data) {
     }
 }
 
+try {
+    $simple_arc_version = (& $simple_arc_parse version)
+} catch {
+    Write-Exception $_
+    Log-And-Write-Output "Unable to run simpleArcParse at '${simple_arc_parse}'"
+    Log-And-Write-Output "Is it possible that antivirus software is interfering?"
+    Read-Host -Prompt "Press enter to exit"
+}
+
 # Make sure that simpleArcParse version matches our expectation
-$simple_arc_version = (& $simple_arc_parse version)
 if (-not (Check-SimpleArcParse-Version $simple_arc_version)) {
     Read-Host -Prompt "Press enter to exit"
     exit

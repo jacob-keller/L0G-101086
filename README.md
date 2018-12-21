@@ -98,6 +98,15 @@ Unblock-File -Path RestSharp.dll
 
 This will not take affect until you reload the PowerShell console.
 
+##### simpleArcParse.exe not running, disappearing on call to upload-logs.ps1
+
+Some antivirus software may prevent the execution of simpleArcParse.exe, and
+possibly quarentine or even delete the exeucutable. You might see an exception
+when upload-logs.ps1 is run.
+
+If this is happening, you should check antivirus software and ensure that the
+simpleArcParse executable is not blocked.
+
 ##### Powershell Execution Policy
 
 These scripts have been self-signed with a private key, which was not
