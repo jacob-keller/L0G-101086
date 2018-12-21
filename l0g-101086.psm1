@@ -2111,7 +2111,7 @@ Function Get-GW2-Raidar-Links {
 Function Save-Gw2-Raidar-Links {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][array]$bosses)
+          [Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses)
 
     $missing = ($bosses | where { -not $_.gw2raidar } | Sort-Object -Property time)
 
