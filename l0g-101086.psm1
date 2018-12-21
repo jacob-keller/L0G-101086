@@ -51,6 +51,29 @@ Function Log-Output {
 
 <#
  .Synopsis
+  Print output to the log file and the console.
+
+ .Description
+  Print output to the log file if it has been specified.
+
+  Also display output to the console screen as well.
+
+ .Parameter string
+  The string to log
+#>
+Function Log-And-Write-Output {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$string)
+
+    if ($script:logfile) {
+        Write-Output $string | Out-File -Append $script:logfile
+    }
+
+    Write-Output $string
+}
+
+<#
+ .Synopsis
   Set the log file used by Log-Output
 
  .Description
@@ -265,20 +288,20 @@ Function Check-SimpleArcParse-Version {
 
     # If the minor version is *less* than the required minor version, we cannot run as we will miss a newly added feature
     if ($actual_minor_ver -lt $expected_minor_ver) {
-        Write-Host "simpleArcParse has minor version ${actual_minor_ver}, but we expected at least minor version ${expected_minor_ver}"
-        Write-Host "Please upgrade to the $expected_version release of simpleArcParse"
+        Log-And-Write-Output "simpleArcParse has minor version ${actual_minor_ver}, but we expected at least minor version ${expected_minor_ver}"
+        Log-And-Write-Output "Please upgrade to the $expected_version release of simpleArcParse"
         return $false
     } elseif ($actual_minor_ver -gt $expected_minor_ver) {
         # Log non-fatal messages to the output file instead of the console
-        Log-Output "simpleArcParse $version is newer than the expected $expected_version"
+        Log-And-Write-Output "simpleArcParse $version is newer than the expected $expected_version"
         return $true
     }
 
     # At this point, we know that the minor version is an exact match too. Check the patch version to log a warning only
     if ($actual_patch_ver -lt $expected_patch_ver) {
-        Log-Output "You are using simpleArcParse ${version}, but ${expected_version} has been released, with possible bug fixes. You may want to upgrade."
+        Log-And-Write-Output "You are using simpleArcParse ${version}, but ${expected_version} has been released, with possible bug fixes. You may want to upgrade."
     } elseif ($actual_patch_ver -gt $expected_patch_ver) {
-        Log-Output "simpleArcParse $version is newer than the expected $expected_version"
+        Log-And-Write-Output "simpleArcParse $version is newer than the expected $expected_version"
     }
 
     return $true
@@ -1404,7 +1427,7 @@ Function Format-And-Publish-Some {
 
     $emoji_map = $guild.emoji_map
 
-    Log-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
+    Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
 
     # We sort the bosses based on server start time
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
@@ -1738,7 +1761,7 @@ Function Maybe-UploadTo-DpsReport {
         throw "Invalid configuration value for upload_dps_report"
     }
 
-    Log-Output "Uploading ${file} to dps.report..."
+    Log-And-Write-Output "Uploading ${file} to dps.report..."
 
     UploadTo-DpsReport $config $file $extras_dir
 }
@@ -1813,13 +1836,13 @@ Function UploadTo-DpsReport {
 
     if ($resp.StatusCode -ne "OK") {
         $json_resp = ConvertFrom-Json $resp.Content
-        Log-Output $json_resp.error
+        Log-And-Write-Output $json_resp.error
         throw "Request failed with status $($resp.StatusCode)"
     }
 
     $resp.Content | Out-File -FilePath (Join-Path $extras_dir -ChildPath "dpsreport.json")
 
-    Log-Output "Upload successful..."
+    Log-And-Write-Output "Upload successful..."
 }
 
 <#
@@ -1880,7 +1903,7 @@ Function Maybe-UploadTo-Gw2Raidar {
         throw "Invalid configuration value for upload_gw2raidar"
     }
 
-    Log-Output "Uploading ${file} to gw2raidar..."
+    Log-And-Write-Output "Uploading ${file} to gw2raidar..."
 
     UploadTo-Gw2Raidar $config $file $guild $extras_dir
 }
@@ -1941,14 +1964,14 @@ Function UploadTo-Gw2Raidar {
     }
 
     if ($resp.StatusCode -ne "OK") {
-        Log-Output $resp.Content
+        Log-And-Write-Output $resp.Content
         throw "Request failed with status $($resp.StatusCode)"
     }
 
     # Store the response data so we can use it in potential future gw2raidar APIs
     $resp.Content | Out-File -FilePath (Join-Path $extras_dir -ChildPath "gw2raidar.json")
 
-    Log-Output "Upload successful..."
+    Log-And-Write-Output "Upload successful..."
 }
 
 <#

@@ -138,8 +138,8 @@ ForEach($f in $files) {
     if (X-Test-Path $dir) {
         Log-Output "Ancillary data appears to have already been created"
         If (-not (Test-Path -PathType Container -Path $dir)) {
-            Log-Output "Ancillary data path '$dir' is not a directory?"
-            Log-Output "Please move or delete '$dir' and try again."
+            Log-And-Write-Output "Ancillary data path '$dir' is not a directory?"
+            Log-And-Write-Output "Please move or delete '$dir' and try again."
             Write-Output "Unable to process '$dir'. See log file for more details"
             Read-Host -Prompt "Press any key to exit..."
             exit
@@ -153,7 +153,7 @@ ForEach($f in $files) {
         New-Item -ItemType Directory -Path $dir
     } catch {
         Write-Exception $_
-        Log-Output "Unable to create extra upload directory '$dir'"
+        Log-And-Write-Output "Unable to create extra upload directory '$dir'"
         Read-Host -Prompt "Unable to process ${f}... Press any key to exit..."
         exit
     }
