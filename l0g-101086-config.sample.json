@@ -28,6 +28,7 @@
                        "gw2raidar_category":  1,
                        "threshold":  0,
                        "thumbnail":  "",
+                       "raids":  true,
                        "fractals":  false,
                        "discord_map":  {
                                            "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
