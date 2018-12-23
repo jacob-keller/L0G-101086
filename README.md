@@ -489,6 +489,13 @@ Buddy.
 This is a shared module file containing functions used by the scripts, and
 shoudl be kept at the root of the script installation.
 
+### load-module.ps1
+
+This script is provided as a mechanism to load the module file along with
+the config object inside of a powershell session. The intent is to allow
+easier access to the module functions for custom usage such as manually
+uploading specific bosses. It's also useful for debugging purposes
+
 ### simpleArcParse.Tests.ps1
 
 This script contains tests for the simpleArcParse utility and is used during
