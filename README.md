@@ -307,6 +307,27 @@ players are part of the guild. See [Configuring Discord
 Accounts](#configuring-gw2-&-discord-accounts) for more information about how
 to obtain the discord account ids.
 
+##### show_players
+
+The show_players configuration can be used to optionally configure how the
+discord_map is used to convert gw2 account names when displaying. It can be
+set to "none", which will cause no player names to be shown. It can be set
+to "discord_if_possible", causing the player list to show both discord pings
+based on the discord_map, and fallback to account names if there is no
+mapping availble. It can be set to "discord_only", which causes the player
+list to only include players who are in the discord_map, and it can be set
+to "accounts_only" to disable the mapping behavior and just show account
+names. The default value (and older script behavior) is
+"discord_if_possible".
+
+##### prefix_players_text
+
+Can be set to a string which will prefix the player list. For example, it
+could be set to \u003c@526255792958078987\u003e to add an "@here" ping.
+Similar to discord names, you must use the ID from discord in the ping for
+it to be displayed properly. If show_players is set to "none", then only the
+prefix will be displayed.
+
 ##### threshold
 
 The minimum number of players required to recognize the encounter as part of

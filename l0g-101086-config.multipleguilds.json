@@ -65,6 +65,8 @@
                        "raids": false,
                        "fractals":  true,
                        "add_duration": false,
+                       "show_players":  "discord_only",
+                       "prefix_players_text":  "",
                        "discord_map":  {
                                            "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
                                        },
@@ -89,6 +91,8 @@
                        "fractals":  true,
                        "add_duration":  false,
                        "everything":  true,
+                       "show_players":  "discord_only",
+                       "prefix_players_text":  "\u003c@526255811031465984\u003e",
                        "discord_map":  {
                                            "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
                                        },
