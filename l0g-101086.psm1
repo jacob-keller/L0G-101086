@@ -617,6 +617,24 @@ $v2ValidGuildFields =
         type=[PSCustomObject]
     }
     @{
+        # Determines how the list of players is displayed.
+        # "none" disables showing any gw2 accounts or discord pings
+        # "discord_only" will show only discord mapped names. Other accounts will not be displayed
+        # "accounts_only" will show the list using only account names, without discord pings
+        # "discord_if_possible" will show the discord map if possible, and the account name otherwise
+        name="show_players"
+        type=[string]
+        validStrings=@("none", "discord_only", "accounts_only", "discord_if_possible")
+        default="discord_if_possible"
+    }
+    @{
+        # Set this to any extra text you want to prefix the player account list. For example
+        # you can set it to "\u003c@526255792958078987\u003e" to add an @here ping
+        name="prefix_players_text"
+        type=[string]
+        optional=$true
+    }
+    @{
         # emoji IDs used to provide pictures for each boss. Due to limitations of
         # the webhook API, we can't use normal image URLs, but only emojis
         # Each boss can have one emoji associated. If the map is empty for that boss
@@ -1137,9 +1155,24 @@ Function Lookup-Guild {
   Convert GuildWars 2 account names to discord users
 
  .Description
-  Given an array of GuildWars 2 account names, convert any known
-  player names into their discord equivalent. Unknown players will
-  be marked with italics markdown syntax.
+  Given an array of GuildWars 2 account names, convert to a list of players
+  based on their discord name.
+
+  If the guild has configured show_players to "none", this will return an
+  empty array.
+
+  If the guild has configured show_players to "discord_only", then only
+  the discord mapped names will be returned. Other account names will be
+  discarded.
+
+  If the guild has configured show_players to "accounts_only", then only
+  the account names will be returned, without discord pings.
+
+  If the guild has configured show_players to "discord_if_possible" (the
+  default), then discord mapped names will be preferred, but account
+  names will be returned if no discord map is configured.
+
+  Account names are returned with italic markdown.
 
  .Parameter guild
   The guild object to use for checking discord mappings
@@ -1154,10 +1187,23 @@ Function Get-Discord-Players {
 
     $names = @()
 
-    ForEach ($account in ($accounts | Sort)) {
-        if ($guild.discord_map."$account") {
+    # Add the prefix string to the front of the array
+    if ($guild.prefix_players_text) {
+        $names += $($guild.prefix_players_text)
+    }
+
+    # Return nothing if show_players is set to "none
+    if ($guild.show_players -eq "none") {
+        return $names
+    }
+
+    $show_discord = ($guild.show_players -in @("discord_only", "discord_if_possible"))
+    $show_accounts = ($guild.show_players -in @("accounts_only", "discord_if_possible"))
+
+    ForEach ($account in ($accounts | where {$_.trim() } | Sort)) {
+        if ($show_discord -and $guild.discord_map."$account") {
             $names += @($guild.discord_map."$account")
-        } elseif ($account -ne "") {
+        } elseif ($show_accounts) {
             $names += @("_${account}_")
         }
     }
