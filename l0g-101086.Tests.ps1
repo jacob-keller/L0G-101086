@@ -11,25 +11,107 @@ Describe 'Load-Configuration' {
     # Prevent the "Read-Host" prompts from being displayed during tests
     Mock Read-Host {}
 
-    It 'l0g-101086-config.sample.json is loadable' {
-        $config = Load-Configuration 'l0g-101086-config.sample.json' 2
-        $config | Should -Not -BeNullOrEmpty
+    Context 'Verify configuration files are valid' {
 
-        # TODO: verify expected output object??
-    }
-
-    It 'l0g-101086-config.multipleguilds.json is loadable' {
-        $config = Load-Configuration 'l0g-101086-config.multipleguilds.json' 2
-        $config | Should -Not -BeNullOrEmpty
-
-        # TODO: verify expected output object??
-    }
-
-    # Also verify that the l0g-101086-config.json is loadable if it exists
-    if (Test-Path "l0g-101086-config.json" ) {
-        It 'l0g-101086-config.json is loadable' {
-            $config = Load-Configuration 'l0g-101086-config.json' 2
+        It 'l0g-101086-config.sample.json is loadable' {
+            $config = Load-Configuration 'l0g-101086-config.sample.json' 2
             $config | Should -Not -BeNullOrEmpty
+        }
+
+        It 'l0g-101086-config.multipleguilds.json is loadable' {
+            $config = Load-Configuration 'l0g-101086-config.multipleguilds.json' 2
+            $config | Should -Not -BeNullOrEmpty
+        }
+
+        # Also verify that the l0g-101086-config.json is loadable if it exists
+        if (Test-Path "l0g-101086-config.json" ) {
+            It 'l0g-101086-config.json is loadable' {
+                $config = Load-Configuration 'l0g-101086-config.json' 2
+                $config | Should -Not -BeNullOrEmpty
+            }
+        }
+    }
+
+    $testConfig = "TestDrive:\config.json"
+
+    Context 'Basic configuration file' {
+        Set-Content $testConfig -Value @"
+{
+    "config_version":  2,
+    "debug_mode":  false,
+    "experimental_arcdps": false,
+    "arcdps_logs":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs",
+    "discord_json_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.webhook_posts",
+    "extra_upload_data":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.uploadextras",
+    "last_format_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_time.json",
+    "last_upload_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_logs_time.json",
+    "simple_arc_parse_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\simpleArcParse\\bin\\Release\\simpleArcParse.exe",
+    "upload_log_file":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\upload_log.txt",
+    "format_encounters_log":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\format_encounters_log.txt",
+    "guildwars2_path":  "C:\\Program Files (x86)\\Guild Wars 2",
+    "launchbuddy_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\gw2launchbuddy\\Gw2.Launchbuddy.exe",
+    "dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
+    "restsharp_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\RestSharp.dll",
+    "gw2raidar_token":  "",
+    "dps_report_token":  "",
+    "dps_report_generator":  "ei",
+    "upload_dps_report": "successful",
+    "upload_gw2raidar": "all",
+    "guilds":  [
+                   {
+                       "name":  "[guild]",
+                       "priority":  1,
+                       "webhook_url":  "",
+                       "gw2raidar_tag":  "",
+                       "gw2raidar_category":  1,
+                       "threshold":  0,
+                       "thumbnail":  "",
+                       "raids":  true,
+                       "fractals":  false,
+                       "discord_map":  {
+                                           "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
+                                       },
+                       "show_players":  "discord_if_possible",
+                       "prefix_players_text":  "",
+                       "emoji_map":  {
+                                         "Mursaat Overseer":  "\u003c:mo:311579053486243841\u003e",
+                                         "Samarog":  "\u003c:sam:311578871214637057\u003e",
+                                         "Slothasor":  "\u003c:sloth:311578871206117376\u003e",
+                                         "Sabetha":  "\u003c:sab:311578871122231296\u003e",
+                                         "Dhuum":  "\u003c:dhuum:399610319464431627\u003e",
+                                         "Gorseval":  "\u003c:gors:311578871013310474\u003e",
+                                         "Xera":  "\u003c:xera:311578871277289472\u003e",
+                                         "Soulless Horror":  "\u003c:horror:386645168289480715\u003e",
+                                         "Cairn":  "\u003c:cairn:311578870954590208\u003e",
+                                         "Keep Construct":  "\u003c:kc:311578870686023682\u003e",
+                                         "Matthias":  "\u003c:matt:311578871105454080\u003e",
+                                         "Deimos":  "\u003c:deimos:311578870761652225\u003e",
+                                         "Vale Guardian":  "\u003c:vg:311578870933356545\u003e",
+                                         "Conjured Amalgamate":  ":ca:",
+                                         "Largos Twins":  ":twins:",
+                                         "Qadim":  ":qadim:"
+                                     }
+                   }
+               ]
+}
+"@
+        It 'loads the basic config file properly' {
+            $config = Load-Configuration $testConfig 2
+            $config | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'config_version 2 sets default values' {
+        Set-Content -Force $testConfig -Value @"
+{ "config_version": 2 }
+"@
+
+        It 'loads config version 2, and sets defaults for optional/default fields' {
+            $config = Load-Configuration $testConfig 2
+            $config | Should -Not -BeNullOrEmpty
+            $config.config_version | Should -BeExactly 2
+            $config.upload_gw2raidar | Should -BeExactly "successful"
+            $config.upload_dps_report | Should -BeExactly "successful"
         }
     }
 }
