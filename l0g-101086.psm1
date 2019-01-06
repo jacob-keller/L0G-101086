@@ -1230,6 +1230,7 @@ Function Convert-Boss-To-Wing {
                "Gorseval"=1;
                "Sabetha"=1;
                "Slothasor"=2;
+               "Bandit Trio"=2;
                "Matthias"=2;
                "Keep Construct"=3;
                "Xera"=3;
