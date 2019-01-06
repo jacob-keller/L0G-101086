@@ -267,7 +267,9 @@ ForEach($f in $files) {
 
         # Extract the precise duration in milliseconds
         $precise_duration = (& $simple_arc_parse duration "${evtc}")
-        $precise_duration | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "precise_duration.json")
+        if (-not [string]::IsNullOrEmpty($precise_duration)) {
+            $precise_duration | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "precise_duration.json")
+        }
 
         # Parse the evtc combat events to determine the server start time
         $start_time = (& $simple_arc_parse start_time "${evtc}")
