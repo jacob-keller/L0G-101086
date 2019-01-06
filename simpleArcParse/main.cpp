@@ -385,6 +385,9 @@ struct parsed_details {
     enum is_boss_cm is_cm;
     uint32_t server_start;
     uint32_t server_end;
+    uint64_t precise_last_event;
+    uint64_t precise_logend_time;
+    uint64_t precise_reward_time;
     uint64_t precise_start;
     uint64_t precise_end;
     bool encounter_success;
@@ -779,7 +782,7 @@ parse_logend_event(parsed_details& details, evtc_cbtevent& event)
         event.src_agent() == arcdps_src_agent) {
         /* The log end event indicates the server time when logs ended */
         details.server_end = event.value();
-        details.precise_end = event.time();
+        details.precise_logend_time = event.time();
         return true;
     }
 
@@ -802,19 +805,21 @@ parse_logend_event(parsed_details& details, evtc_cbtevent& event)
 static bool
 parse_precise_end(parsed_details& details, evtc_cbtevent& event)
 {
+    if (!details.precise_last_event) {
+        details.precise_last_event = event.time();
+    }
+
     if (event.is_statechange() == CBTS_LOGEND &&
         event.src_agent() == arcdps_src_agent) {
 
-        /* Only assign the precise_end time if it hasn't yet been found */
-        if (!details.precise_end)
-            details.precise_end = event.time();
+        details.precise_logend_time = event.time();
 
         /* Keep searching for the CBTS_REWARD event */
         return false;
     }
 
     if (event.is_statechange() == CBTS_REWARD) {
-        details.precise_end = event.time();
+        details.precise_reward_time = event.time();
         return true;
     }
 
@@ -1041,7 +1046,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.4.1" << endl;
+        cout << "v1.4.2" << endl;
         return 0;
     }
 
@@ -1087,6 +1092,15 @@ int main(int argc, char *argv[])
     } else if (type == "duration") {
         parse_first_matching_event(details, evtc_file, parse_logstart_event);
         parse_last_matching_event(details, evtc_file, parse_precise_end);
+
+        /* Use the most appropriate ending time available */
+        if (details.precise_reward_time) {
+            details.precise_end = details.precise_reward_time;
+        } else if (details.precise_logend_time) {
+            details.precise_end = details.precise_logend_time;
+        } else {
+            details.precise_end = details.precise_last_event;
+        }
     }
 
     if (type == "is_cm") {

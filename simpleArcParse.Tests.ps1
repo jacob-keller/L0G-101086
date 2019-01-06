@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v1.4.1' {
-        $version | Should BeExactly 'v1.4.1'
+    it 'version should be v1.4.2' {
+        $version | Should BeExactly 'v1.4.2'
     }
 }
 
@@ -106,6 +106,17 @@ $testEncounters = @(
         start_time=1545111706
         end_time=1545112098
         duration=387514
+    }
+    @{
+        name='invalid-precise-duration.evtc'
+        version='EVTC20190103'
+        boss_name='Artsariiv (CM)'
+        boss_id='17949'
+        players=@('Jerry Charrcia.7068', 'nightfally.2187', 'Serena Sedai.3064', 'Ryiah.9546', 'eMJay.3154')
+        success='FAILURE'
+        start_time=1546579480
+        end_time=0 # This file has no log-end event
+        duration=276593
     }
 )
 
