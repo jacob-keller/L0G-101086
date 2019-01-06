@@ -5,6 +5,7 @@ RaidHeros
 *.dll.back
 arcdps.cbtlogs
 arcdps.mechanics
+arcdps.webhook_posts
 ev-encounters-list.txt
 upload_logs_time.json
 arcdps.uploadextras
