@@ -1348,6 +1348,7 @@ Function Load-From-EVTC {
     $servertime = (Get-Content -Raw -Path $servertime_json | ConvertFrom-Json)
     $boss["servertime"] = [int]$servertime
     $boss["time"] = ConvertFrom-UnixDate $servertime
+    $boss["date"] = $boss["time"].Date
 
     $precise_duration_json = [io.path]::combine($extras_path, "precise_duration.json")
     if (X-Test-Path $precise_duration_json) {
@@ -1633,72 +1634,39 @@ Function Format-And-Publish-Some {
 
 <#
  .Synopsis
-  Get the sub element of a nested hash/array table
+  Split a collection of encounters based on a key
 
  .Description
-  Given a hash table, get the sub element for a given key. If the key
-  is not yet contained by the hash table, then add a sub element using
-  the specified default value.
+  Split a list of bosses into multiple lists based on a key from the boss
+  objects.
 
-  Used to extract and build up nested hashes, essentially creating
-  multi-dimensional hash tables.
-
- .Parameter hash
-  The hash to grab a sub element from
-
- .Parameter key
-  The key to find the sub element for
-
- .Parameter default
-  The default value for a non-existent sub element.
-#>
-Function Get-SubHash {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][HashTable]$hash,
-          [Parameter(Mandatory)][object]$key)
-
-    if (-not $hash.ContainsKey($key)) {
-        $hash[$key] = @{}
-    }
-
-    return $hash[$key]
-}
-
-<#
- .Synopsis
-  Split a collection of encounters into a nested hash
-
- .Description
-  Take an array of bosses and split it into a nested hash keyed first
-  by the date the encounter was run, followed by the guild which ran the
-  encounter, and finally followed by whether it is a fractal or a raid.
-  This allows us to group together similar sets of encounters and post
-  them by the date they were run.
+  Returns the hash with keys based on the values of the boss object key.
 
  .Parameter bosses
-  The array of bosses to split
+  The array of bosses to separate
+
+ .Parameter key
+  The key (element) of the boss object to use
 #>
 Function Split-Bosses {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses)
+    param([Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses,
+          [Parameter(Mandatory)][string]$key)
 
-    $per_date = @{}
+    $hash = @{}
 
     foreach ($b in $bosses) {
-        # Get the per_guild hash for this date
-        $per_guild = Get-SubHash $per_date $b.time.Date
+        # Hash key to use
+        $value = $b[$key]
 
-        # Get the per_type hash for this guild+date
-        $per_type = Get-SubHash $per_guild $b.guild
-
-        # Add this boss to the list of bosses in this type+guild+date
-        if (-not $per_type.ContainsKey($b.is_fractal)) {
-            $per_type[$b.is_fractal] = @()
+        if (-not $hash.ContainsKey($value)) {
+            $hash[$value] = @()
         }
-        $per_type[$b.is_fractal] += @($b)
+
+        $hash[$value] += @($b)
     }
 
-    return $per_date
+    return $hash
 }
 
 <#
@@ -1725,22 +1693,21 @@ Function Format-And-Publish-All {
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses)
 
-    # Split the bosses into a set of nested hashes
-    $per_date = Split-Bosses $bosses
 
+    $per_guild = Split-Bosses $bosses "guild"
 
-    # For each date that encounters were run...
-    $per_date.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
-        $per_guild = $_.Value
+    # For each guild in the array of bosses
+    $per_guild.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
+        $guild = Lookup-Guild $config $_.Key
 
-        # .. and for each guild that ran encounters that day...
-        $per_guild.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
-            $per_type = $_.Value
+        $per_type = Split-Bosses $_.Value "is_fractal"
 
-            $guild = Lookup-Guild $config $_.Key
+        # .. and for each type of encounter (fractal or raid) ...
+        $per_type.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
+            $per_date = Split-Bosses $_.Value "date"
 
-            # ... and for each type of encounter (fractal or raids)...
-            $per_type.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
+            # ... and for each date encounters were run ...
+            $per_date.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
                 $some_bosses = $_.Value
 
                 # ... Format and publish this guild's encounters for the day to the guild's channel

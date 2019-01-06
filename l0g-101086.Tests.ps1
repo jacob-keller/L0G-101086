@@ -266,3 +266,15 @@ Describe 'Get-Discord-Players' {
         }
     }
 }
+
+Describe 'Split-Bosses' {
+    $bosses = @( @{ a=1; b=1 }, @{ a=1; b=2; }, @{ a=2; b=3 }, @{ a=3; b=4; }, @{ a=1; b=5 } )
+
+    It 'correctly splits bosses into sections' {
+        $split = Split-Bosses $bosses "a"
+        $split.Keys | sort | Should -BeExactly @( 1, 2, 3 )
+        $split[1] | Should -BeExactly @( $bosses[0], $bosses[1], $bosses[4] )
+        $split[2] | Should -BeExactly @( $bosses[2] )
+        $split[3] | Should -BeExactly @( $bosses[3] )
+    }
+}
