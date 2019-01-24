@@ -1414,6 +1414,16 @@ Function Format-And-Publish-Some {
 
     Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
 
+    # Calculate total duration timespan for this set of bosses
+    $some_bosses = $some_bosses | Sort-Object -Property {$_.start_time}
+    $span = New-TimeSpan -Start $some_bosses[0].start_time -End $some_bosses[-1].end_time
+
+    if ($span -ge (New-TimeSpan -Hours 1)) {
+        $timespan_string = "$([math]::floor($span.TotalHours))h $($span.Minutes.ToString("00"))m $($span.Seconds.ToString("00"))s"
+    } else {
+        $timespan_string = "$($span.Minutes)m $($span.Seconds.ToString("00"))s"
+    }
+
     # If this guild sets publish_encounters to "successful", and we're
     # not overriding it, remove non-successful encounters now
     if (-not $override_publish_encounters) {
@@ -1432,8 +1442,16 @@ Function Format-And-Publish-Some {
         return
     }
 
+    # Determine if we want to add durations. By default we will, unless they are
+    # explicitely disabled in the guild configuration.
+    if ($guild.add_duration -eq $true -or $guild.add_duration -eq $null) {
+        $add_duration = $true
+    } else {
+        $add_duration = $false
+    }
+
     # We sort the bosses based on server start time
-    ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {
+    ForEach ($boss in $some_bosses) {
         # Use the shortened name
         $name = $boss.shortname
 
@@ -1469,14 +1487,6 @@ Function Format-And-Publish-Some {
         } else {
             # In the rare case we somehow end up here with no link, just put "N/A"
             $link_string = "N/A"
-        }
-
-        # Determine if we want to add durations. By default we will, unless they are
-        # explicitely disabled in the guild configuration.
-        if ($guild.add_duration -eq $true -or $guild.add_duration -eq $null) {
-            $add_duration = $true
-        } else {
-            $add_duration = $false
         }
 
         # If we have a duration string, add it to the end of the links
@@ -1526,7 +1536,7 @@ Function Format-And-Publish-Some {
 
     # Create the data object
     $data_object = [PSCustomObject]@{
-        title = "$($running_guild.name) ${prefix}: ${wings} | ${date}"
+        title = "$($running_guild.name) ${prefix}: ${wings} | ${date} ($timespan_string)"
         color = 0xf9a825
         fields = $fields
         footer = [PSCustomObject]@{ text = "Created by /u/platinummyr" }
