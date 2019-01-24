@@ -13,8 +13,7 @@ $RequiredParameters = @("simple_arc_parse_path")
 $test_data_dir = 'l0g-101086-test-data'
 
 # Load the configuration from the default file
-# Load the configuration from the default file
-$config = Load-Configuration (Join-Path $test_data_dir "simpleArcParse.json") -Version 1 -RequiredParameters $RequiredParameters
+$config = Load-Configuration (Join-Path $test_data_dir "simpleArcParse.json") -Version 2 -RequiredParameters $RequiredParameters
 if (-not $config) {
     exit
 }

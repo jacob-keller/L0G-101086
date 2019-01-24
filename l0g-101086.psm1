@@ -470,48 +470,6 @@ $commonConfigurationFields =
 
 <#
  .Description
-  Configuration fields which are valid for a v1 configuration file. Anything
-  not listed here will be excluded from the generated $config object. If one
-  of the fields has an incorrect type, configuration will fail to be validated.
-
-  Fields which are common to many versions of the configuration file are stored
-  in $commonConfigurationFields
-#>
-$v1ConfigurationFields = $commonConfigurationFields +
-@(
-    @{
-        name="custom_tags_script"
-        type=[string]
-        path=$true
-    }
-    @{
-        name="discord_webhook"
-        type=[string]
-    }
-    @{
-        name="guild_thumbnail"
-        type=[string]
-    }
-    @{
-        name="guild_text"
-        type=[string]
-    }
-    @{
-        name="discord_map"
-        type=[PSCustomObject]
-    }
-    @{
-        name="emoji_map"
-        type=[PSCustomObject]
-    }
-    @{
-        name="publish_fractals"
-        type=[bool]
-    }
-)
-
-<#
- .Description
   Configuration fields which are valid for a v2 configuration file. Anything
   not listed here will be excluded from the generated $config object. If one
   of the fields has an incorrect type, configuration will fail to be validated.
@@ -814,7 +772,8 @@ Function Validate-Configuration {
           [PathConversion]$conversion = [PathConversion]::FromUserProfile)
 
     if ($version -eq 1) {
-        $configurationFields = $v1ConfigurationFields
+        Read-Host -Prompt "Loading and validating version 1 of the configuration file is no longer suppported.  Press enter to exit"
+        exit
     } elseif ($version -eq 2) {
         $configurationFields = $v2ConfigurationFields
     } else {
@@ -822,9 +781,8 @@ Function Validate-Configuration {
         exit
     }
 
-    # Make sure the config_version is set to 1. This should only be bumped if
-    # the expected configuration names change. New fields should not cause a
-    # bump in this version, but only removal or change of fields.
+    # Make sure that the configuration file actually matches the version
+    # required by the script.
     #
     # Scripts should be resilient against new parameters not being configured.
     if ($config.config_version -ne $version) {
