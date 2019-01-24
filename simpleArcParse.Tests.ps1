@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v1.4.2' {
-        $version | Should BeExactly 'v1.4.2'
+    it 'version should be v1.5.0' {
+        $version | Should BeExactly 'v1.5.0'
     }
 }
 
@@ -51,6 +51,8 @@ $testEncounters = @(
         success='FAILURE'
         start_time=1526264306
         end_time=1526264944
+        local_start_time=414457824
+        local_end_time=415095613
         duration=637789
     }
     @{
@@ -63,6 +65,8 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1527740549
         end_time=1527740762
+        local_start_time=933570140
+        local_end_time=933767156
         duration=197016
     }
     @{
@@ -77,6 +81,8 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1527733808
         end_time=1527734099
+        local_start_time=926829216
+        local_end_time=927111359
         duration=282143
     }
     @{
@@ -91,6 +97,8 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1538615095
         end_time=1538615342
+        local_start_time=1799427731
+        local_end_time=1799664644
         duration=236913
     }
     @{
@@ -105,6 +113,8 @@ $testEncounters = @(
         success='SUCCESS'
         start_time=1545111706
         end_time=1545112098
+        local_start_time=360257790
+        local_end_time=360645304
         duration=387514
     }
     @{
@@ -116,6 +126,8 @@ $testEncounters = @(
         success='FAILURE'
         start_time=1546579480
         end_time=0 # This file has no log-end event
+        local_start_time=1286303413
+        local_end_time=1286580006
         duration=276593
     }
 )
@@ -165,10 +177,31 @@ ForEach ($encounter in $testEncounters) {
             $success | Should BeExactly $encounter.end_time
         }
     }
+    describe "$($encounter.name) local_start_time" {
+        $success = (& $simpleArcParse local_start_time (Join-Path $test_data_dir $encounter.name))
+        it "should extract local start time in milliseconds" {
+            $success | Should BeExactly $encounter.local_start_time
+        }
+    }
+    describe "$($encounter.name) local_end_time" {
+        $success = (& $simpleArcParse local_end_time (Join-Path $test_data_dir $encounter.name))
+        it "should extract local end time in milliseconds" {
+            $success | Should BeExactly $encounter.local_end_time
+        }
+    }
     describe "$($encounter.name) duration" {
         $success = (& $simpleArcParse duration (Join-Path $test_data_dir $encounter.name))
         it "should extract encounter duration" {
             $success | Should BeExactly $encounter.duration
+        }
+    }
+    describe "$($encounter.name) local end minus local start matches duration" {
+        $start = (& $simpleArcParse local_start_time (Join-Path $test_data_dir $encounter.name))
+        $end = (& $simpleArcParse local_end_time (Join-Path $test_data_dir $encounter.name))
+
+        $diff = $end - $start
+        it "start - end should equal duration" {
+            $diff | Should BeExactly $encounter.duration
         }
     }
 }

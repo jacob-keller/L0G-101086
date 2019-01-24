@@ -261,6 +261,8 @@ static const string valid_types[] = {
     "success",
     "start_time",
     "end_time",
+    "local_start_time",
+    "local_end_time",
     "boss_maxhealth",
     "is_cm",
     "duration",
@@ -1046,7 +1048,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.4.2" << endl;
+        cout << "v1.5.0" << endl;
         return 0;
     }
 
@@ -1080,17 +1082,24 @@ int main(int argc, char *argv[])
     if (type == "players") {
         /* Extract data for each player in the encounter */
         parse_all_player_agents(details, evtc_file);
-    } else if (type == "success") {
+    }
+    if (type == "success") {
         parse_last_matching_event(details, evtc_file, parse_reward_event);
-    } else if (type == "start_time") {
+    }
+    if (type == "start_time") {
         parse_first_matching_event(details, evtc_file, parse_logstart_event);
-    } else if (type == "end_time") {
+    }
+    if (type == "end_time") {
         parse_last_matching_event(details, evtc_file, parse_logend_event);
-    } else if (type == "boss_maxhealth" || type == "is_cm") {
+    }
+    if (type == "boss_maxhealth" || type == "is_cm") {
         parse_boss_agent(details, evtc_file);
         parse_first_matching_event(details, evtc_file, parse_boss_maxhealth_event);
-    } else if (type == "duration") {
+    }
+    if (type == "duration" || type == "local_start_time") {
         parse_first_matching_event(details, evtc_file, parse_logstart_event);
+    }
+    if (type == "duration" || type == "local_end_time") {
         parse_last_matching_event(details, evtc_file, parse_precise_end);
 
         /* Use the most appropriate ending time available */
@@ -1145,6 +1154,10 @@ int main(int argc, char *argv[])
     } else if (type == "duration") {
         if (details.precise_end >= details.precise_start)
             cout << (details.precise_end - details.precise_start) << endl;
+    } else if (type == "local_start_time") {
+        cout << details.precise_start << endl;
+    } else if (type == "local_end_time") {
+        cout << details.precise_end << endl;
     }
 
     return 0;
