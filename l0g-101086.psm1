@@ -327,9 +327,116 @@ Function Keys {
 
 <#
  .Description
-  Configuration fields which are valid for multiple versions of the
-  configuration file. Currently this is shared between the v1 and v2
-  formats, as they share a common base of configuration fields.
+  Configuration fields which are valid for a v2 configuration file. Anything
+  not listed here will be excluded from the generated $config object. If one
+  of the fields has an incorrect type, configuration will fail to be validated.
+
+  Fields which are common to many versions of the configuration file are stored
+  in $commonConfigurationFields
+#>
+$v2ValidGuildFields =
+@(
+    @{
+        # The name of this guild
+        name="name"
+        type=[string]
+    }
+    @{
+        # Priority for determining which guild ran an encounter if there are
+        # conflicts. Lower numbers win ties.
+        name="priority"
+        type=[int]
+    }
+    @{
+        # Minimum number of players required for an encounter to be considered
+        # a guild run. 0 indicates any encounter can be considered if there is
+        # no better guild available
+        name="threshold"
+        type=[int]
+    }
+    @{
+        # The discord webhook URL for this guild
+        name="webhook_url"
+        type=[string]
+    }
+    @{
+        # URL to a thumbnail image for this guild
+        name="thumbnail"
+        type=[string]
+    }
+    @{
+        # Set this to true if this guild should be considered for fractal
+        # challenge motes. If set to false, fractals will never be posted
+        # to this guild.
+        name="fractals"
+        type=[bool]
+    }
+    @{
+        # Set this to true if the guild should be considered for raid encounters.
+        # If set to false, raid encounters will never be posted to this guild.
+        # Defaults to true if not specified
+        name="raids"
+        type=[bool]
+        optional=$true
+        default=$true
+    }
+    @{
+        # Set of gw2 account names associated with this guild, mapped to
+        # their discord account ids. Used as the primary mechanism to determine
+        # which guild the encounter was run by, as well as for posting player pings
+        # to the discord webhook.
+        name="discord_map"
+        type=[PSCustomObject]
+    }
+    @{
+        # Determines how the list of players is displayed.
+        # "none" disables showing any gw2 accounts or discord pings
+        # "discord_only" will show only discord mapped names. Other accounts will not be displayed
+        # "accounts_only" will show the list using only account names, without discord pings
+        # "discord_if_possible" will show the discord map if possible, and the account name otherwise
+        name="show_players"
+        type=[string]
+        validStrings=@("none", "discord_only", "accounts_only", "discord_if_possible")
+        default="discord_if_possible"
+    }
+    @{
+        # Set this to any extra text you want to prefix the player account list. For example
+        # you can set it to "\u003c@526255792958078987\u003e" to add an @here ping
+        name="prefix_players_text"
+        type=[string]
+        optional=$true
+    }
+    @{
+        # emoji IDs used to provide pictures for each boss. Due to limitations of
+        # the webhook API, we can't use normal image URLs, but only emojis
+        # Each boss can have one emoji associated. If the map is empty for that boss
+        # then only the boss name will appear, without any emoji icon.
+        name="emoji_map"
+        type=[PSCustomObject]
+    }
+    @{
+        # If set to true, format-encounters will publish every post to this guilds
+        # discord. If unset or if set to false, only the encounters which match
+        # this guild will be published to the guild's discord.
+        name="everything"
+        type=[bool]
+        optional=$true
+        default=$false
+    }
+    @{
+        # If set to true, format-encounters will show the approximate duration that
+        # the encounter took as part of the link line. If set to false, this duration
+        # will not be displayed. Defaults to true.
+        name="show_duration"
+        type=[bool]
+        optional=$true
+        default=$true
+    }
+)
+
+<#
+ .Description
+  Configuration fields which are valid for the v2 configuration format.
 
   If path is set, then the configuration will allow exchanging %UserProfile%
   for the current $env:USERPROFILE value
@@ -340,7 +447,7 @@ Function Keys {
 
   Path, validFields, and arrayFields are mutually exclusive
 #>
-$commonConfigurationFields =
+$v2ConfigurationFields =
 @(
     @{
         # Version indicating the format of the configuration file
@@ -466,119 +573,6 @@ $commonConfigurationFields =
         alternativeStrings=@{"none"="no"; "yes"="all"}
         default="successful"
     }
-)
-
-<#
- .Description
-  Configuration fields which are valid for a v2 configuration file. Anything
-  not listed here will be excluded from the generated $config object. If one
-  of the fields has an incorrect type, configuration will fail to be validated.
-
-  Fields which are common to many versions of the configuration file are stored
-  in $commonConfigurationFields
-#>
-$v2ValidGuildFields =
-@(
-    @{
-        # The name of this guild
-        name="name"
-        type=[string]
-    }
-    @{
-        # Priority for determining which guild ran an encounter if there are
-        # conflicts. Lower numbers win ties.
-        name="priority"
-        type=[int]
-    }
-    @{
-        # Minimum number of players required for an encounter to be considered
-        # a guild run. 0 indicates any encounter can be considered if there is
-        # no better guild available
-        name="threshold"
-        type=[int]
-    }
-    @{
-        # The discord webhook URL for this guild
-        name="webhook_url"
-        type=[string]
-    }
-    @{
-        # URL to a thumbnail image for this guild
-        name="thumbnail"
-        type=[string]
-    }
-    @{
-        # Set this to true if this guild should be considered for fractal
-        # challenge motes. If set to false, fractals will never be posted
-        # to this guild.
-        name="fractals"
-        type=[bool]
-    }
-    @{
-        # Set this to true if the guild should be considered for raid encounters.
-        # If set to false, raid encounters will never be posted to this guild.
-        # Defaults to true if not specified
-        name="raids"
-        type=[bool]
-        optional=$true
-        default=$true
-    }
-    @{
-        # Set of gw2 account names associated with this guild, mapped to
-        # their discord account ids. Used as the primary mechanism to determine
-        # which guild the encounter was run by, as well as for posting player pings
-        # to the discord webhook.
-        name="discord_map"
-        type=[PSCustomObject]
-    }
-    @{
-        # Determines how the list of players is displayed.
-        # "none" disables showing any gw2 accounts or discord pings
-        # "discord_only" will show only discord mapped names. Other accounts will not be displayed
-        # "accounts_only" will show the list using only account names, without discord pings
-        # "discord_if_possible" will show the discord map if possible, and the account name otherwise
-        name="show_players"
-        type=[string]
-        validStrings=@("none", "discord_only", "accounts_only", "discord_if_possible")
-        default="discord_if_possible"
-    }
-    @{
-        # Set this to any extra text you want to prefix the player account list. For example
-        # you can set it to "\u003c@526255792958078987\u003e" to add an @here ping
-        name="prefix_players_text"
-        type=[string]
-        optional=$true
-    }
-    @{
-        # emoji IDs used to provide pictures for each boss. Due to limitations of
-        # the webhook API, we can't use normal image URLs, but only emojis
-        # Each boss can have one emoji associated. If the map is empty for that boss
-        # then only the boss name will appear, without any emoji icon.
-        name="emoji_map"
-        type=[PSCustomObject]
-    }
-    @{
-        # If set to true, format-encounters will publish every post to this guilds
-        # discord. If unset or if set to false, only the encounters which match
-        # this guild will be published to the guild's discord.
-        name="everything"
-        type=[bool]
-        optional=$true
-        default=$false
-    }
-    @{
-        # If set to true, format-encounters will show the approximate duration that
-        # the encounter took as part of the link line. If set to false, this duration
-        # will not be displayed. Defaults to true.
-        name="show_duration"
-        type=[bool]
-        optional=$true
-        default=$true
-    }
-)
-
-$v2ConfigurationFields = $commonConfigurationFields +
-@(
     @{
         name="guilds"
         type=[Object[]]
