@@ -53,18 +53,14 @@ Describe 'Load-Configuration' {
     "launchbuddy_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\gw2launchbuddy\\Gw2.Launchbuddy.exe",
     "dll_backup_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\arcdps.dllbackups",
     "restsharp_path":  "%UserProfile%\\Documents\\Guild Wars 2\\addons\\arcdps\\RestSharp.dll",
-    "gw2raidar_token":  "",
     "dps_report_token":  "",
     "dps_report_generator":  "ei",
     "upload_dps_report": "successful",
-    "upload_gw2raidar": "all",
     "guilds":  [
                    {
                        "name":  "[guild]",
                        "priority":  1,
                        "webhook_url":  "",
-                       "gw2raidar_tag":  "",
-                       "gw2raidar_category":  1,
                        "threshold":  0,
                        "thumbnail":  "",
                        "raids":  true,
@@ -111,7 +107,6 @@ Describe 'Load-Configuration' {
             $config = Load-Configuration $testConfig 2
             $config | Should -Not -BeNullOrEmpty
             $config.config_version | Should -BeExactly 2
-            $config.upload_gw2raidar | Should -BeExactly "successful"
             $config.upload_dps_report | Should -BeExactly "successful"
         }
     }

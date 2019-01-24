@@ -61,25 +61,10 @@ if (-not (X-Test-Path $arcdps_logs)) {
     exit
 }
 
-# Require a gw2raidar token if gw2raidar uploading is enabled
-if ((-not $config.gw2raidar_token) -and ($config.upload_gw2raidar -ne "no")) {
-    Read-Host -Prompt "Uploading to gw2raidar requires a gw2raidar authentication token. Press enter to exit"
-    exit
-}
-
 # Require a dps.report token if dps.report uploading is enabled
 if ((-not $config.dps_report_token) -and ($config.upload_dps_report -ne "no")) {
     Read-Host -Prompt "Uploading to dps.report requires an authentication token. Press enter to exit"
     exit
-}
-
-# Notify the user that they should remove the start map directory
-if ($gw2raidar_start_map) {
-    if (X-Test-Path $gw2raidar_start_map) {
-        Log-Output "The gw2raidar_start_map directory and configuration variable are no longer necessary. It is now safe to remove them."
-    } else {
-        Log-Output "The gw2raidar_start_map configuration variable is no longer necessary, and is safe to remove."
-    }
 }
 
 # Create the startmap directory if it doesn't exist
@@ -142,7 +127,7 @@ if ($total -gt 0 ) {
     Log-And-Write-Output "Found ${total} EVTC files to upload"
 }
 
-# Main loop to generate and upload gw2raidar and dps.report files
+# Main loop to generate and upload logs to dps.report
 ForEach($f in $files) {
     $done++
     $name = Get-UncompressedEVTC-Name $f
@@ -222,15 +207,11 @@ ForEach($f in $files) {
         try {
             $evtc_arcdps_version = [DateTime]::ParseExact($evtc_header[0], 'EVTCyyyyMMdd', $null)
 
-            # gw2raidar is extremely picky about uploading new encounters, and will generally
-            # only parse the most recent release of ArcDPS. Warn the user if the version of
-            # for this encounter is out of date. We'll still try to upload to gw2raidar, but
-            # at least the user will be aware that the links may not be generated.
+            # Notify the user about when trying to upload encounters with
+            # old versions of arcdps.
             if ($evtc_arcdps_version -lt $arcdps_release_date) {
                 Log-Output "It appears that ${name} was recorded using an outdated ArcDPS version released on $(Get-Date -Format "MMM d, yyyy" $evtc_arcdps_version)"
                 Log-Output "The most recent ArcDPS version was releasted on $(Get-Date -Format "MMM d, yyyy" $arcdps_release_date)"
-                Log-Output "gw2raidar is unlikely to accept this encounter, so you might not see a link for it in the formatted encounters list"
-                Log-Output "It is recommended that you update ArcDPS to avoid this issue."
             }
         } catch {
             Write-Exception $_
@@ -310,28 +291,7 @@ ForEach($f in $files) {
         $success = $false
     }
 
-    # Upload to gw2raidar (if configured) first, because the server processes in the background.
-    try {
-        Maybe-UploadTo-Gw2Raidar $config $f $guild $dir $success
-    } catch {
-        Write-Exception $_
-        Log-Output "Upload to gw2raidar failed..."
-
-        # The set of files is sorted in ascending order by its last write time. This
-        # means, if we exit at the first failed file, that all files with an upload time prior
-        # to this file must have succeeded. Thus, we'll save the "last upload time" as the
-        # last update time of this file minus a little bit to ensure we attempt re-uploading it
-        # on the next run. This avoids re-uploading lots of files if we fail in the middle of
-        # a large sequence.
-        (Get-Item $f).LastWriteTime.AddSeconds(-1) | Select-Object -Property DateTime | ConvertTo-Json | Out-File -Force $last_upload_file
-        Write-Output "!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        Write-Output "Upload to gw2raidar failed"
-        Write-Output "!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        Read-Host -Prompt "Press enter to exit."
-        exit
-    }
-
-    # Then upload to dps.report (if configured) because the server will block until a permalink is available
+    # upload to dps.report
     try {
         Maybe-UploadTo-DpsReport $config $f $dir $success
     } catch {

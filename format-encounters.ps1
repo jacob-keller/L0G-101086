@@ -25,12 +25,6 @@ if (-not $config) {
 
 Set-Logfile $config.format_encounters_log
 
-# Require a gw2raidar token for obtaining permalinks if gw2raidar uploading is enabled
-if ((-not $config.gw2raidar_token) -and ($config.upload_gw2raidar -ne "no")) {
-    Read-Host -Prompt "Uploading to gw2raidar requires a gw2raidar authentication token. Press enter to exit"
-    exit
-}
-
 # Check that the ancillary data folder has already been created
 if (-not (X-Test-Path $config.extra_upload_data)) {
     Read-Host -Prompt "The $($config.extra_upload_data) can't be found. Try running upload-logs.ps1 first? Press enter to exit"
@@ -91,11 +85,6 @@ if ($dirs -and $dirs.Length -gt 0) {
 
     # We only want to publish successful encounters
     $bosses = $bosses.where({$_.success})
-
-    # Lookup and save gw2raidar links
-    if ($config.upload_gw2raidar -ne "no") {
-        Save-Gw2-Raidar-Links $config $bosses
-    }
 
     Format-And-Publish-All $config $bosses
 }

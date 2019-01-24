@@ -383,14 +383,6 @@ $commonConfigurationFields =
         path=$true
     }
     @{
-        # Deprecated configuration for path to store a "database" mapping encounter start
-        # times to the local EVTC extra upload data. This is no longer used as the
-        # functionality has been replaced with a better process.
-        name="gw2raidar_start_map"
-        type=[string]
-        path=$true
-    }
-    @{
         # Path to a file which stores the last time that we formatted logs to discord
         # Used to ensure that we don't re-post old logs. Disabled if debug_mode is true
         name="last_format_file"
@@ -398,7 +390,7 @@ $commonConfigurationFields =
         path=$true
     }
     @{
-        # Path to file to store the last time that we uploaded logs to gw2raidar and dps.report
+        # Path to file to store the last time that we uploaded logs to dps.report
         # This is *not* disabled when debug_mode is true, because we don't want to spam
         # the uploads of old encounters.
         name="last_upload_file"
@@ -442,16 +434,10 @@ $commonConfigurationFields =
         path=$true
     }
     @{
-        # Path to the RestSharp DLL used for contacting gw2raidar and dps.report
+        # Path to the RestSharp DLL used for contacting dps.report
         name="restsharp_path"
         type=[string]
         path=$true
-    }
-    @{
-        # The gw2raidar API token used with your account. Used to upload encounters to
-        # gw2raidar, as well as look up previously uploaded encounter data.
-        name="gw2raidar_token"
-        type=[string]
     }
     @{
         # An API token used by dps.report. Not currently required by dps.report but
@@ -475,18 +461,6 @@ $commonConfigurationFields =
         # "all" causes all encounters to be uploaded.
         # The default is "successful"
         name="upload_dps_report"
-        type=[string]
-        validStrings=@("no", "successful", "all")
-        alternativeStrings=@{"none"="no"; "yes"="all"}
-        default="successful"
-    }
-    @{
-        # If set, configures whether and how to upload to gw2raidar
-        # "no" disables uploading to gw2raidar entirely
-        # "successful" causes only successful encounters to be uploaded
-        # "all" causes all encounters to be uploaded.
-        # The default is "successful"
-        name="upload_gw2raidar"
         type=[string]
         validStrings=@("no", "successful", "all")
         alternativeStrings=@{"none"="no"; "yes"="all"}
@@ -516,10 +490,6 @@ $v1ConfigurationFields = $commonConfigurationFields +
     }
     @{
         name="guild_thumbnail"
-        type=[string]
-    }
-    @{
-        name="gw2raidar_tag_glob"
         type=[string]
     }
     @{
@@ -560,20 +530,6 @@ $v2ValidGuildFields =
         # Priority for determining which guild ran an encounter if there are
         # conflicts. Lower numbers win ties.
         name="priority"
-        type=[int]
-    }
-    @{
-        # Tag to add when uploading to gw2raidar.
-        name="gw2raidar_tag"
-        type=[string]
-    }
-    @{
-        # Category to use when uploading to gw2raidar.
-        # 1: Guild/ Static
-        # 2: Training
-        # 3: PUG
-        # 4: Low Man / Sells
-        name="gw2raidar_category"
         type=[int]
     }
     @{
@@ -1321,12 +1277,6 @@ Function Load-From-EVTC {
         $boss["dps_report"] = (Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json).permalink
     }
 
-    # Get the gw2raidar link if it exists (gw2raidar.json contains upload data, not the permalink!)
-    $gw2raidar_json = [io.path]::combine($extras_path, "gw2raidar_permalink.json")
-    if (X-Test-Path $gw2raidar_json) {
-        $boss["gw2raidar"] = (Get-Content -Raw -Path $gw2raidar_json | ConvertFrom-Json)
-    }
-
     # Get the player account information
     $accounts_json = [io.path]::combine($extras_path, "accounts.json")
     if (-not (X-Test-Path $accounts_json)) {
@@ -1495,7 +1445,6 @@ Function Format-And-Publish-Some {
 
         $players += $boss.players
         $dps_report = $boss.dps_report
-        $gw2raidar = $boss.gw2raidar
 
         # For each boss, we add a field object to the embed
         #
@@ -1511,13 +1460,8 @@ Function Format-And-Publish-Some {
 
 
 
-        if ($dps_report -and $gw2raidar) {
-            # We put both the dps.report and gw2raidar link here,  separated by a MIDDLE DOT character
-            $link_string = "[dps.report](${dps_report} `"${dps_report}`") @MIDDLEDOT@ [gw2raidar](${gw2raidar} `"${gw2raidar}`")"
-        } elseif ($dps_report) {
+        if ($dps_report) {
             $link_string = "[dps.report](${dps_report} `"${dps_report}`")"
-        } elseif ($gw2raidar) {
-            $link_string = "[gw2raidar](${gw2raidar} `"${gw2raidar}`")"
         } else {
             # In the rare case we somehow end up here with no link, just put "N/A"
             $link_string = "N/A"
@@ -1581,7 +1525,7 @@ Function Format-And-Publish-Some {
         title = "$($running_guild.name) ${prefix}: ${wings} | ${date}"
         color = 0xf9a825
         fields = $fields
-	footer = [PSCustomObject]@{ text = "Created by /u/platinummyr" }
+        footer = [PSCustomObject]@{ text = "Created by /u/platinummyr" }
     }
     if ($running_guild.thumbnail) {
         $thumbnail = [PSCustomObject]@{
@@ -1862,135 +1806,6 @@ Function UploadTo-DpsReport {
 
 <#
  .Synopsis
-  Maybe upload a file to Gw2 Raidar
-
- .Description
-  Maybe upload a file to the gw2raidar website, including tag information. Store the
-  reported upload id into the extras directory. For now, this does not include
-  obtaining the permalink, due to the way that gw2raidar processes encounters.
-
-  If upload_gw2raidar is configured "all" then all encounters will be
-  uploaded. If it is "successful" then only the successful encounters will be
-  uploaded. If it is "no", then this function will return immediately and will not
-  upload any encounter to gw2raidar
-
-  If you wish to manually force upload of specific encounters, ignoring the
-  configuration, use UploadTo-Gw2Raidar instead.
-
- .Parameter config
-  The configuration object
-
- .Parameter file
-  The file to upload to gw2raidar
-
- .Parameter guild
-  The guild which ran this encounter, used to determine what tags to insert
-
- .Parameter extras_dir
-  The path to the extras directory for storing extra data about this file
-
- .Parameter success
-  True if the encounter was a success, false otherwise.
-#>
-Function Maybe-UploadTo-Gw2Raidar {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][string]$file,
-          [Parameter(Mandatory)][string]$guild,
-          [Parameter(Mandatory)][string]$extras_dir,
-          [Parameter(Mandatory)][bool]$success)
-
-    $upload = $config.upload_gw2raidar
-    if (-not $upload) {
-        $upload = "all"
-    }
-
-    if ($upload -eq "no") {
-        return
-    } elseif ($upload -eq "successful") {
-        if (-not $success) {
-            return
-        }
-    } elseif ($upload -eq "all") {
-        # Upload everything
-    } else {
-        # We verify the config value is already valid so this should never happen
-        throw "Invalid configuration value for upload_gw2raidar"
-    }
-
-    Log-And-Write-Output "Uploading ${file} to gw2raidar..."
-
-    UploadTo-Gw2Raidar $config $file $guild $extras_dir
-}
-
-<#
- .Synopsis
-  Upload a file to Gw2 Raidar
-
- .Description
-  Upload a file to the gw2raidar website, including tag information. Store the
-  reported upload id into the extras directory. For now, this does not include
-  obtaining the permalink, due to the way that gw2raidar processes encounters.
-
-  This function always uploads to gw2raidar regardless of the configuration.
-  Use Maybe-UploadTo-Gw2Raidar if you wish to honor the configuration settings
-  for uploading.
-
- .Parameter config
-  The configuration object
-
- .Parameter file
-  The file to upload to gw2raidar
-
- .Parameter guild
-  The guild which ran this encounter, used to determine what tags to insert
-
- .Parameter extras_dir
-  The path to the extras directory for storing extra data about this file
-#>
-Function UploadTo-Gw2Raidar {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][string]$file,
-          [Parameter(Mandatory)][string]$guild,
-          [Parameter(Mandatory)][string]$extras_dir)
-
-    # Make sure that RestSharp is loaded
-    Add-Type -Path $config.restsharp_path
-
-    $client = New-Object RestSharp.RestClient("https://www.gw2raidar.com")
-    $req = New-Object RestSharp.RestRequest("/api/v2/encounters/new")
-    $req.AddHeader("Authorization", "Token $($config.gw2raidar_token)") | Out-Null
-    $req.Method = [RestSharp.Method]::PUT
-
-    $req.AddFile("file", $file) | Out-Null
-
-    # Determine the tag used to upload
-    $tag = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_tag }
-    $category = $config.guilds | where { $_.name -eq $guild } | ForEach-Object { $_.gw2raidar_category }
-
-    $req.AddParameter("tags", $tag) | Out-Null
-    $req.AddParameter("category", $category) | Out-Null
-
-    $resp = $client.Execute($req)
-
-    if ($resp.ResponseStatus -ne [RestSharp.ResponseStatus]::Completed) {
-        throw "Request was not completed"
-    }
-
-    if ($resp.StatusCode -ne "OK") {
-        Log-And-Write-Output $resp.Content
-        throw "Request failed with status $($resp.StatusCode)"
-    }
-
-    # Store the response data so we can use it in potential future gw2raidar APIs
-    $resp.Content | Out-File -FilePath (Join-Path $extras_dir -ChildPath "gw2raidar.json")
-
-    Log-And-Write-Output "Upload successful..."
-}
-
-<#
- .Synopsis
   Search for the compressed evtc file of a boss hash table and save its path
 
  .Description
@@ -2076,111 +1891,6 @@ Function Complete-UploadTo-DpsReport {
     }
 }
 
-<#
- .Synopsis
-  Obtain a list of gw2raidar encounters
-
- .Description
-  Fetch the list of gw2raidar encounters via the HTTP REST API. Create and
-  return a hash object which connects gw2raidar permalinks to the server
-  start times.
-
- .Parameter config
-  The config object
-
- .Parameter since
-  Unix timestamp of earliest encoutner to return
-#>
-Function Get-GW2-Raidar-Links {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][int]$since)
-
-    # Initial request URL
-    $raidar_url = "https://gw2raidar.com"
-    $request = "$raidar_url/api/v2/encounters?since=${since}&limit=25"
-    $max_link_count = 100
-
-    # TODO: should this be inlined directly with the missing data code, in
-    # order to avoid the hash from growing out of bounds? Right now the code
-    # is limited to 100 encounters, which means that we can't individually
-    # find the link for a gw2raidar encounter which is too old. In practice
-    # this isn't a problem now, but could be if we want to find the link
-    # for a really old, possibly failed encounter. Ultimately this is due to
-    # the nature of gw2raidar API...
-
-    # Hash object for storing encounter permalinks based on their server start time
-    $raidar_links = @{}
-
-    do {
-        # Get some encounters
-        $data = Invoke-RestMethod -Uri $request -Method Get -Headers @{"Authorization" = "Token $($config.gw2raidar_token)"}
-
-        ForEach ($encounter in $data.results) {
-            # Store the permalink for this server start time
-            $raidar_links[$encounter.started_at] = "$raidar_url/encounter/$($encounter.url_id)"
-        }
-
-        # Sanity check to avoid attempting to grab too many links
-        if ($raidar_links.count -ge $max_link_count) {
-            throw "Attempted to obtain more than $max_link_count gw2raidar links..."
-        }
-
-        $request = $data.next
-    } while ($request)
-
-    return $raidar_links
-}
-
-<#
- .Synopsis
-  Given a set of boss objects, save gw2raidar permalinks
-
- .Description
-  For each boss object, find the associated gw2raidar permalink and save it
-  in the extras folder.
-
- .Parameter config
-  The config object
-
- .Parameter bosses
-  Array of boss objects
-#>
-Function Save-Gw2-Raidar-Links {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][PSCustomObject]$config,
-          [Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses)
-
-    $missing = ($bosses | where { -not $_.gw2raidar } | Sort-Object -Property time)
-
-    # If there are no encounters missing data, then we're done!
-    if ($missing.count -eq 0) {
-        return
-    }
-
-    # Get the earliest servertime for a missing encounter
-    $since = $missing[0].servertime
-
-    # Obtain gw2raidar links mapped to their start time
-    $raidar_links = Get-GW2-Raidar-Links $config $since
-
-    ForEach ($boss in $missing) {
-        if ($raidar_links.Contains($boss.servertime)) {
-            # Store this link in the hash table
-            $boss["gw2raidar"] = $raidar_links[$boss.servertime]
-
-            $extras_path = $boss["extras_path"]
-
-            # Also write this link out to disk for future reference
-            $gw2raidar_json = [io.path]::combine($extras_path, "gw2raidar_permalink.json")
-            if (X-Test-Path $gw2raidar_json) {
-                throw "gw2raidar data has already been saved for this encounter..?"
-            }
-
-            $boss["gw2raidar"] | ConvertTo-Json | Out-File -FilePath $gw2raidar_json
-        }
-    }
-}
 # SIG # Begin signature block
 # MIIFZAYJKoZIhvcNAQcCoIIFVTCCBVECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
