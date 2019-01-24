@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018 Jacob Keller. All rights reserved.
+# vim: et:ts=4:sw=4
 
 # This module contains several functions which are shared between the scripts
 # related to uploading and formatting GW2 ArcDPS log files. It contains some
