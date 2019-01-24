@@ -1265,9 +1265,8 @@ Function Load-From-EVTC {
         throw "$evtc doesn't appear to have server start time associated with it"
     }
     $servertime = (Get-Content -Raw -Path $servertime_json | ConvertFrom-Json)
-    $boss["servertime"] = [int]$servertime
-    $boss["time"] = ConvertFrom-UnixDate $servertime
-    $boss["date"] = $boss["time"].Date
+    $boss["server_time"] = [int]$servertime
+    $boss["start_time"] = ConvertFrom-UnixDate $servertime
 
     $precise_duration_json = [io.path]::combine($extras_path, "precise_duration.json")
     if (X-Test-Path $precise_duration_json) {
@@ -1288,6 +1287,16 @@ Function Load-From-EVTC {
             $duration_string = "$([math]::floor($span.TotalMinutes))m $($span.Seconds.ToString("00"))s"
             $boss["duration_string"] = $duration_string
         }
+    }
+
+    # Calculate the estimated end time using the duration
+    if ($boss["duration"]) {
+        $boss["server_end_time"] = $boss["server_time"] + $boss["duration"]
+        $boss["end_time"] = ConvertFrom-UnixDate $boss["server_end_time"]
+    } else {
+        # If we don't have a duration, just assume the end time is the same as the start time
+        $boss["server_end_time"] = $boss["server_time"]
+        $boss["end_time"] = $boss["end_time"]
     }
 
     # Get the encounter name
@@ -1365,17 +1374,20 @@ Function Publish-Discord-Embed {
 
  .Description
   Format and publish a series of raid encounters to a particular guild's
-  discord webhook. Note, this function assumes that the array of bosses
-  all take place on the same day, and are run by the same guild. See
-  Format-And-Publish-All for a function which can handle arbitrary series
-  of boss encounters.
+  discord webhook.
+
+  This function will use the publishing guild's "publish_encounters" configuration
+  to determine whether to publish failed or successful encounters.
+
+  This function makes no attempt to break apart encounters by time of day, guild
+  or type. See Format-And-Publish-All for a function which expects an arbitrary
+  series of boss encounters and neatly breaks them into separate chunks to publish.
 
  .Parameter config
   The config object
 
  .Parameter some_bosses
   An array of boss objects which contain the necessary information to publish.
-  Note: assumes that the bosses all take place on a single day with a single guild.
 
  .Parameter override_publish_encounters
   If set to $true, override the guild's publish_encounters setting and publish
@@ -1500,7 +1512,7 @@ Function Format-And-Publish-Some {
     $wings = $($some_bosses | Sort-Object -Property {$_.time} | ForEach-Object {$_.wing} | Get-Unique) -join ", "
 
     # Get the date based on the first boss in the list, since we assume all bosses were run on the same date
-    $date = Get-Date -Format "MMM d, yyyy" -Date $some_bosses[0].time
+    $date = Get-Date -Format "MMM d, yyyy" -Date $some_bosses[0].start_time
 
     # Get the running guild based on the first boss in the list, since we assume all bosses were run by the same guild
     $running_guild = Lookup-Guild $config $some_bosses[0].guild
@@ -1608,6 +1620,66 @@ Function Split-Bosses {
 
 <#
  .Synopsis
+  Separate a series of encounters into blocks based on time
+
+ .Description
+  Split the list of bosses into multiple lists. Unlike Split-Bosses which
+  uses a simple key from the boss object, this function will separate the
+  bosses by time block.
+
+  A time block is basically a set of encounters which are no more than some
+  maximum time apart. We sort the array of bosses based on their start time.
+  Then, a new block is created whenever there is a gap of more than
+  the maximum time between bosses for a single block.
+
+  This allows us to identify a set of bosses as a single "set" by using the
+  time between an encounters end and the next encounters start.
+
+ .Parameter bosses
+  The array of bosses to separate
+#>
+Function Separate-Bosses-By-Time-Block {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][AllowEmptyCollection()][array]$bosses,
+          [Parameter(Mandatory)][TimeSpan]$maximum_span)
+
+    $blocks = New-Object System.Collections.ArrayList
+
+    $current_block = @()
+    $last_end_time = $null
+
+    foreach ($b in ($bosses | Sort-Object -Property {$_.start_time})) {
+        if ($current_block.Count -eq 0) {
+            # If the current block hasn't yet been started, just put this boss in it
+            $current_block += $b
+        } else {
+            # Otherwise, decide if we need to start a new block...
+
+            # First, calculate how much time passed between the end of the last boss
+            # and the start of this one.
+            $span = New-TimeSpan -Start $last_end_time -End $b.start_time
+            if ($span -gt $maximum_span) {
+                # If the span is larger than our maximum span, start a new block
+                $blocks.Add($current_block) | Out-Null
+                $current_block = @($b)
+            } else {
+                $current_block += $b
+            }
+        }
+
+        # Mark the new end time
+        $last_end_time = $b.end_time
+    }
+
+    if ($current_block.Count -gt 0) {
+        $blocks.Add($current_block) | Out-Null
+    }
+
+    return ,$blocks
+}
+
+<#
+ .Synopsis
   Format and publish a series of bosses to their respective discord channels
 
  .Description
@@ -1641,12 +1713,10 @@ Function Format-And-Publish-All {
 
         # .. and for each type of encounter (fractal or raid) ...
         $per_type.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
-            $per_date = Split-Bosses $_.Value "date"
+            # ... and for each time block encounters were run ...
+            $boss_blocks = Separate-Bosses-By-Time-Block $_.Value (New-TimeSpan -Hours 1)
 
-            # ... and for each date encounters were run ...
-            $per_date.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
-                $some_bosses = $_.Value
-
+            foreach ($some_bosses in $boss_blocks) {
                 # ... Format and publish this guild's encounters for the day to the guild's channel
                 Format-And-Publish-Some $config $some_bosses $guild
 
