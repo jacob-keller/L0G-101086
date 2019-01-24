@@ -432,6 +432,22 @@ $v2ValidGuildFields =
         optional=$true
         default=$true
     }
+    @{
+        # If set, configures which encounters are published to this guild.
+        # "none" causes no encounters to be published for this guild
+        # "failed" causes only failed encounters to be published
+        # "successful" causes only successful encounters to be published
+        # "all" causes all encounters to be published.
+        # The default is "successful"
+        #
+        # When setting this to "all", you may want to ensure that
+        # "upload_dps_report" is set to "all" so that dps.report links exist
+        # for all encounters.
+        name="publish_encounters"
+        type=[string]
+        validStrings=@("none", "failed", "successful", "all")
+        default="successful"
+    }
 )
 
 <#
@@ -1361,6 +1377,11 @@ Function Publish-Discord-Embed {
   An array of boss objects which contain the necessary information to publish.
   Note: assumes that the bosses all take place on a single day with a single guild.
 
+ .Parameter override_publish_encounters
+  If set to $true, override the guild's publish_encounters setting and publish
+  every encounter provided in the $some_bosses array. Useful when using load-module.ps1
+  to manually upload a specific failed encounter.
+
  .Parameter guild
   The guild object of the publishing guild
 #>
@@ -1368,7 +1389,8 @@ Function Format-And-Publish-Some {
     [CmdletBinding()]
     param([Parameter(Mandatory)][PSCustomObject]$config,
           [Parameter(Mandatory)][array]$some_bosses,
-          [Parameter(Mandatory)][object]$guild)
+          [Parameter(Mandatory)][object]$guild,
+          [Parameter(Mandatory=$false)][bool]$override_publish_encounters)
 
     # List of players who partake in any boss for this day+guild
     $players = @()
@@ -1379,6 +1401,24 @@ Function Format-And-Publish-Some {
     $emoji_map = $guild.emoji_map
 
     Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
+
+    # If this guild sets publish_encounters to "successful", and we're
+    # not overriding it, remove non-successful encounters now
+    if (-not $override_publish_encounters) {
+        if ($guild.publish_encounters -eq "successful") {
+            $some_bosses = $some_bosses.where({$_.success})
+        } elseif ($guild.publishe_encounters -eq "failed") {
+            $some_bosses = $some_bosses.where(-not {$_.success})
+        } elseif ($guild.publish_encounters -eq "none") {
+            # Shortcut to temporarily disable publishing encounters for a guild
+            $some_bosses = @()
+        }
+    }
+
+    # If we have no encounters, just exit
+    if ($some_bosses.Count -eq 0) {
+        return
+    }
 
     # We sort the bosses based on server start time
     ForEach ($boss in $some_bosses | Sort-Object -Property {$_.time}) {

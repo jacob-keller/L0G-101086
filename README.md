@@ -356,6 +356,15 @@ encounter duration when publishing. Set to false to disable including the
 duration when formatting the encounters. If the value is not set, it will
 default to true.
 
+##### publish_encounters
+
+An optional configuration setting that can be used to enable publishing all
+encounters, including non-successful encounters for a given guild. Set to
+"none" to disable publishing any encounters for this guild. Set to "failed"
+to only publish failed encounters for this guild. Set to "succesful" to only
+publish successful encounters for this guild. Set to "all" to publish all
+encounters to this guild. The default value is "successful"
+
 ##### simpleArcParse
 
 The simpleArcParse utility is written in C++ so depends on a C++ compiler.

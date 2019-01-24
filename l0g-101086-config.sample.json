@@ -27,6 +27,7 @@
                        "raids":  true,
                        "fractals":  false,
                        "show_players":  "discord_if_possible",
+                       "publish_encounters":  "successful",
                        "prefix_players_text":  "",
                        "discord_map":  {
                                            "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"

@@ -83,9 +83,6 @@ if ($dirs -and $dirs.Length -gt 0) {
         $bosses += @(Load-From-EVTC $config $d)
     }
 
-    # We only want to publish successful encounters
-    $bosses = $bosses.where({$_.success})
-
     Format-And-Publish-All $config $bosses
 }
 
