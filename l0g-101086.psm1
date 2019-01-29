@@ -1519,7 +1519,7 @@ Function Format-And-Publish-Some {
     }
 
     # Determine which wings we did
-    $wings = $($some_bosses | Sort-Object -Property {$_.time} | ForEach-Object {$_.wing} | Get-Unique) -join ", "
+    $wings = $($some_bosses | ForEach-Object {$_.wing} | Get-Unique) -join ", "
 
     # Get the date based on the first boss in the list, since we assume all bosses were run on the same date
     $date = Get-Date -Format "MMM d, yyyy" -Date $some_bosses[0].start_time
