@@ -224,12 +224,11 @@ ForEach($f in $files) {
         # Determine the guild to associate with this encounter
         $guild = Determine-Guild $config.guilds $players $evtc_header[2]
         if (-not $guild) {
-            throw "No guilds matched this encounter"
+            Log-Output "No guild information matched ${f}."
+        } else {
+            $guild | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "guild.json")
+            Log-Output "Guild: ${guild}"
         }
-
-        $guild | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "guild.json")
-
-        Log-Output "Guild: ${guild}"
 
         $players | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "accounts.json")
 

@@ -1254,10 +1254,9 @@ Function Load-From-EVTC {
 
     # Get the guild information
     $guild_json = [io.path]::combine($extras_path, "guild.json")
-    if (-not (X-Test-Path $guild_json)) {
-        throw "$evtc doesn't appear to have guild information associated with it"
+    if (X-Test-Path $guild_json) {
+        $boss["guild"] = (Get-Content -Raw -Path $guild_json | ConvertFrom-Json)
     }
-    $boss["guild"] = (Get-Content -Raw -Path $guild_json | ConvertFrom-Json)
 
     # Get the server start time
     $servertime_json = [io.path]::combine($extras_path, "servertime.json")
@@ -1527,6 +1526,11 @@ Function Format-And-Publish-Some {
     # Get the running guild based on the first boss in the list, since we assume all bosses were run by the same guild
     $running_guild = Lookup-Guild $config $some_bosses[0].guild
 
+    # If no guild data is available, use the publishing guild
+    if (-not $running_guild) {
+        $running_guild = $guild
+    }
+
     # Print "Fractals" if this is a set of fractals, otherwise print "Wings", determined from the first encounter
     if ($some_bosses[0].is_fractal) {
         $prefix = "Fractals"
@@ -1728,10 +1732,12 @@ Function Format-And-Publish-All {
 
             foreach ($some_bosses in $boss_blocks) {
                 # ... Format and publish this guild's encounters for the day to the guild's channel
-                Format-And-Publish-Some $config $some_bosses $guild
+                if ($guild) {
+                    Format-And-Publish-Some $config $some_bosses $guild
+                }
 
                 # Also publish it to other guilds marked with "everything" and which have a different webhook URL
-                ForEach ($extra_guild in ( $config.guilds | where { ( $_.everything -eq $true ) -and ( $_.webhook_url -ne $guild.webhook_url ) } ) ) {
+                ForEach ($extra_guild in ( $config.guilds | where { ( $_.everything -eq $true ) -and ( -not $guild -or $_.webhook_url -ne $guild.webhook_url ) } ) ) {
                     Format-And-Publish-Some $config $some_bosses $extra_guild
                 }
             }
