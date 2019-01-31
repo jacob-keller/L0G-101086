@@ -601,7 +601,7 @@ $v2ConfigurationFields =
  An enumeration defining methods for converting path-like fields
 
  This enumeration defines the methods of converting path-like strings, which
- support reading %UserProfile% as the $env.UserProfile environment variable.
+ support reading %UserProfile% as the $env:UserProfile environment variable.
 
  FromUserProfile will allow converting the %UserProfile% string to the
  UserProfile environment variable when reading the config in from disk.
