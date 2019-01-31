@@ -131,6 +131,9 @@ JSON file containing various parameters that control how the scripts operate.
 A sample configuration is located at l0g-101086-config.sample.json, which is a
 good starting point.
 
+You can also set the L0G_101086_CONFIG_FILE environment variable to change
+the default config file location to load a different file, if desired.
+
 ### config_version
 
 This field represents the configuration version format. It should not be

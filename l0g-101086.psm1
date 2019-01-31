@@ -52,6 +52,25 @@ Function Log-Output {
 
 <#
  .Synopsis
+  Return the configuration file name
+
+ .Description
+  Return the configuration file. If $env:L0G_101086_CONFIG_FILE has been set,
+  then use this file. Otherwise, use the default "l0g-101086-config.json" filename
+#>
+Function Get-Config-File {
+    [CmdletBinding()]
+    param()
+
+    if ($env:L0G_101086_CONFIG_FILE) {
+        return $env:L0G_101086_CONFIG_FILE
+    } else {
+        return "l0g-101086-config.json"
+    }
+}
+
+<#
+ .Synopsis
   Print output to the log file and the console.
 
  .Description

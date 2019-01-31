@@ -15,8 +15,9 @@ Write-Host -ForegroundColor DarkYellow "Loading the l0g-101086.psm1 module file"
 Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
 # Load the configuration from the default file
-Write-Host -ForegroundColor DarkYellow "Loading the config from l0g-101086-config.json"
-$config = Load-Configuration "l0g-101086-config.json"
+$config_file = Get-Config-File
+Write-Host -ForegroundColor DarkYellow "Loading the config from ${config_file}"
+$config = Load-Configuration $config_file
 
 Write-Host -ForegroundColor Yellow "You can now access the `$config object and module functions"
 # SIG # Begin signature block
