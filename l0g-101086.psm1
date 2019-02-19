@@ -272,7 +272,7 @@ Function Check-SimpleArcParse-Version {
     param([Parameter(Mandatory)][string]$version)
 
     $expected_major_ver = 1
-    $expected_minor_ver = 4
+    $expected_minor_ver = 6
     $expected_patch_ver = 0
 
     $expected_version = "v${expected_major_ver}.${expected_minor_ver}.${expected_patch_ver}"
@@ -398,6 +398,15 @@ $v2ValidGuildFields =
         type=[bool]
         optional=$true
         default=$true
+    }
+    @{
+        # Set this to true if the guild should be considered for posting training
+        # golem encounters. If set to false, golem encounters will never be posted to
+        # this guild. Defaults to false if not specified.
+        name="golems"
+        type=[bool]
+        optional=$true
+        default=$false
     }
     @{
         # Set of gw2 account names associated with this guild, mapped to
@@ -894,6 +903,23 @@ Function Is-Fractal-Encounter {
 
 <#
  .Synopsis
+  Return true if this is a training golem encounter id, false otherwise
+
+ .Parameter id
+  The ArcDPS EVTC encounter id
+#>
+Function Is-Training-Golem-Encounter {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][int]$id)
+
+    # 99CM and 100CM encounter IDs
+    $GolemIds = @(0x3F46, 0x3F31, 0x3F47, 0x3F29, 0x3F4A, 0x3F32, 0x3F2E, 0x3F30, 0x4cdc, 0x4cbd)
+
+    return [bool]($id -in $GolemIds)
+}
+
+<#
+ .Synopsis
   Determine which guild "ran" this encounter.
 
  .Description
@@ -925,6 +951,8 @@ Function Determine-Guild {
     # First remove any non-fractal guilds
     if (Is-Fractal-Encounter $id) {
         $AvailableGuilds = $Guilds | where { $_.fractals }
+    } elseif (Is-Training-Golem-Encounter $id) {
+        $AvailableGuilds = $Guilds | where { $_.golems }
     } else {
         $AvailableGuilds = $Guilds | where { $_.raids }
     }
@@ -1336,7 +1364,13 @@ Function Load-From-EVTC {
         throw "$evtc doesn't appear to have an encounter id associated with it"
     }
     $boss["id"] = (Get-Content -Raw -Path $id_json | ConvertFrom-Json)
-    $boss["is_fractal"] = Is-Fractal-Encounter $boss["id"]
+    if (Is-Fractal-Encounter $boss["id"]) {
+        $boss["encounter_type"] = "fractal"
+    } elseif (Is-Training-Golem-Encounter $boss["id"]) {
+        $boss["encounter_type"] = "golem"
+    } else {
+        $boss["encounter_type"] = "raid"
+    }
 
     # Get success status of this encounter
     $success_json = [io.path]::combine($extras_path, "success.json")
@@ -1551,15 +1585,17 @@ Function Format-And-Publish-Some {
     }
 
     # Print "Fractals" if this is a set of fractals, otherwise print "Wings", determined from the first encounter
-    if ($some_bosses[0].is_fractal) {
-        $prefix = "Fractals"
+    if ($some_bosses[0].encounter_type -eq "fractal") {
+        $prefix = "Fractals: ${wings}"
+    } elseif ($some_bosses[0].encounter_type -eq "golem") {
+        $prefix = "Training Golems"
     } else {
-        $prefix = "Wings"
+        $prefix = "Wings : ${wings}"
     }
 
     # Create the data object
     $data_object = [PSCustomObject]@{
-        title = "$($running_guild.name) ${prefix}: ${wings} | ${date} ($timespan_string)"
+        title = "$($running_guild.name) ${prefix} | ${date} ($timespan_string)"
         color = 0xf9a825
         fields = $fields
         footer = [PSCustomObject]@{ text = "Created by /u/platinummyr" }
@@ -1742,9 +1778,9 @@ Function Format-And-Publish-All {
     $per_guild.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
         $guild = Lookup-Guild $config $_.Key
 
-        $per_type = Split-Bosses $_.Value "is_fractal"
+        $per_type = Split-Bosses $_.Value "encounter_type"
 
-        # .. and for each type of encounter (fractal or raid) ...
+        # .. and for each type of encounter (fractal, golem, or raid) ...
         $per_type.GetEnumerator() | Sort-Object -Property {$_.Key}, key | ForEach-Object {
             # ... and for each time block encounters were run ...
             $boss_blocks = Separate-Bosses-By-Time-Block $_.Value (New-TimeSpan -Hours 1)
