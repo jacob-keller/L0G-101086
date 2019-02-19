@@ -346,6 +346,18 @@ static const uint16_t skorvald_cm_id    = 0x44e0;
 static const uint16_t artsariiv_cm_id   = 0x461d;
 static const uint16_t arkk_cm_id        = 0x455f;
 
+/* Training Golem NPCs */
+static const uint16_t vital_kitty_id           = 0x3f46;
+static const uint16_t average_kitty_id         = 0x3f31;
+static const uint16_t standard_kitty_id        = 0x3f47;
+static const uint16_t vital_massive_kitty_id   = 0x3f29;
+static const uint16_t average_massive_kitty_id = 0x3f4a;
+static const uint16_t weak_massive_kitty_id    = 0x3f32;
+static const uint16_t tough_kitty_id           = 0x3f2e;
+static const uint16_t resistant_kitty_id       = 0x3f30;
+static const uint16_t average_large_kitty_id   = 0x4cdc;
+static const uint16_t average_medium_kitty_id  = 0x4cbd;
+
 static const uint64_t arcdps_src_agent = 0x637261;
 
 /* is_elite value indicating a non-player object */
@@ -531,6 +543,35 @@ parse_header(parsed_details& details, ifstream& file)
         break;
     case freezie_id:
         details.boss_name = "Freezie";
+        break;
+    case vital_kitty_id:
+        details.boss_name = "Vital Kitty Golem (10m HP)";
+        break;
+    case average_kitty_id:
+        details.boss_name = "Average Kitty Golem (4m HP)";
+        break;
+    case standard_kitty_id:
+        details.boss_name = "Standard Kitty Golem (1m HP)";
+        break;
+    case vital_massive_kitty_id:
+        details.boss_name = "Massive Kitty Golem (10m HP)";
+        break;
+    case average_massive_kitty_id:
+        details.boss_name = "Massive Kitty Golem (4m HP)";
+        break;
+    case weak_massive_kitty_id:
+        details.boss_name = "Massive Kitty Golem (1m HP)";
+        break;
+    case average_large_kitty_id:
+        details.boss_name = "Large Kitty Golem (4m HP)";
+        break;
+    case average_medium_kitty_id:
+        details.boss_name = "Medium Kitty Golem (4m HP)";
+    case tough_kitty_id:
+        details.boss_name = "Tough Kitty Golem";
+        break;
+    case resistant_kitty_id:
+        details.boss_name = "Resistant Kitty Golem";
         break;
 
     default:
@@ -1048,7 +1089,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.5.0" << endl;
+        cout << "v1.6.0" << endl;
         return 0;
     }
 
