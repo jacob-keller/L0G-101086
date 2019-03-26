@@ -376,6 +376,7 @@ static const uint32_t EVTC_AGENT_SPECIES_ID_MASK = 0x0000ffff;
 struct player_details {
     string character;
     string account;
+    string subgroup;
 };
 
 enum is_boss_cm {
@@ -654,6 +655,8 @@ parse_player_agent(parsed_details& details, ifstream& file, unsigned int agent)
     player.character = string(name);
     name += player.character.size() + 1;
     player.account = string(name);
+    name += player.account.size() + 1;
+    player.subgroup = string(name);
 
     /* The file seems to always store the account name with a
      * leading ':', we we'll remove it
