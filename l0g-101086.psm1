@@ -1001,7 +1001,13 @@ Function Write-Exception {
     # Combine the exception and invocation parameters together into a single list
     $info = $e.InvocationInfo | Select *
     $e.Exception | Get-Member -MemberType Property | ForEach-Object {
-        $info | Add-Member -MemberType NoteProperty -Name $_.Name -Value ( $e.Exception | Select-Object -ExpandProperty $_.Name )
+        try {
+            $info | Add-Member -MemberType NoteProperty -Name $_.Name -Value ( $e.Exception | Select-Object -ExpandProperty $_.Name )
+        } catch {
+            # Catch errors when adding new properties, to avoid accidentally
+            # throwing an exception here when trying to write out the
+            # exception details
+        }
     }
 
     Write-Error ( $info | Format-List -Force | Out-String) -ErrorAction Continue
