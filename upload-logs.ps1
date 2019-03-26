@@ -182,30 +182,25 @@ ForEach($f in $files) {
         $evtc = $f
     }
 
+    # Track encounter success
+    $success = $false
+
     try {
         # Save the path to the original evtc file
         $f | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "evtc.json")
 
-        # Parse the evtc header file and get the encounter name and id
-        $evtc_header_data = (& $simple_arc_parse header "${evtc}")
+        $evtc_json = (& ${simple_arc_parse} json "${evtc}")
+        $evtc_info = $evtc_json | ConvertFrom-Json
 
-        if ([string]::IsNullOrEmpty($evtc_header_data)) {
+        if ([string]::IsNullOrEmpty($evtc_json)) {
             throw "${evtc} is not recognized as a valid .evtc file by simpleArcParse."
         }
 
-        $evtc_header = ($evtc_header_data.Split([Environment]::NewLine))
-
-        # Parse the evtc file and extract account names
-        $player_data = (& $simple_arc_parse players "${evtc}")
-        if ([string]::IsNullOrEmpty($player_data)) {
-            $players = @()
-        } else {
-            $players = $player_data.Split([Environment]::NewLine)
-        }
+        $evtc_info = $evtc_json | ConvertFrom-Json
 
         # Determine the ArcDPS release date of this encounter
         try {
-            $evtc_arcdps_version = [DateTime]::ParseExact($evtc_header[0], 'EVTCyyyyMMdd', $null)
+            $evtc_arcdps_version = [DateTime]::ParseExact($evtc_info.header.arcdps_version, 'EVTCyyyyMMdd', $null)
 
             # Notify the user about when trying to upload encounters with
             # old versions of arcdps.
@@ -221,49 +216,34 @@ ForEach($f in $files) {
             Log-Output "ArcDPS release date was '$arcdps_release_date'"
         }
 
+        # Extract the accounts
+        $accounts = $evtc_info.players | select -ExpandProperty account
+        $boss_id = $evtc_info.boss.id
+
         # Determine the guild to associate with this encounter
-        $guild = Determine-Guild $config.guilds $players $evtc_header[2]
+        $guild = Determine-Guild $config.guilds $accounts $boss_id
         if (-not $guild) {
             Log-Output "No guild information matched ${f}."
         } else {
-            $guild | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "guild.json")
+            $evtc_info | Add-Member -Name "guild" -Value $guild -MemberType NoteProperty
             Log-Output "Guild: ${guild}"
         }
+        Log-Output "EVTC Version: $($evtc_info.header.arcdps_version)"
+        Log-Output "Encounter: $($evtc_info.boss.name)"
+        Log-Output "ID: $($evtc_info.boss.id)"
 
-        $players | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "accounts.json")
-
-        $evtc_header[0] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "version.json")
-        $evtc_header[1] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "encounter.json")
-        $evtc_header[2] | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "id.json")
-
-        Log-Output "EVTC Version: $(${evtc_header}[0])"
-        Log-Output "Encounter: $(${evtc_header}[1])"
-        Log-Output "ID: $(${evtc_header}[2])"
-
-        # Parse the evtc combat events to determine SUCCESS/FAILURE status
-        $evtc_success = (& $simple_arc_parse success "${evtc}")
-        $evtc_success | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "success.json")
-
-        Log-Output "Outcome: ${evtc_success}"
-
-        # Extract the precise duration in milliseconds
-        $precise_duration = (& $simple_arc_parse duration "${evtc}")
-        if (-not [string]::IsNullOrEmpty($precise_duration)) {
-            $precise_duration | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "precise_duration.json")
+        $success = $evtc_info.boss.success
+        if ($evtc_info.boss.success) {
+            Log-Output "Outcome: SUCCESS"
+        } else {
+            Log-Output "Outcome: FAILURE"
         }
 
-        # Parse the evtc combat events to determine the server start time
-        $start_time = (& $simple_arc_parse start_time "${evtc}")
-        $start_time | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "servertime.json")
+        Log-Output "Start Time: $($evtc_info.server_time.start)"
 
-        Log-Output "Start Time: ${start_time}"
+        Log-Output "Challenge Mote: $($evtc_info.boss.is_cm)"
 
-        # Parse the evtc to determine if the encounter was a challenge mote
-        $is_cm = (& $simple_arc_parse is_cm "${evtc}")
-        $is_cm | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "is_cm.json")
-
-        Log-Output "Challenge Mote: ${is_cm}"
-
+        $evtc_info | ConvertTo-Json | Out-File -FilePath (Join-Path $dir -ChildPath "evtc_info.json")
     } catch {
         Write-Exception $_
 
@@ -280,14 +260,6 @@ ForEach($f in $files) {
         if ($f -ne $evtc -and (Test-Path $evtc)) {
             Remove-Item -Path $evtc
         }
-    }
-
-    # Determine if the encounter was successful or not
-    $encounter_status = Get-Content -Raw -Path (Join-Path -Path $dir -ChildPath "success.json") | ConvertFrom-Json
-    if ($encounter_status -eq "SUCCESS") {
-        $success = $true
-    } else {
-        $success = $false
     }
 
     # upload to dps.report

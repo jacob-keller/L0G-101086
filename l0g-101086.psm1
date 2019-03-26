@@ -271,8 +271,8 @@ Function Check-SimpleArcParse-Version {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$version)
 
-    $expected_major_ver = 1
-    $expected_minor_ver = 6
+    $expected_major_ver = 2
+    $expected_minor_ver = 0
     $expected_patch_ver = 0
 
     $expected_version = "v${expected_major_ver}.${expected_minor_ver}.${expected_patch_ver}"
@@ -1266,6 +1266,102 @@ Function Get-Abbreviated-Name {
 
 <#
  .Synopsis
+  Create a boss hashtable from an old EVTC folder
+
+ .Description
+  Extract information about this EVTC file from the local data using the
+  older format.
+
+  This should be called only if the new data file is not found, and is
+  intended as a fallback mechanism in order to allow accessing old boss data.
+
+ .Parameter config
+  The config object
+
+ .Parameter extras_path
+  Path to the local data folder to read from
+#>
+Function Load-From-Old-EVTC {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][PSCustomObject]$config,
+          [Parameter(Mandatory)][string]$extras_path)
+
+
+    # Get the player account information
+    $accounts_json = [io.path]::combine($extras_path, "accounts.json")
+    if (-not (X-Test-Path $accounts_json)) {
+        throw "$evtc doesn't appear to have accounts data associated with it"
+    }
+    $boss["players"] = (Get-Content -Raw -Path $accounts_json | ConvertFrom-Json)
+
+    # Get the guild information
+    $guild_json = [io.path]::combine($extras_path, "guild.json")
+    if (X-Test-Path $guild_json) {
+        $boss["guild"] = (Get-Content -Raw -Path $guild_json | ConvertFrom-Json)
+    }
+
+    # Get the server start time
+    $servertime_json = [io.path]::combine($extras_path, "servertime.json")
+    if (-not (X-Test-Path $servertime_json)) {
+        throw "$evtc doesn't appear to have server start time associated with it"
+    }
+    $servertime = (Get-Content -Raw -Path $servertime_json | ConvertFrom-Json)
+    $boss["server_time"] = [int]$servertime
+
+    $precise_duration_json = [io.path]::combine($extras_path, "precise_duration.json")
+    if (X-Test-Path $precise_duration_json) {
+        $precise_duration = (Get-Content -Raw -Path $precise_duration_json | ConvertFrom-Json)
+        $boss["duration"] = [int]($precise_duration / 1000)
+        $span = [TimeSpan]::FromMilliseconds($precise_duration)
+        $minutes = New-TimeSpan -Minutes ([math]::floor($span.TotalMinutes))
+        $millis = $span - $minutes
+        $duration_string = "$($minutes.Minutes)m $(($millis.TotalMilliseconds / 1000).ToString("00.00"))s"
+        $boss["duration_string"] = $duration_string
+    } else {
+        # Get the encounter duration (in difference of unix timestamps)
+        $duration_json = [io.path]::combine($extras_path, "duration.json")
+        if (X-Test-Path $duration_json) {
+            $duration = (Get-Content -Raw -Path $duration_json | ConvertFrom-Json)
+            $boss["duration"] = [int]$duration
+            $span = New-TimeSpan -Seconds $duration
+            $duration_string = "$([math]::floor($span.TotalMinutes))m $($span.Seconds.ToString("00"))s"
+            $boss["duration_string"] = $duration_string
+        }
+    }
+
+    # Get the encounter name
+    $encounter_json = [io.path]::combine($extras_path, "encounter.json")
+    if (-not (X-Test-Path $encounter_json)) {
+        throw "$evtc doesn't appear to have an encounter name associated with it"
+    }
+    $boss["name"] = (Get-Content -Raw -Path $encounter_json | ConvertFrom-Json)
+
+    # Get the encounter ID
+    $id_json = [io.path]::combine($extras_path, "id.json")
+    if (-not (X-Test-Path $id_json)) {
+        throw "$evtc doesn't appear to have an encounter id associated with it"
+    }
+    $boss["id"] = (Get-Content -Raw -Path $id_json | ConvertFrom-Json)
+
+    # Get success status of this encounter
+    $success_json = [io.path]::combine($extras_path, "success.json")
+    if (-not (X-Test-Path $success_json)) {
+        throw "$evtc doesn't appear to have success data associated with it"
+    }
+    $boss["success"] = ((Get-Content -Raw -Path $success_json | ConvertFrom-Json) -eq "SUCCESS")
+
+    # Get whether the encounter was a challenge mote
+    $is_cm_json = [io.path]::combine($extras_path, "is_cm.json")
+    if (X-Test-Path $is_cm_json) {
+        $is_cm = (Get-Content -Raw -Path $is_cm_json | ConvertFrom-Json)
+        if ($is_cm -eq "YES") {
+            $boss["is_cm"] = $true
+        }
+    }
+}
+
+<#
+ .Synopsis
   Create a boss hashtable from a local EVTC folder
 
  .Description
@@ -1298,48 +1394,46 @@ Function Load-From-EVTC {
         $boss["dps_report"] = (Get-Content -Raw -Path $dpsreport_json | ConvertFrom-Json).permalink
     }
 
-    # Get the player account information
-    $accounts_json = [io.path]::combine($extras_path, "accounts.json")
-    if (-not (X-Test-Path $accounts_json)) {
-        throw "$evtc doesn't appear to have accounts data associated with it"
-    }
-    $boss["players"] = (Get-Content -Raw -Path $accounts_json | ConvertFrom-Json)
+    $evtc_info_json = [io.path]::combine($extras_path, "evtc_info.json")
+    if (X-Test-Path $evtc_info_json) {
+        # Extract data from the new format
+        $evtc_info = (Get-Content -Raw -Path $evtc_info_json | ConvertFrom-Json)
 
-    # Get the guild information
-    $guild_json = [io.path]::combine($extras_path, "guild.json")
-    if (X-Test-Path $guild_json) {
-        $boss["guild"] = (Get-Content -Raw -Path $guild_json | ConvertFrom-Json)
-    }
+        # Get the player account names
+        $boss["players"] = $evtc_info.players | select -ExpandProperty account
 
-    # Get the server start time
-    $servertime_json = [io.path]::combine($extras_path, "servertime.json")
-    if (-not (X-Test-Path $servertime_json)) {
-        throw "$evtc doesn't appear to have server start time associated with it"
-    }
-    $servertime = (Get-Content -Raw -Path $servertime_json | ConvertFrom-Json)
-    $boss["server_time"] = [int]$servertime
-    $boss["start_time"] = ConvertFrom-UnixDate $servertime
+        # Get the guild name
+        $boss["guild"] = $evtc_info.guild
 
-    $precise_duration_json = [io.path]::combine($extras_path, "precise_duration.json")
-    if (X-Test-Path $precise_duration_json) {
-        $precise_duration = (Get-Content -Raw -Path $precise_duration_json | ConvertFrom-Json)
+        # Get the server start time
+        $boss["server_time"] = [int]$evtc_info.server_time.start
+
+        # Get precise duration
+        $precise_duration = $evtc_info.boss.duration
         $boss["duration"] = [int]($precise_duration / 1000)
         $span = [TimeSpan]::FromMilliseconds($precise_duration)
         $minutes = New-TimeSpan -Minutes ([math]::floor($span.TotalMinutes))
         $millis = $span - $minutes
         $duration_string = "$($minutes.Minutes)m $(($millis.TotalMilliseconds / 1000).ToString("00.00"))s"
         $boss["duration_string"] = $duration_string
+
+        # Get the encounter name
+        $boss["name"] = $evtc_info.boss.name
+
+        # Get the encounter ID
+        $boss["id"] = $evtc_info.boss.id
+
+        # Get encounter success status
+        $boss["success"] = $evtc_info.boss.success
+
+        # Get whether the encounter is a Challenge Mote
+        $boss["is_cm"] = ($evtc_info.boss.is_cm -eq "YES")
     } else {
-        # Get the encounter duration (in difference of unix timestamps)
-        $duration_json = [io.path]::combine($extras_path, "duration.json")
-        if (X-Test-Path $duration_json) {
-            $duration = (Get-Content -Raw -Path $duration_json | ConvertFrom-Json)
-            $boss["duration"] = [int]$duration
-            $span = New-TimeSpan -Seconds $duration
-            $duration_string = "$([math]::floor($span.TotalMinutes))m $($span.Seconds.ToString("00"))s"
-            $boss["duration_string"] = $duration_string
-        }
+        # Extract data from the old format
+        Load-From-Old-EVTC $config $extras_path
     }
+
+    $boss["start_time"] = ConvertFrom-UnixDate $boss["server_time"]
 
     # Calculate the estimated end time using the duration
     if ($boss["duration"]) {
@@ -1351,13 +1445,6 @@ Function Load-From-EVTC {
         $boss["end_time"] = $boss["end_time"]
     }
 
-    # Get the encounter name
-    $encounter_json = [io.path]::combine($extras_path, "encounter.json")
-    if (-not (X-Test-Path $encounter_json)) {
-        throw "$evtc doesn't appear to have an encounter name associated with it"
-    }
-    $boss["name"] = (Get-Content -Raw -Path $encounter_json | ConvertFrom-Json)
-
     # Get an abbreviated name, if there is one
     $boss["shortname"] = Get-Abbreviated-Name $boss["name"]
 
@@ -1365,11 +1452,6 @@ Function Load-From-EVTC {
     $boss["wing"] = Convert-Boss-To-Wing $boss["name"]
 
     # Get whether this encounter is a fracal
-    $id_json = [io.path]::combine($extras_path, "id.json")
-    if (-not (X-Test-Path $id_json)) {
-        throw "$evtc doesn't appear to have an encounter id associated with it"
-    }
-    $boss["id"] = (Get-Content -Raw -Path $id_json | ConvertFrom-Json)
     if (Is-Fractal-Encounter $boss["id"]) {
         $boss["encounter_type"] = "fractal"
     } elseif (Is-Training-Golem-Encounter $boss["id"]) {
@@ -1378,26 +1460,10 @@ Function Load-From-EVTC {
         $boss["encounter_type"] = "raid"
     }
 
-    # Get success status of this encounter
-    $success_json = [io.path]::combine($extras_path, "success.json")
-    if (-not (X-Test-Path $success_json)) {
-        throw "$evtc doesn't appear to have success data associated with it"
-    }
-    $boss["success"] = ((Get-Content -Raw -Path $success_json | ConvertFrom-Json) -eq "SUCCESS")
-
     # Get the path to the evtc file
     $evtc_json = [io.path]::combine($extras_path, "evtc.json")
     if (X-Test-Path $evtc_json) {
         $boss["evtc"] = (Get-Content -Raw -Path $evtc_json | ConvertFrom-Json)
-    }
-
-    # Get whether the encounter was a challenge mote
-    $is_cm_json = [io.path]::combine($extras_path, "is_cm.json")
-    if (X-Test-Path $is_cm_json) {
-        $is_cm = (Get-Content -Raw -Path $is_cm_json | ConvertFrom-Json)
-        if ($is_cm -eq "YES") {
-            $boss["is_cm"] = $true
-        }
     }
 
     return $boss
