@@ -2,6 +2,8 @@
  * Copyright 2018 Jacob Keller. All rights reserved.
  *
  * Some structure definitions and names taken from https://www.deltaconnected.com/arcdps/evtc
+ *
+ * nlohmann/json.hpp is licensed under the MIT license.
  */
 #include <iostream>
 #include <fstream>
@@ -12,10 +14,12 @@
 #include <cctype>
 #include <vector>
 #include <type_traits>
+#include "json/single_include/nlohmann/json.hpp"
 
 using namespace std;
+using json = nlohmann::json;
 
-static const string version = "v1.6.0";
+static const string version = "v2.0.0";
 
 /* iff */
 enum iff {
@@ -257,6 +261,7 @@ evtc_cbtevent::evtc_cbtevent(ifstream& file, uint8_t revision,
 
 static const string valid_types[] = {
     "version",
+    "json",
     "header",
     "revision",
     "players",
@@ -1066,6 +1071,74 @@ detect_challenge_mote(parsed_details& details, ifstream& file)
     }
 }
 
+/**
+ * output_json - Output data in JSON format
+ * @details: the details structure to output
+ *
+ * Convert the details structure into a JSON object which can be dumped to
+ * the console.
+ */
+static void
+output_json(parsed_details& details)
+{
+    json data = json::object();
+
+    /* Track what version of simpleArcParse was used */
+    data["simpleArcParse"]["version"] = version;
+
+    /* ArcDPS data */
+    data["header"]["arcdps_version"] = details.arc_header;
+    data["header"]["revision"] = details.revision;
+
+    /* Boss information */
+    data["boss"]["name"] = details.boss_name;
+    data["boss"]["id"] = details.boss_id;
+    switch (details.is_cm) {
+    case CM_NO:
+        data["boss"]["is_cm"] = "NO";
+        break;
+    case CM_YES:
+        data["boss"]["is_cm"] = "YES";
+        break;
+    case CM_UNKNOWN:
+        data["boss"]["is_cm"] = "UNKNOWN";
+        break;
+    }
+    data["boss"]["maxhealth"] = details.boss_maxhealth;
+    data["boss"]["success"] = details.encounter_success;
+    data["boss"]["duration"] = (details.precise_end - details.precise_start);
+
+
+    /* Local timestamps */
+    data["local_time"]["start"] = details.precise_start;
+    data["local_time"]["end"] = details.precise_end;
+    data["local_time"]["last_event"] = details.precise_last_event;
+
+    if (details.precise_reward_time) {
+        data["local_time"]["reward"] = details.precise_reward_time;
+    }
+    if (details.precise_logend_time) {
+        data["local_time"]["log_end"] = details.precise_logend_time;
+    }
+
+    /* server timestamps */
+    data["server_time"]["start"] = details.server_start;
+    data["server_time"]["end"] = details.server_end;
+
+    /* Players */
+    data["players"] = json::array();
+
+    for (auto& player : details.players) {
+        data["players"] += {
+            {"account", player.account},
+            {"character", player.character},
+            {"subgroup", player.subgroup}
+        };
+    }
+
+    cout << data.dump(4) << std::endl;
+}
+
 /* Main control function */
 int main(int argc, char *argv[])
 {
@@ -1124,44 +1197,42 @@ int main(int argc, char *argv[])
     /* The number of combat events is not stored but we can calculate it */
     calculate_cbt_event_count(details, evtc_file);
 
-    /* Some data is relatively expensive to extract, so only do so if we need it */
-    if (type == "players") {
-        /* Extract data for each player in the encounter */
-        parse_all_player_agents(details, evtc_file);
-    }
-    if (type == "success") {
-        parse_last_matching_event(details, evtc_file, parse_reward_event);
-    }
-    if (type == "start_time") {
-        parse_first_matching_event(details, evtc_file, parse_logstart_event);
-    }
-    if (type == "end_time") {
-        parse_last_matching_event(details, evtc_file, parse_logend_event);
-    }
-    if (type == "boss_maxhealth" || type == "is_cm") {
-        parse_boss_agent(details, evtc_file);
-        parse_first_matching_event(details, evtc_file, parse_boss_maxhealth_event);
-    }
-    if (type == "duration" || type == "local_start_time") {
-        parse_first_matching_event(details, evtc_file, parse_logstart_event);
-    }
-    if (type == "duration" || type == "local_end_time") {
-        parse_last_matching_event(details, evtc_file, parse_precise_end);
+    /* Although some data is relatively expensive to extract, most users
+     * are going to want all of the data at once. Instead of paying the
+     * cost to open and read the file multiple times, extract everything
+     * and dump it as a JSON string
+     */
 
-        /* Use the most appropriate ending time available */
-        if (details.precise_reward_time) {
-            details.precise_end = details.precise_reward_time;
-        } else if (details.precise_logend_time) {
-            details.precise_end = details.precise_logend_time;
-        } else {
-            details.precise_end = details.precise_last_event;
-        }
-    }
+    /* Extract data for each player in the encounter */
+    parse_all_player_agents(details, evtc_file);
 
-    if (type == "is_cm") {
-        detect_challenge_mote(details, evtc_file);
+    /* Extract the reward event */
+    parse_last_matching_event(details, evtc_file, parse_reward_event);
+
+    /* Extract the local and server start time */
+    parse_first_matching_event(details, evtc_file, parse_logstart_event);
+
+    /* Extract the server end time */
+    parse_last_matching_event(details, evtc_file, parse_logend_event);
+
+    /* Extract the boss maximum health */
+    parse_boss_agent(details, evtc_file);
+    parse_first_matching_event(details, evtc_file, parse_boss_maxhealth_event);
+    detect_challenge_mote(details, evtc_file);
+
+    /* Extract the most accurate local end timestamp */
+    parse_last_matching_event(details, evtc_file, parse_precise_end);
+
+    /* Use the most appropriate ending time available */
+    if (details.precise_reward_time) {
+        details.precise_end = details.precise_reward_time;
+    } else if (details.precise_logend_time) {
+        details.precise_end = details.precise_logend_time;
+    } else {
+        details.precise_end = details.precise_last_event;
     }
 
+    /* Handle the various output requests */
     if (type == "header") {
         cout << details.arc_header << endl;
         cout << details.boss_name << endl;
@@ -1204,6 +1275,8 @@ int main(int argc, char *argv[])
         cout << details.precise_start << endl;
     } else if (type == "local_end_time") {
         cout << details.precise_end << endl;
+    } else if (type == "json") {
+        output_json(details);
     }
 
     return 0;
