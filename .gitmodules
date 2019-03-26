@@ -1,0 +1,3 @@
+[submodule "simpleArcParse/json"]
+	path = simpleArcParse/json
+	url = https://github.com/nlohmann/json.git

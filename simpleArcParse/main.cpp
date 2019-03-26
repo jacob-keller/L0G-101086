@@ -15,6 +15,8 @@
 
 using namespace std;
 
+static const string version = "v1.6.0";
+
 /* iff */
 enum iff {
 	IFF_FRIEND, // green vs green, red vs red
@@ -1089,7 +1091,7 @@ int main(int argc, char *argv[])
     }
 
     if (type == "version") {
-        cout << "v1.6.0" << endl;
+        cout << version << endl;
         return 0;
     }
 
