@@ -346,6 +346,13 @@ it. If set to false, then this guild will not be assigned as the owner of a
 fractal encounter. If set to true, then fractal encounters may be posted to
 this discord webhook URL.
 
+##### golems
+
+A boolean indicating if this guild should have golem training encounters
+posted to it. If set to false, then this guild will not be assigned as the
+owner of a golem encounter. If set to true, the golem encounters may be
+posted to this discord webhook URL.
+
 ##### everything
 
 If set to true, all posts will also be copied to this guild's discord webhook
