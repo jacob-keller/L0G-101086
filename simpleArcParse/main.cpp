@@ -316,42 +316,56 @@ static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision)
 
 }
 
-static const uint16_t vale_guardian_id  = 0x3C4E;
-static const uint16_t gorseval_id       = 0x3C45;
-static const uint16_t sabetha_id        = 0x3C0F;
-static const uint16_t slothasor_id      = 0x3EFB;
-static const uint16_t trio_id1          = 0x3ED8;
-static const uint16_t trio_id2          = 0x3F09;
-static const uint16_t trio_id3          = 0x3EFD;
-static const uint16_t matthias_id       = 0x3EF3;
-static const uint16_t keep_construct_id = 0x3F6B;
-static const uint16_t xera_id1          = 0x3F76;
-static const uint16_t xera_id2          = 0x3F9E;
-static const uint16_t cairn_id          = 0x432A;
-static const uint16_t overseer_id       = 0x4314;
-static const uint16_t samarog_id        = 0x4324;
-static const uint16_t deimos_id         = 0x4302;
-static const uint16_t horror_id         = 0x4d37;
-static const uint16_t dhuum_id          = 0x4bfa;
+/* Wing 1  IDs */
+static const uint16_t vale_guardian_id         = 0x3C4E;
+static const uint16_t gorseval_id              = 0x3C45;
+static const uint16_t sabetha_id               = 0x3C0F;
 
-/* Possible wing6 boss ids */
-static const uint16_t conjured_amalgamate_id = 43974;
-static const uint16_t nikare_id              = 21105;
-static const uint16_t kenut_id               = 21089;
-static const uint16_t qadim_id               = 20934;
+/* Wing 2 IDs */
+static const uint16_t slothasor_id             = 0x3EFB;
+static const uint16_t trio_id1                 = 0x3ED8;
+static const uint16_t trio_id2                 = 0x3F09;
+static const uint16_t trio_id3                 = 0x3EFD;
+static const uint16_t matthias_id              = 0x3EF3;
+
+/* Wing 3 IDs */
+static const uint16_t keep_construct_id        = 0x3F6B;
+static const uint16_t xera_id1                 = 0x3F76;
+static const uint16_t xera_id2                 = 0x3F9E;
+
+/* Wing 4 IDs */
+static const uint16_t cairn_id                 = 0x432A;
+static const uint16_t overseer_id              = 0x4314;
+static const uint16_t samarog_id               = 0x4324;
+static const uint16_t deimos_id                = 0x4302;
+
+/* Wing 5 IDs */
+static const uint16_t horror_id                = 0x4d37;
+static const uint16_t rainbow_road_id          = 0x4d74;
+static const uint16_t broken_king_id           = 0x4ceb;
+static const uint16_t soul_eater_id            = 0x4c50;
+static const uint16_t eye_of_judgement_id      = 0x4cc3;
+static const uint16_t eye_of_fate_id           = 0x4d84;
+static const uint16_t dhuum_id                 = 0x4bfa;
+
+/* Wing 6 IDs */
+static const uint16_t conjured_amalgamate_id   = 43974;
+static const uint16_t nikare_id                = 21105;
+static const uint16_t kenut_id                 = 21089;
+static const uint16_t qadim_id                 = 20934;
 
 /* Wintersday Freezie encounter */
-static const uint16_t freezie_id             = 21333;
+static const uint16_t freezie_id               = 21333;
 
 /* Fractal 99 CM boss encounters */
-static const uint16_t mama_cm_id        = 0x427d;
-static const uint16_t siax_cm_id        = 0x4284;
-static const uint16_t ensolyss_cm_id    = 0x4234;
+static const uint16_t mama_cm_id               = 0x427d;
+static const uint16_t siax_cm_id               = 0x4284;
+static const uint16_t ensolyss_cm_id           = 0x4234;
 
 /* Fractal 100 CM boss encounters */
-static const uint16_t skorvald_cm_id    = 0x44e0;
-static const uint16_t artsariiv_cm_id   = 0x461d;
-static const uint16_t arkk_cm_id        = 0x455f;
+static const uint16_t skorvald_cm_id           = 0x44e0;
+static const uint16_t artsariiv_cm_id          = 0x461d;
+static const uint16_t arkk_cm_id               = 0x455f;
 
 /* Training Golem NPCs */
 static const uint16_t vital_kitty_id           = 0x3f46;
@@ -513,6 +527,21 @@ parse_header(parsed_details& details, ifstream& file)
         break;
     case horror_id:
         details.boss_name = "Soulless Horror";
+        break;
+    case rainbow_road_id:
+        details.boss_name = "Rainbow Road";
+        break;
+    case broken_king_id:
+        details.boss_name = "Broken King";
+        break;
+    case soul_eater_id:
+        details.boss_name = "Soul Eater";
+        break;
+    case eye_of_fate_id:
+        details.boss_name = "Eye of Fate";
+        break;
+    case eye_of_judgement_id:
+        details.boss_name = "Eye of Judgement";
         break;
     case dhuum_id:
         details.boss_name = "Dhuum";
