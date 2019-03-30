@@ -14,7 +14,7 @@
 #include <cctype>
 #include <vector>
 #include <type_traits>
-#include "json/single_include/nlohmann/json.hpp"
+#include "json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
