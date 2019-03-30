@@ -21,166 +21,188 @@ using json = nlohmann::json;
 
 static const string version = "v2.0.0";
 
+/*
+ * The following enumeration definitions were taken from the
+ * evtc README.txt file available at:
+ *
+ * https://www.deltaconnected.com/arcdps/evtc/README.txt
+ *
+ * They were last updated on March 30th, 2019.
+ */
+
 /* iff */
 enum iff {
-	IFF_FRIEND, // green vs green, red vs red
-	IFF_FOE, // green vs red
-	IFF_UNKNOWN // something very wrong happened
+    IFF_FRIEND,
+    IFF_FOE,
+    IFF_UNKNOWN // or uncertain
 };
 
 /* combat result (physical) */
 enum cbtresult {
-	CBTR_NORMAL, // good physical hit
-	CBTR_CRIT, // physical hit was crit
-	CBTR_GLANCE, // physical hit was glance
-	CBTR_BLOCK, // physical hit was blocked eg. mesmer shield 4
-	CBTR_EVADE, // physical hit was evaded, eg. dodge or mesmer sword 2
-	CBTR_INTERRUPT, // physical hit interrupted something
-	CBTR_ABSORB, // physical hit was "invlun" or absorbed eg. guardian elite
-	CBTR_BLIND, // physical hit missed
-	CBTR_KILLINGBLOW // physical hit was killing hit
+    CBTR_NORMAL, // good physical hit
+    CBTR_CRIT, // physical hit was crit
+    CBTR_GLANCE, // physical hit was glance
+    CBTR_BLOCK, // physical hit was blocked eg. mesmer shield 4
+    CBTR_EVADE, // physical hit was evaded, eg. dodge or mesmer sword 2
+    CBTR_INTERRUPT, // physical hit interrupted something
+    CBTR_ABSORB, // physical hit was "invlun" or absorbed eg. guardian elite
+    CBTR_BLIND, // physical hit missed
+    CBTR_KILLINGBLOW, // hit was killing hit
+    CBTR_DOWNED, // hit was downing hit
 };
 
 /* combat activation */
 enum cbtactivation {
-	ACTV_NONE, // not used - not this kind of event
-	ACTV_NORMAL, // activation without quickness
-	ACTV_QUICKNESS, // activation with quickness
-	ACTV_CANCEL_FIRE, // cancel with reaching channel time
-	ACTV_CANCEL_CANCEL, // cancel without reaching channel time
-	ACTV_RESET // animation completed fully
+    ACTV_NONE, // not used - not this kind of event
+    ACTV_NORMAL, // started skill activation without quickness
+    ACTV_QUICKNESS, // started skill activation with quickness
+    ACTV_CANCEL_FIRE, // stopped skill activation with reaching tooltip time
+    ACTV_CANCEL_CANCEL, // stopped skill activation without reaching tooltip time
+    ACTV_RESET // animation completed fully
 };
 
 /* combat state change */
 enum cbtstatechange {
-	CBTS_NONE, // not used - not this kind of event
-	CBTS_ENTERCOMBAT, // src_agent entered combat, dst_agent is subgroup
-	CBTS_EXITCOMBAT, // src_agent left combat
-	CBTS_CHANGEUP, // src_agent is now alive
-	CBTS_CHANGEDEAD, // src_agent is now dead
-	CBTS_CHANGEDOWN, // src_agent is now downed
-	CBTS_SPAWN, // src_agent is now in game tracking range
-	CBTS_DESPAWN, // src_agent is no longer being tracked
-	CBTS_HEALTHUPDATE, // src_agent has reached a health marker. dst_agent = percent * 10000 (eg. 99.5% will be 9950)
-	CBTS_LOGSTART, // log start. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
-	CBTS_LOGEND, // log end. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
-	CBTS_WEAPSWAP, // src_agent swapped weapon set. dst_agent = current set id (0/1 water, 4/5 land)
-	CBTS_MAXHEALTHUPDATE, // src_agent has had it's maximum health changed. dst_agent = new max health
-	CBTS_POINTOFVIEW, // src_agent will be agent of "recording" player
-	CBTS_LANGUAGE, // src_agent will be text language
-	CBTS_GWBUILD, // src_agent will be game build
-	CBTS_SHARDID, // src_agent will be sever shard id
-	CBTS_REWARD, // src_agent is self, dst_agent is reward id, value is reward type. these are the wiggly boxes that you get
-	CBTS_BUFFINITIAL // combat event that will appear once per buff per agent on logging start (zero duration, buff==18)
+    CBTS_NONE, // not used - not this kind of event
+    CBTS_ENTERCOMBAT, // src_agent entered combat, dst_agent is subgroup
+    CBTS_EXITCOMBAT, // src_agent left combat
+    CBTS_CHANGEUP, // src_agent is now alive
+    CBTS_CHANGEDEAD, // src_agent is now dead
+    CBTS_CHANGEDOWN, // src_agent is now downed
+    CBTS_SPAWN, // src_agent is now in game tracking range (not in realtime api)
+    CBTS_DESPAWN, // src_agent is no longer being tracked (not in realtime api)
+    CBTS_HEALTHUPDATE, // src_agent has reached a health marker. dst_agent = percent * 10000 (eg. 99.5% will be 9950) (not in realtime api)
+    CBTS_LOGSTART, // log start. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
+    CBTS_LOGEND, // log end. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
+    CBTS_WEAPSWAP, // src_agent swapped weapon set. dst_agent = current set id (0/1 water, 4/5 land)
+    CBTS_MAXHEALTHUPDATE, // src_agent has had it's maximum health changed. dst_agent = new max health (not in realtime api)
+    CBTS_POINTOFVIEW, // src_agent is agent of "recording" player
+    CBTS_LANGUAGE, // src_agent is text language
+    CBTS_GWBUILD, // src_agent is game build
+    CBTS_SHARDID, // src_agent is sever shard id
+    CBTS_REWARD, // src_agent is self, dst_agent is reward id, value is reward type. these are the wiggly boxes that you get
+    CBTS_BUFFINITIAL, // combat event that will appear once per buff per agent on logging start (statechange==18, buff==18, normal cbtevent otherwise)
+    CBTS_POSITION, // src_agent changed, cast float* p = (float*)&dst_agent, access as x/y/z (float[3]) (not in realtime api)
+    CBTS_VELOCITY, // src_agent changed, cast float* v = (float*)&dst_agent, access as x/y/z (float[3]) (not in realtime api)
+    CBTS_FACING, // src_agent changed, cast float* f = (float*)&dst_agent, access as x/y (float[2]) (not in realtime api)
+    CBTS_TEAMCHANGE, // src_agent change, dst_agent new team id
+    CBTS_ATTACKTARGET, // src_agent is an attacktarget, dst_agent is the parent agent (gadget type), value is the current targetable state (not in realtime api)
+    CBTS_TARGETABLE, // dst_agent is new target-able state (0 = no, 1 = yes. default yes) (not in realtime api)
+    CBTS_MAPID, // src_agent is map id
+    CBTS_REPLINFO, // internal use, won't see anywhere
+    CBTS_STACKACTIVE, // src_agent is agent with buff, dst_agent is the stackid marked active
+    CBTS_STACKRESET, // src_agent is agent with buff, value is the duration to reset to (also marks inactive), pad61- is the stackid
+    CBTS_GUILD // src_agent is agent, dst_agent through buff_dmg is 16 byte guid (client form, needs minor rearrange for api form)
 };
 
 /* combat buff remove type */
 enum cbtbuffremove {
-	CBTB_NONE, // not used - not this kind of event
-	CBTB_ALL, // all stacks removed
-	CBTB_SINGLE, // single stack removed. disabled on server trigger, will happen for each stack on cleanse
-	CBTB_MANUAL, // autoremoved by ooc or allstack (ignore for strip/cleanse calc, use for in/out volume)
+    CBTB_NONE, // not used - not this kind of event
+    CBTB_ALL, // last/all stacks removed (sent by server)
+    CBTB_SINGLE, // single stack removed (sent by server). will happen for each stack on cleanse
+    CBTB_MANUAL, // single stack removed (auto by arc on ooc or all stack, ignore for strip/cleanse calc, use for in/out volume)
 };
 
 /* custom skill ids */
 enum cbtcustomskill {
-	CSK_RESURRECT = 1066, // not custom but important and unnamed
-	CSK_BANDAGE = 1175, // personal healing only
-	CSK_DODGE = 65001 // will occur in is_activation==normal event
+    CSK_RESURRECT = 1066, // not custom but important and unnamed
+    CSK_BANDAGE = 1175, // personal healing only
+    CSK_DODGE = 65001 // will occur in is_activation==normal event
 };
 
 /* language */
 enum gwlanguage {
-	GWL_ENG = 0,
-	GWL_FRE = 2,
-	GWL_GEM = 3,
-	GWL_SPA = 4,
+    GWL_ENG = 0,
+    GWL_FRE = 2,
+    GWL_GEM = 3,
+    GWL_SPA = 4,
 };
 
 /* define agent. stats range from 0-10 */
 struct evtc_agent {
-	uint64_t addr;
-	uint32_t prof;
-	uint32_t is_elite;
-	int16_t toughness;
-	int16_t concentration;
-	int16_t healing;
-	int16_t pad1;
-	int16_t condition;
-	int16_t pad2;
-	char name[64];
+    uint64_t addr;
+    uint32_t prof;
+    uint32_t is_elite;
+    uint16_t toughness;
+    uint16_t concentration;
+    uint16_t healing;
+    uint16_t hitbox_width;
+    uint16_t condition;
+    uint16_t hitbox_height;
+    char name[64];
 };
 
 /* define skill */
 struct evtc_skill {
-	int32_t id;
-	char name[64];
+    int32_t id;
+    char name[64];
 };
 
-/* combat event */
+/* combat event (old, when header[12] == 0) */
 struct evtc_cbtevent_v0 {
-	uint64_t time; /* timegettime() at time of event */
-	uint64_t src_agent; /* unique identifier */
-	uint64_t dst_agent; /* unique identifier */
-	int32_t value; /* event-specific */
-	int32_t buff_dmg; /* estimated buff damage. zero on application event */
-	uint16_t overstack_value; /* estimated overwritten stack duration for buff application */
-	uint16_t skillid; /* skill id */
-	uint16_t src_instid; /* agent map instance id */
-	uint16_t dst_instid; /* agent map instance id */
-	uint16_t src_master_instid; /* master source agent map instance id if source is a minion/pet */
-	uint8_t iss_offset; /* internal tracking. garbage */
-	uint8_t iss_offset_target; /* internal tracking. garbage */
-	uint8_t iss_bd_offset; /* internal tracking. garbage */
-	uint8_t iss_bd_offset_target; /* internal tracking. garbage */
-	uint8_t iss_alt_offset; /* internal tracking. garbage */
-	uint8_t iss_alt_offset_target; /* internal tracking. garbage */
-	uint8_t skar; /* internal tracking. garbage */
-	uint8_t skar_alt; /* internal tracking. garbage */
-	uint8_t skar_use_alt; /* internal tracking. garbage */
-	uint8_t iff; /* from iff enum */
-	uint8_t buff; /* buff application, removal, or damage event */
-	uint8_t result; /* from cbtresult enum */
-	uint8_t is_activation; /* from cbtactivation enum */
-	uint8_t is_buffremove; /* buff removed. src=relevant, dst=caused it (for strips/cleanses). from cbtr enum */
-	uint8_t is_ninety; /* source agent health was over 90% */
-	uint8_t is_fifty; /* target agent health was under 50% */
-	uint8_t is_moving; /* source agent was moving */
-	uint8_t is_statechange; /* from cbtstatechange enum */
-	uint8_t is_flanking; /* target agent was not facing source */
-	uint8_t is_shields; /* all or part damage was vs barrier/shield */
-	uint8_t result_local; /* internal tracking. garbage */
-	uint8_t ident_local; /* internal tracking. garbage */
+    uint64_t time; /* timegettime() at time of event */
+    uint64_t src_agent; /* unique identifier */
+    uint64_t dst_agent; /* unique identifier */
+    int32_t value; /* event-specific */
+    int32_t buff_dmg; /* estimated buff damage. zero on application event */
+    uint16_t overstack_value; /* estimated overwritten stack duration for buff application */
+    uint16_t skillid; /* skill id */
+    uint16_t src_instid; /* agent map instance id */
+    uint16_t dst_instid; /* agent map instance id */
+    uint16_t src_master_instid; /* master source agent map instance id if source is a minion/pet */
+    uint8_t iss_offset; /* internal tracking. garbage */
+    uint8_t iss_offset_target; /* internal tracking. garbage */
+    uint8_t iss_bd_offset; /* internal tracking. garbage */
+    uint8_t iss_bd_offset_target; /* internal tracking. garbage */
+    uint8_t iss_alt_offset; /* internal tracking. garbage */
+    uint8_t iss_alt_offset_target; /* internal tracking. garbage */
+    uint8_t skar; /* internal tracking. garbage */
+    uint8_t skar_alt; /* internal tracking. garbage */
+    uint8_t skar_use_alt; /* internal tracking. garbage */
+    uint8_t iff; /* from iff enum */
+    uint8_t buff; /* buff application, removal, or damage event */
+    uint8_t result; /* from cbtresult enum */
+    uint8_t is_activation; /* from cbtactivation enum */
+    uint8_t is_buffremove; /* buff removed. src=relevant, dst=caused it (for strips/cleanses). from cbtr enum */
+    uint8_t is_ninety; /* source agent health was over 90% */
+    uint8_t is_fifty; /* target agent health was under 50% */
+    uint8_t is_moving; /* source agent was moving */
+    uint8_t is_statechange; /* from cbtstatechange enum */
+    uint8_t is_flanking; /* target agent was not facing source */
+    uint8_t is_shields; /* all or part damage was vs barrier/shield */
+    uint8_t is_offcycle; /* zero if buff dmg happened during tick, non-zero otherwise */
+    uint8_t pad64; /* internal tracking. garbage */
 };
 
+/* combat event logging (revision 1, when header[12] == 1) */
 struct evtc_cbtevent_v1 {
-	uint64_t time;
-	uint64_t src_agent;
-	uint64_t dst_agent;
-	int32_t value;
-	int32_t buff_dmg;
-	uint32_t overstack_value;
-	uint32_t skillid;
-	uint16_t src_instid;
-	uint16_t dst_instid;
-	uint16_t src_master_instid;
-	uint16_t dst_master_instid;
-	uint8_t iff;
-	uint8_t buff;
-	uint8_t result;
-	uint8_t is_activation;
-	uint8_t is_buffremove;
-	uint8_t is_ninety;
-	uint8_t is_fifty;
-	uint8_t is_moving;
-	uint8_t is_statechange;
-	uint8_t is_flanking;
-	uint8_t is_shields;
-	uint8_t is_offcycle;
-	uint8_t pad61;
-	uint8_t pad62;
-	uint8_t pad63;
-	uint8_t pad64;
+    uint64_t time;
+    uint64_t src_agent;
+    uint64_t dst_agent;
+    int32_t value;
+    int32_t buff_dmg;
+    uint32_t overstack_value;
+    uint32_t skillid;
+    uint16_t src_instid;
+    uint16_t dst_instid;
+    uint16_t src_master_instid;
+    uint16_t dst_master_instid;
+    uint8_t iff;
+    uint8_t buff;
+    uint8_t result;
+    uint8_t is_activation;
+    uint8_t is_buffremove;
+    uint8_t is_ninety;
+    uint8_t is_fifty;
+    uint8_t is_moving;
+    uint8_t is_statechange;
+    uint8_t is_flanking;
+    uint8_t is_shields;
+    uint8_t is_offcycle;
+    uint8_t pad61;
+    uint8_t pad62;
+    uint8_t pad63;
+    uint8_t pad64;
 };
 
 static const uint8_t cbtevent_revision_v0 = 0;
