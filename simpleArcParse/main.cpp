@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
+#include <iomanip>
 #include <map>
 #include <type_traits>
 #include "json.hpp"
@@ -19,7 +20,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-static const string version = "v2.0.0";
+static const string version = "v2.1.0";
 
 /*
  * The following enumeration definitions were taken from the
@@ -174,6 +175,21 @@ struct evtc_cbtevent_v0 {
     uint8_t pad64; /* internal tracking. garbage */
 };
 
+/* Guild UIDs are 16byte values which are stored over the dst_agent, value,
+ * and buff_dmg members of the evtc_cbtevent values.
+ */
+struct evtc_guid {
+    struct {
+        uint32_t p1; /* Little Endian */
+        uint16_t p2; /* Little Endian */
+        uint16_t p3; /* Little Endian */
+        uint16_t p4; /* Big Endian */
+        uint16_t p5; /* Big Endian*/
+        uint32_t p6; /* Big Endian */
+    } data;
+    uint8_t valid;
+};
+
 /* combat event logging (revision 1, when header[12] == 1) */
 struct evtc_cbtevent_v1 {
     uint64_t time;
@@ -257,6 +273,37 @@ public:
     CBTEVENT_ACCESSOR(uint64_t, dst_agent)
     CBTEVENT_ACCESSOR(uint32_t, value)
     CBTEVENT_ACCESSOR(uint64_t, time)
+
+    struct evtc_guid guid() {
+        struct evtc_guid guid = {};
+
+        if (revision == cbtevent_revision_v0) {
+            /* v0 never supported CBTS_GUILD events... */
+            memcpy(&guid.data, &raw.v0.dst_agent, sizeof(guid.data));
+            guid.valid = true;
+        } else if (revision == cbtevent_revision_v1) {
+            memcpy(&guid.data, &raw.v1.dst_agent, sizeof(guid.data));
+            guid.valid = true;
+        } else {
+            throw "Invalid cbtevent revision";
+        }
+
+#define BSWAP16(val) val = __builtin_bswap16(val)
+#define BSWAP32(val) val = __builtin_bswap32(val)
+
+        /* Some of the bytes in the GUID are stored in Big Endian format,
+         * so we need to swap them back into the right order for use with
+         * the GW2 API.
+         *
+         * Since we're assuming the host is "Little Endian" format, we only
+         * need to swap the values which are "Big Endian".
+         */
+        BSWAP16(guid.data.p4);
+        BSWAP16(guid.data.p5);
+        BSWAP32(guid.data.p6);
+
+        return guid;
+    };
 };
 
 /**
@@ -418,7 +465,12 @@ struct player_details {
     string character;
     string account;
     string subgroup;
+
+    /* EVTC agent identifier */
     uint64_t addr;
+
+    /* 16-byte Guild UID */
+    struct evtc_guid guid;
 };
 
 enum is_boss_cm {
@@ -921,6 +973,33 @@ parse_boss_maxhealth_event(parsed_details& details, evtc_cbtevent& event)
 }
 
 /**
+ * parse_guild_event: Parser for CBTS_GUILD events
+ * @details: structure to hold parsed EVTC data
+ * @event: the combat event to parse
+ *
+ * Checks if the event is a CBTS_GUILD event. If it is, and the src_agent
+ * matches one of the player agent ids, store the 16-byte guid for that player.
+ *
+ * Returns true if the event was a CBTS_GUILD event, and false otherwise.
+ */
+static bool
+parse_guild_event(parsed_details& details, evtc_cbtevent& event)
+{
+    if (event.is_statechange() == CBTS_GUILD) {
+        auto it = details.players.find(event.src_agent());
+
+        if (it != details.players.end()) {
+            player_details& player = it->second;
+            player.guid = event.guid();
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * eventparser: typedef for combat event parsers
  * @details: the structure storing parsed EVTC data
  * @event: the combat event to parse
@@ -938,6 +1017,7 @@ static const eventparser parsers[] = {
     parse_logstart_event,
     parse_logend_event,
     parse_boss_maxhealth_event,
+    parse_guild_event,
 };
 
 static const int parsers_count = extent<decltype(parsers)>::value;
@@ -1093,11 +1173,29 @@ output_json(parsed_details& details)
 
     for (auto& kv : details.players) {
         auto& player = kv.second;
-        data["players"] += {
-            {"account", player.account},
-            {"character", player.character},
-            {"subgroup", player.subgroup}
-        };
+        json player_data = json::object();
+
+        player_data["account"] = player.account;
+        player_data["character"] = player.character;
+        player_data["subgroup"] = player.subgroup;
+
+        /* Add the Guild UID if we found it */
+        if (player.guid.valid) {
+            stringstream ss;
+
+            ss << std::hex << std::uppercase;
+
+            ss << setw(8) << setfill('0') << player.guid.data.p1 << "-";
+            ss << setw(4) << setfill('0') << player.guid.data.p2 << "-";
+            ss << setw(4) << setfill('0') << player.guid.data.p3 << "-";
+            ss << setw(4) << setfill('0') << player.guid.data.p4 << "-";
+            ss << setw(4) << setfill('0') << player.guid.data.p5;
+            ss << setw(8) << setfill('0') << player.guid.data.p6;
+
+            player_data["guid"] = ss.str().c_str();
+        }
+
+        data["players"] += player_data;
     }
 
     cout << data.dump(4) << std::endl;
