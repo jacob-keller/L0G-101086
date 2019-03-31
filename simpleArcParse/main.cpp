@@ -692,8 +692,8 @@ get_agent_details(ifstream& file, uint32_t agent, evtc_agent& agent_details)
 static void
 parse_player_agent(parsed_details& details, ifstream& file, unsigned int agent)
 {
-    evtc_agent agent_details;
-    player_details player;
+    evtc_agent agent_details = {};
+    player_details player = {};
     char *name;
 
     /* Copy the agent details from the file */
