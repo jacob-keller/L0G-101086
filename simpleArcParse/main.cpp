@@ -841,6 +841,7 @@ parse_reward_event(parsed_details& details, evtc_cbtevent& event)
     if (event.is_statechange() == CBTS_REWARD) {
         /* A reward event indicates that the boss was killed successfully */
         details.encounter_success = true;
+        details.precise_reward_time = event.time();
         return true;
     }
 
@@ -894,44 +895,6 @@ parse_logend_event(parsed_details& details, evtc_cbtevent& event)
 }
 
 /**
- * parse_precise_end: Parser for precise time encounter end
- * @details: structure to hold parsed EVTC data
- * @event: the combat event to parse
- *
- * Searches for the precise time when the encounter ended. This is either
- * the time() at CBTS_REWARD, if the encounter is successful. Otherwise, we
- * just fall back to the CBTS_LOGEND time(). This should be more precise
- * than simply subtracting logend from logstart, as events can continue appearing
- * in the log file after the boss is dead.
- *
- * Returns true if the CBTS_REWARD event was found, otherwise false.
- */
-static bool
-parse_precise_end(parsed_details& details, evtc_cbtevent& event)
-{
-    if (!details.precise_last_event) {
-        details.precise_last_event = event.time();
-    }
-
-    if (event.is_statechange() == CBTS_LOGEND &&
-        event.src_agent() == arcdps_src_agent) {
-
-        details.precise_logend_time = event.time();
-
-        /* Keep searching for the CBTS_REWARD event */
-        return false;
-    }
-
-    if (event.is_statechange() == CBTS_REWARD) {
-        details.precise_reward_time = event.time();
-        return true;
-    }
-
-    return false;
-}
-
-
-/**
  * parse_boss_maxhealth_event: Parser for CBTS_MAXHEALTHUPDATE events
  * @details: structure to hold parsed EVTC data
  * @event: the combat event to parse
@@ -972,7 +935,6 @@ static const eventparser parsers[] = {
     parse_logstart_event,
     parse_logend_event,
     parse_boss_maxhealth_event,
-    parse_precise_end,
 };
 
 static const int parsers_count = extent<decltype(parsers)>::value;
@@ -986,12 +948,11 @@ static const int parsers_count = extent<decltype(parsers)>::value;
  * event for information. Events are scanned by parsers one at a time until
  * a parser returns true.
  *
- * The intent of this function is to extract all possible data we currently
- * understand from the combat events.
+ * An event parser should return true if the event matched, and false otherwise.
  *
- * This function is currently unused.
+ * The events are scanned in order from beginning to end.
  */
-[[gnu::unused]] static void
+static void
 parse_all_cbt_events(parsed_details& details, ifstream& file)
 {
     unsigned int event, parser;
@@ -1004,58 +965,6 @@ parse_all_cbt_events(parsed_details& details, ifstream& file)
             if (parsers[parser](details, event_details))
                 break;
         }
-    }
-}
-
-/**
- * parse_first_matching_event: parse combat events with a given parser
- * @details: structure to store EVTC data
- * @file: the file to scan
- * @parser: the parser to use
- *
- * Scan through the list of combat events from the beginning, checking each
- * event with the @parser. The first time @parser returns true, stop scanning.
- *
- * This function is intended to find a single combat event near the start of the
- * events, such as the log start time.
- */
-static void
-parse_first_matching_event(parsed_details& details, ifstream& file, eventparser parser)
-{
-    unsigned int event;
-    for (event = 0; event < details.cbt_event_count; event++) {
-        evtc_cbtevent event_details = evtc_cbtevent(file, details.revision,
-                                                    details.cbt_event_start,
-                                                    event);
-
-        if (parser(details, event_details))
-            break;
-    }
-}
-
-/**
- * parse_last_matching_event: parse combat events with a given parser
- * @details: structure to store EVTC data
- * @file: the file to scan
- * @parser: the parser to use
- *
- * Scan through the list of combat events from the end, checking each event
- * with the @parser. The first time @parser returns true, stop scanning.
- *
- * This function is intended to find a single combat event near the end of
- * the events, such as the reward chests indicating success.
- */
-static void
-parse_last_matching_event(parsed_details& details, ifstream& file, eventparser parser)
-{
-    unsigned int event;
-    for (event = details.cbt_event_count; event-- > 0;) {
-        evtc_cbtevent event_details = evtc_cbtevent(file, details.revision,
-                                                    details.cbt_event_start,
-                                                    event);
-
-        if (parser(details, event_details))
-            break;
     }
 }
 
@@ -1248,31 +1157,23 @@ int main(int argc, char *argv[])
     /* The number of combat events is not stored but we can calculate it */
     calculate_cbt_event_count(details, evtc_file);
 
-    /* Although some data is relatively expensive to extract, most users
-     * are going to want all of the data at once. Instead of paying the
-     * cost to open and read the file multiple times, extract everything
-     * and dump it as a JSON string
-     */
-
     /* Extract data for each player in the encounter */
     parse_all_player_agents(details, evtc_file);
 
-    /* Extract the reward event */
-    parse_last_matching_event(details, evtc_file, parse_reward_event);
+    /* Extract data about the boss agent */
+    parse_boss_agent(details, evtc_file);
 
-    /* Extract the local and server start time */
-    parse_first_matching_event(details, evtc_file, parse_logstart_event);
+    /* Parse all of the combat events for relevant information */
+    parse_all_cbt_events(details, evtc_file);
 
-    /* Extract the server end time */
-    parse_last_matching_event(details, evtc_file, parse_logend_event);
+    /* Extract the local time of the last event */
+    evtc_cbtevent event_details = evtc_cbtevent(evtc_file, details.revision,
+                                                details.cbt_event_start,
+                                                details.cbt_event_count - 1);
+    details.precise_last_event = event_details.time();
 
     /* Extract the boss maximum health */
-    parse_boss_agent(details, evtc_file);
-    parse_first_matching_event(details, evtc_file, parse_boss_maxhealth_event);
     detect_challenge_mote(details, evtc_file);
-
-    /* Extract the most accurate local end timestamp */
-    parse_last_matching_event(details, evtc_file, parse_precise_end);
 
     /* Use the most appropriate ending time available */
     if (details.precise_reward_time) {
