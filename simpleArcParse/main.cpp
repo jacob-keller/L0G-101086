@@ -12,7 +12,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
-#include <vector>
+#include <map>
 #include <type_traits>
 #include "json.hpp"
 
@@ -418,6 +418,7 @@ struct player_details {
     string character;
     string account;
     string subgroup;
+    uint64_t addr;
 };
 
 enum is_boss_cm {
@@ -449,7 +450,7 @@ struct parsed_details {
     uint64_t precise_start;
     uint64_t precise_end;
     bool encounter_success;
-    vector<player_details> players;
+    map<uint64_t, player_details> players;
 };
 
 /**
@@ -702,6 +703,8 @@ parse_player_agent(parsed_details& details, ifstream& file, unsigned int agent)
         return;
     }
 
+    player.addr = agent_details.addr;
+
     /* The EVTC format stores the name as a sequence of 3 NUL
      * terminated UTF-8 strings. First, the character name,
      * then the account name, and finally the subgroup name.
@@ -721,7 +724,7 @@ parse_player_agent(parsed_details& details, ifstream& file, unsigned int agent)
         player.account.erase(0, 1);
     }
 
-    details.players.push_back(player);
+    details.players[player.addr] = player;
 }
 
 /**
@@ -1088,7 +1091,8 @@ output_json(parsed_details& details)
     /* Players */
     data["players"] = json::array();
 
-    for (auto& player : details.players) {
+    for (auto& kv : details.players) {
+        auto& player = kv.second;
         data["players"] += {
             {"account", player.account},
             {"character", player.character},
@@ -1192,7 +1196,8 @@ int main(int argc, char *argv[])
     } else if (type == "revision") {
         cout << +details.revision << endl;
     } else if (type == "players") {
-        for (auto& player : details.players) {
+        for (auto& kv : details.players) {
+            auto& player = kv.second;
             cout << player.account << endl;
         }
     } else if (type == "success") {
