@@ -195,6 +195,14 @@ upload-logs.ps1 script will only upload logs newer than this timestamp, and
 will update the timestamp after running. This is used to avoid uploading old
 encounters.
 
+### initial_last_event_time
+
+Optional configuration specifying the default amount of time to look
+backwards for encounters when no last_format_file or last_upload_file exist
+yet. This prevents the script from attempting to upload all encounters on
+the initial run. Specified in "hours ago", with the default being "48 hours
+ago" to limit the initial upload to 2 days.
+
 ### simple_arc_parse_path
 
 This variable configures the path to the simpleArcParse.exe. This must be set

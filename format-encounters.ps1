@@ -56,23 +56,18 @@ Log-Output "~~~"
 Log-Output "Formatting encounters for discord at $(Get-Date)..."
 Log-Output "~~~"
 
-# Load the last format time
+# Load the last format time. If there is no file, such as the first run,
+# limit the search to a reasonable default based on the initial_last_event_time.
 if (X-Test-Path $config.last_format_file) {
     $last_format_time = Get-Content -Raw -Path $config.last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
+} else {
+    $last_format_time = Convert-Approxidate-String $config.initial_last_event_time
 }
 
 $next_format_time = Get-Date
 
-# If we have a last format time, we want to limit our scan to all files since
-# the last time that we formatted.
-#
-# Search the extras directory for all evtc directories with a time newer than the last format time.
-if (Test-Path $config.last_format_file) {
-    $last_upload_time = Get-Content -Raw -Path $config.last_format_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
-    $dirs = @(Get-ChildItem -Directory -Filter "*.evtc" -LiteralPath $config.extra_upload_data | Where-Object { $_.CreationTime -gt $last_format_time} | Sort-Object -Property CreationTime | ForEach-Object {$_.Name})
-} else {
-    $dirs = @(Get-ChildItem -Directory -Filter "*.evtc" -LiteralPath $config.extra_upload_data | Sort-Object -Property CreationTime | ForEach-Object {$_.Name})
-}
+# Search the extras directory for all EVTC directories with a time newer than the last format time.
+$dirs = @(Get-ChildItem -Directory -Filter "*.evtc" -LiteralPath $config.extra_upload_data | Where-Object { $_.CreationTime -gt $last_format_time} | Sort-Object -Property CreationTime | ForEach-Object {$_.Name})
 
 if ($dirs -and $dirs.Length -gt 0) {
     Log-And-Write-Output "Found $($dirs.Length) EVTC files to format and post"

@@ -618,11 +618,158 @@ $v2ConfigurationFields =
         default="successful"
     }
     @{
+        # If set, specifies how long ago to pretend the last run of a script
+        # was, if no "last time" file exists. If git is accessible in your $PATH,
+        # then any approxidate format will work, such as "5 minutes ago" or
+        # "3 days ago". If git is NOT available in your $PATH, then it must
+        # be specified using "hours ago" only.
+        name="initial_last_event_time"
+        type=[string]
+        default="48 hours ago"
+        optional=$true
+        approxidate=$true
+    }
+    @{
         name="guilds"
         type=[Object[]]
         arrayFields=$v2ValidGuildFields
     }
 )
+
+<#
+ .Synopsis
+  Check if we have access to git
+
+ .Description
+  Check if git is available as a command we can run. Return true if it is
+  and false otherwise.
+#>
+Function Check-For-Git {
+    if (Get-Command "git" -ErrorAction SilentlyContinue) {
+        return $true
+    } else {
+        return $false
+    }
+}
+
+<#
+ .Synopsis
+  Parse an approxidate string into a DateTime object using git
+
+ .Description
+  Convert a string representing an approximate date into a DateTime object.
+  Use the git-config interface to enable the more advanced formats which
+  are supported within git as "approxidates"
+
+  This enables converting strings such as "5 hours ago" or "3 years ago",
+  or similar.
+
+  If the string cannot be parsed, then return $null
+
+ .Parameter approxidate
+  The approxidate string to convert
+
+ .Returns a DateTime object or $null
+#>
+Function Convert-Git-Approxidate-String {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$approxidate)
+
+    # We have git, so use the git-config system
+    $seconds = (& git -c garbage.timestamp=`"${approxidate}`" config --type=expiry-date --get garbage.timestamp 2>$null)
+    if ($seconds -eq $null) {
+        return $null
+    }
+    return (ConvertFrom-UnixDate $seconds)
+}
+
+<#
+ .Synopsis
+  Parse a basic approxidate string into a DateTime object
+
+ .Description
+  Convert a string representing an approximate date into a DateTime object.
+
+  This function is used when git is not available in the path. It currently
+  only supports a very limited subset of the available formats that git does.
+
+  In any case, if we're unable to parse the string, return $null
+
+ .Parameter approxidate
+  The approxidate string to convert
+
+ .Returns a DateTime object or $null
+#>
+Function Convert-Basic-Approxidate-String {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$approxidate)
+
+    $timespan=0
+    if ([timespan]::TryParseExact($approxidate, "%h' hours ago'", $null, [ref]$timespan)) {
+        return ((Get-Date) - $timespan)
+    } else {
+        return $null
+    }
+}
+
+<#
+ .Synopsis
+  Parse an approxidate string into a DateTime object
+
+ .Description
+  Convert the string representing an approximate date into a DateTime object.
+  If we have git available, use this to parse the date in the full git
+  approxidate format, which supports dates, and relative human readable
+  date time strings such as "4 hours ago" or "3 days ago".
+
+  If we do not have git available, then limit the support to only "hours ago"
+  format for simplicity.
+
+  In any case, if we're unable to parse the string, return $null
+
+ .Parameter approxidate
+  The approxidate string to convert
+
+ .Returns a DateTime
+#>
+Function Convert-Approxidate-String {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$approxidate)
+
+    if (Check-For-Git) {
+        return (Convert-Git-Approxidate-String $approxidate)
+    } else {
+        return (Convert-Basic-Approxidate-String $approxidate)
+    }
+}
+
+<#
+ .Synopsis
+  Validate that a string can be parsed as an approximate date
+
+ .Description
+  Determine if a string represents a valid approximate date. If we have
+  the git program in our path, then we will use git-config to handle this via
+  the --expiry-date logic exposed by git-config.
+
+  If we do not have git, then only a small subset of "approxidate" formats will
+  be supported.
+
+ .Parameter approxidate
+  The string to check for being an approximate date string
+
+ .Returns true if the string is a valid approximate date, false otherwise.
+#>
+Function Validate-Approxidate-String {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$approxidate)
+
+    if ((Convert-Approxidate-String $approxidate) -eq $null) {
+        return $false
+    } else {
+        return $true
+    }
+}
 
 <#
  .Description
@@ -720,6 +867,15 @@ Function Validate-Object-Fields {
                 "ToUserProfile" {
                     $Object."$($field.name)" = $Object."$($field.name)".replace($env:USERPROFILE, "%UserProfile%")
                 }
+            }
+        } elseif ($field.approxidate) {
+            $approxidate = $Object."$($field.name)"
+            if (-not (Validate-Approxidate-String $approxidate)) {
+                Write-Host "$approxidate isn't a valid approximate time string"
+                if (-not (Check-For-Git)) {
+                    Write-Host "Ensuring git is in your path allows parsing more approximate timestamps"
+                }
+                $invalid = $true
             }
         } elseif ($field.validFields) {
             # Recursively validate subfields. All fields not explicitly marked "optional" must be present

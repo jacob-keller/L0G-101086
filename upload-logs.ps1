@@ -102,18 +102,18 @@ Add-Type -AssemblyName "System.IO.Compression.FileSystem"
 $arcdps_headers = (Invoke-WebRequest -UseBasicParsing -Uri https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum).Headers
 $arcdps_release_date = (Get-Date -Date ($arcdps_headers['Last-Modified'])).Date
 
-# If we have a last upload file, we want to limit our scan to all files since
-# the last time that we uploaded.
-#
-# This invocation is a bit complicated, but essentially we recurse through all folders within
-# the $arcdps_logs directory and find all files which end in *.evtc.zip. We store them by the
-# last write time, and then we return the full path of that file.
+# The last upload file indicates the last time that we uploaded files. If this
+# file is missing, we might attempt to upload every encounter file that the
+# user has. This can lead to accidentally uploading hundreds of files.
+# Prevent this by pretending that the last upload was a reasonably recent
+# time ago instead.
 if (Test-Path $last_upload_file) {
     $last_upload_time = Get-Content -Raw -Path $last_upload_file | ConvertFrom-Json | Select-Object -ExpandProperty "DateTime" | Get-Date
-    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ( ExtensionIs-EVTC $_.Name ) -and $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 } else {
-    $files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ExtensionIs-EVTC $_.Name } | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
+    $last_upload_time = Convert-Approxidate-String $config.initial_last_event_time
 }
+
+$files = @(Get-ChildItem -Recurse -File -LiteralPath $arcdps_logs | Where-Object { ( ExtensionIs-EVTC $_.Name ) -and $_.LastWriteTime -gt $last_upload_time} | Sort-Object -Property LastWriteTime | ForEach-Object {$_.FullName})
 
 $next_upload_time = Get-Date
 Log-Output "~~~"
