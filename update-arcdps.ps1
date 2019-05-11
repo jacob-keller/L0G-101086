@@ -8,6 +8,8 @@ $ErrorActionPreference = "Stop"
 # Load the shared module
 Import-Module -Force -DisableNameChecking (Join-Path -Path $PSScriptRoot -ChildPath l0g-101086.psm1)
 
+Set-Logfile "update-arcdps.log"
+
 # Relevant customizable configuration fields
 
 # guildwars2_path
@@ -42,248 +44,104 @@ if (-not $config.dll_backup_path) {
     }
 }
 
-# Path to store the Arc DPS dll
-$arc_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9.dll"
-# Path to store the templates dll
-$templates_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_buildtemplates.dll"
-# Path to store the mechanics dll
-$mechanics_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_mechanics.dll"
-# Path to store the extras dll
-$extras_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_extras.dll"
-# Path to store the table dll
-$table_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_table.dll"
+$files = @(
+    @{
+        dll = 'd3d9.dll'
+        backup = 'arc-d3d9.dll.back'
+        url = 'https://www.deltaconnected.com/arcdps/x64/d3d9.dll'
+        md5_url = 'https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum'
+    },
+    @{
+        dll = 'd3d9_arcdps_extras.dll'
+        backup = 'extension-d3d9_arcdps_extras.dll.back'
+        url = 'https://www.deltaconnected.com/arcdps/x64/extras/d3d9_arcdps_extras.dll'
+        updatewith = 'ArcDPS'
+    },
+    @{
+        dll = 'd3d9_arcdps_buildtemplates.dll'
+        backup = 'extension-d3d9_arcdps_buildtemplates.dll.back'
+        url = 'https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll'
+        updatewith = 'ArcDPS'
+    },
+    @{
+        dll = 'd3d9_arcdps_mechanics.dll'
+        backup = 'extension-d3d9_arcdps_mechanics.dll.back'
+        url = 'http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll'
+        md5_url = 'http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum'
+    },
+    @{
+        dll = 'd3d9_arcdps_table.dll'
+        backup = 'extension-d3d9_arcdps_table.dll.back'
+        url = 'http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll'
+        md5_url = 'http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll.md5sum'
+    }
+)
 
-# Store the dlls in both the top level and \bin64 to make Gw2 Launch Buddy happy
-$arc_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9.dll"
-$templates_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_buildtemplates.dll"
-$mechanics_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_mechanics.dll"
-$extras_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_extras.dll"
-$table_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_table.dll"
+Log-And-Write-Output "Checking for updates..."
 
-# Path to backup locations for the previous versions
-$arc_backup = Join-Path -Path $config.dll_backup_path -ChildPath "arc-d3d9.dll.back"
-$templates_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_buildtemplates.dll.back"
-$mechanics_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_mechanics.dll.back"
-$extras_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_extras.dll.back"
-$table_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_table.dll.back"
+# First, check to see what we should update in a loop. Because the ArcDs
+# extras and buildtemplates plugins do not have their own MD5 sum file,
+# this must be done up front before we loop to actually download the file
+ForEach ($f in $files) {
+    $f.full_path = [io.path]::combine($config.guildwars2_path, $f.dll)
+    $f.bin_path = [io.path]::combine($config.guildwars2_path, "bin64", $f.dll)
+    $f.backup_path = [io.path]::combine($config.dll_backup_path, $f.backup)
 
-#
-# URLs we need to fetch from
-#
-
-# URL for arcdps dll
-$arc_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll"
-# URL for the MD5 sum of arcdps dll
-$arc_md5_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
-# URL for the build templates plugin
-$templates_url = "https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll"
-# URL for arc extras
-$extras_url = "https://www.deltaconnected.com/arcdps/x64/extras/d3d9_arcdps_extras.dll"
-# URL for the mechanics plugin for Arc DPS
-$mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll"
-# URL for the MD5 sum of the mechanics dll
-$mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
-# URL for the table plugin for Arc DPS
-$table_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll"
-# URL for the MD5 sum of the table dll
-$table_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll.md5sum"
-
-if ($config.experimental_arcdps -eq $true) {
-    $experimental_arc_url =  "https://www.deltaconnected.com/arcdps/dev/d3d9.dll"
-
-    $experimental_templates_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_buildtemplates.dll"
-
-    $experimental_extras_url = "https://www.deltaconnected.com/arcdps/dev/d3d9_arcdps_extras.dll"
-
-    # Check if the experimental d3d9.dll exists right now
-    try {
-        Invoke-WebRequest -URI $experimental_arc_url -UseBasicParsing -Method head
-
-        $arc_url = $experimental_arc_url
-        # The experimental build doesn't have an md5sum file currently. :(
-        $arc_md5_url = $null
-    } catch [System.net.WebException] {
-        if ($_.Exception.Response.StatusCode -eq "NotFound") {
-            Write-Host "No experimental version available. Downloading regular arcdps release"
-        } else {
-            throw $_.Exception
-        }
+    if (-not (X-Test-Path $f.full_path)) {
+        Log-And-Write-Output "$($f.dll): not yet downloaded"
+        $f.update = $true
+        continue
     }
 
-    # Check if the experimental templates exists right now
-    try {
-        Invoke-WebRequest -URI $experimental_templates_url -UseBasicParsing -Method head
-
-        $templates_url = $experimental_templates_url
-    } catch [System.net.WebException] {
-        if ($_.Exception.Response.StatusCode -eq "NotFound") {
-            Write-Host "No experimental version available. Downloading regular templates release"
-        } else {
-            throw $_.Exception
-        }
+    # Some of the extensions don't have their own MD5 hash file
+    if (-not $f.md5_url) {
+        continue
     }
 
-    # Check if the experimental extras exists right now
-    try {
-        Invoke-WebRequest -URI $experimental_extras_url -UseBasicParsing -Method head
+    $current_md5 = (Get-FileHash $f.full_path -Algorithm MD5).Hash
+    $web_md5 = ((Invoke-WebRequest -URI $f.md5_url -UseBasicParsing).toString().trim().toUpper() -split '\s+')[0]
 
-        $extras_url = $experimental_extras_url
-    } catch [System.net.WebException] {
-        if ($_.Exception.Response.StatusCode -eq "NotFound") {
-            Write-Host "No experimental extras version available. Downloading regular extras release"
-        } else {
-            throw $_.Exception
+    Log-And-Write-Output "$($f.dll): Current MD5 Sum -- $current_md5"
+    Log-And-Write-Output "$($f.dll): Latest MD5 Sum -- $web_md5"
+
+    if ($web_md5.StartsWith($current_md5)) {
+        Log-And-Write-Output "$($f.dll): up to date"
+    } else {
+        Log-And-Write-Output "$($f.dll): needs to be updated"
+        $f.update = $true
+
+        ForEach ($child in $files.where($_.updatewith -eq $f.dll)) {
+            Log-And-Write-Output "$($child.dll): needs to be updated"
+            $child.update = $true
         }
     }
 }
 
-$run_update = $false
-if (($arc_md5_url -ne $null) -and (X-Test-Path $arc_path) -and (X-Test-Path $templates_path) -and (X-Test-Path $extras_path)) {
-    Write-Host "Checking ArcDPS MD5 Hash for changes"
+ForEach ($f in $files.where{$_.update -eq $true}) {
+    Log-And-Write-Output "$($f.dll): downloading new copy"
 
-    $current_md5 = (Get-FileHash $arc_path -Algorithm MD5).Hash
-    Write-Host "arcdps: Current MD5 Hash: $current_md5"
-    $web_md5 = Invoke-WebRequest -URI $arc_md5_url -UseBasicParsing
-    # this file has the md5sum followed by a filename
-    $web_md5 = $web_md5.toString().trim().split(" ")[0].toUpper()
-    Write-Host "arcdps: Online MD5 Hash:  $web_md5"
-
-    if ($current_md5 -ne $web_md5) {
-        $run_update = $true
-    }
-} else {
-    $run_update = $true
-}
-
-if ($run_update -eq $false) {
-    Write-Host "Current version is up to date"
-} else {
-    # If we have a copy of ArcDPS, make a new backup before overwriting
-    if (X-Test-Path $arc_path) {
-        if (X-Test-Path $arc_backup) {
-            Remove-Item $arc_backup
+    # Make a back up of the current dll before overwriting it
+    if (X-Test-Path $f.full_path) {
+        if (X-Test-Path $f.backup_path) {
+            Remove-Item $f.backup_path
         }
-        Move-Item $arc_path $arc_backup
+        Move-Item $f.full_path $f.backup_path
     }
 
-    # Also backup the templates plugin
-    if (X-Test-Path $templates_path) {
-        if (X-Test-Path $templates_backup) {
-            Remove-Item $templates_backup
-        }
-        Move-Item $templates_path $templates_backup
+    # Remove the bin64 copy
+    if (X-Test-Path $f.bin_path) {
+        Remove-Item $f.bin_path
     }
 
-    # Also backup extras
-    if (X-Test-Path $extras_path) {
-        if (X-Test-Path $extras_backup) {
-            Remove-Item $extras_backup
-        }
-        Move-Item $extras_path $extras_backup
-    }
-
-    # Remove the copy in bin64 as well
-    if (X-Test-Path $arc_bin_path) {
-        Remove-Item $arc_bin_path
-    }
-    if (X-Test-Path $templates_bin_path) {
-        Remove-Item $templates_bin_path
-    }
-    if (X-Test-Path $extras_bin_path) {
-        Remove-Item $extras_bin_path
-    }
-
-    Write-Host "Downloading new arcdps d3d9.dll"
-    Invoke-WebRequest -Uri $arc_url -UseBasicParsing -OutFile $arc_path
-    Copy-Item $arc_path $arc_bin_path
-    Write-Host "Downloading new arcdps d3d9_arcdps_build_templates.dll"
-    Invoke-WebRequest -Uri $templates_url -UseBasicParsing -OutFile $templates_path
-    Copy-Item $templates_path $templates_bin_path
-    Write-Host "Downloading new arcdps d3d9_arcdps_extras.dll"
-    Invoke-WebRequest -Uri $extras_url -UseBasicParsing -OutFile $extras_path
-    Copy-Item $extras_path $extras_bin_path
+    Invoke-WebRequest -Uri $f.url -UseBasicParsing -OutFile $f.full_path
+    Copy-Item $f.full_path $f.bin_path
 }
 
-$run_update = $false
-Write-Host "Checking d3d9_arcdps_mechanics.dll MD5 Hash for changes"
-if (X-Test-Path $mechanics_path) {
-    $current_md5 = (Get-FileHash $mechanics_path -Algorithm MD5).Hash
-    Write-Host "mechanics: Current MD5 Hash: $current_md5"
-    $web_md5 = Invoke-WebRequest -URI $mechanics_md5_url -UseBasicParsing
-    # file is just the md5sum, without a filename
-    $web_md5 = $web_md5.toString().trim().toUpper()
-    Write-Host "mechanics: Online MD5 Hash:  $web_md5"
-
-    if ($current_md5 -ne $web_md5) {
-        $run_update = $true
-    }
-} else {
-    $run_update = $true
-}
-
-if ($run_update -eq $false) {
-    Write-Host "Current d3d9_arcdps_mechanics.dll version is up to date"
-} else {
-    # If we have a copy of the mechanics dll, make a new backup before overwriting
-    if (X-Test-Path $mechanics_path) {
-        if (X-Test-Path $mechanics_backup) {
-            Remove-Item $mechanics_backup
-        }
-        Move-Item $mechanics_path $mechanics_backup
-    }
-
-    # Remove the copy in bin64 as well
-    if (X-Test-Path $mechanics_bin_path) {
-        Remove-Item $mechanics_bin_path
-    }
-
-    Write-Host "Downloading new d3d9_arcdps_mechanics.dll"
-    Invoke-WebRequest -Uri $mechanics_url -UseBasicParsing -OutFile $mechanics_path
-    Copy-Item $mechanics_path $mechanics_bin_path
-}
-
-$run_update = $false
-Write-Host "Checking d3d9_arcdps_table.dll MD5 Hash for changes"
-if (X-Test-Path $table_path) {
-    $current_md5 = (Get-FileHash $table_path -Algorithm MD5).Hash
-    Write-Host "table: Current MD5 Hash: $current_md5"
-    $web_md5 = Invoke-WebRequest -URI $table_md5_url -UseBasicParsing
-    # file is just the md5sum, without a filename
-    $web_md5 = $web_md5.toString().trim().toUpper()
-    Write-Host "table: Online MD5 Hash:  $web_md5"
-
-    if ($current_md5 -ne $web_md5) {
-        $run_update = $true
-    }
-} else {
-    $run_update = $true
-}
-
-if ($run_update -eq $false) {
-    Write-Host "Current d3d9_arcdps_table.dll version is up to date"
-} else {
-    # If we have a copy of the table dll, make a new backup before overwriting
-    if (X-Test-Path $table_path) {
-        if (X-Test-Path $table_backup) {
-            Remove-Item $table_backup
-        }
-        Move-Item $table_path $table_backup
-    }
-
-    # Remove the copy in bin64 as well
-    if (X-Test-Path $table_bin_path) {
-        Remove-Item $table_bin_path
-    }
-
-    Write-Host "Downloading new d3d9_arcdps_table.dll"
-    Invoke-WebRequest -Uri $table_url -UseBasicParsing -OutFile $table_path
-    Copy-Item $table_path $table_bin_path
-}
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUBF9qJZgF0ApfervIVfYgyVaE
-# fBCgggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/WHtgB76zfLP5NhL9xqB27Es
+# B1agggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -303,11 +161,11 @@ if ($run_update -eq $false) {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQU7+0vF21uf/BM4rJdxwnVJIiTrkUwDQYJKoZIhvcN
-# AQEBBQAEggEAri21yeigbFU+3Xyry0it/gz59fUZl9XyPEGr1pzi3B0ytfmF1pc+
-# z9EcO6rlhTDYmz5MYHNHTw2ah9nAKtvzZGvLFwlN8yBiiQbhc04IfOTDGh6ZT12B
-# tFPRMBJ+JsQFpFP0B5TiM8GQF3RcRTUAm7ki5XeUz+u2mtW/nbdcLmcryw88PjJ5
-# 0hqwQ2Kid2DGVHvOWo7+GHUOmcZufUe73ORtkld4Yd1K2119nwNxNCp2Mlk2DNpk
-# /CUAbwk0nHC2yiIM0RQsZMLF/ZJg7ompasuQJ7jEz3E+sdpOisXLixyl8Lc4rtHw
-# hZj86pI+k37LnZUxuYtucp7adzUB4azoQQ==
+# FTAjBgkqhkiG9w0BCQQxFgQUSpaI1Glwsi6nMUUFbYnVfoNpvIUwDQYJKoZIhvcN
+# AQEBBQAEggEAXnv+srr12zs63NEO8p1Y4xO3Ohji05GXE0fuCce6VL9HPjHmH74k
+# s3Bo9406awZ/23wRrv+Pm2cJY7Z7CQcrlb/Va/emPHL4SSgyCSbMSgx0yRMCQOkq
+# UR/SpQuUGA3/Yme0+FFmtCQA/Ooof1Qxfxu1MElbCsrlKllmbYeF16KOmqUnKVHi
+# BDBKSb7Jz791G6ANh2u1+wSPS61bLVOS1kSTpxfMsle4MQ20CD3rF3ledpgIAywo
+# QsjZV1Dh6RYmgNmeu3NlDvHlU/DDCBTLoOZGewmsWBmagZe5LDuo+fGdf9aGBurI
+# 2Di8/puLnOWgKTYYHYC34egYid32OpeuqA==
 # SIG # End signature block
