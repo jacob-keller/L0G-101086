@@ -46,8 +46,8 @@ if (-not $config.dll_backup_path) {
 $arc_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9.dll"
 # Path to store the templates dll
 $templates_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_buildtemplates.dll"
-# Path to store the table dll
-$table_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_table.dll"
+# Path to store the mechanics dll
+$mechanics_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_mechanics.dll"
 # Path to store the extras dll
 $extras_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_extras.dll"
 # Path to store the table dll
@@ -56,14 +56,14 @@ $table_path = Join-Path -Path $config.guildwars2_path -ChildPath "d3d9_arcdps_ta
 # Store the dlls in both the top level and \bin64 to make Gw2 Launch Buddy happy
 $arc_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9.dll"
 $templates_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_buildtemplates.dll"
-$table_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_table.dll"
+$mechanics_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_mechanics.dll"
 $extras_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_extras.dll"
 $table_bin_path = Join-Path -Path $config.guildwars2_path -ChildPath "bin64\d3d9_arcdps_table.dll"
 
 # Path to backup locations for the previous versions
 $arc_backup = Join-Path -Path $config.dll_backup_path -ChildPath "arc-d3d9.dll.back"
 $templates_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_buildtemplates.dll.back"
-$table_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_table.dll.back"
+$mechanics_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_mechanics.dll.back"
 $extras_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_extras.dll.back"
 $table_backup = Join-Path -Path $config.dll_backup_path -ChildPath "extension-d3d9_arcdps_table.dll.back"
 
@@ -79,10 +79,10 @@ $arc_md5_url = "https://www.deltaconnected.com/arcdps/x64/d3d9.dll.md5sum"
 $templates_url = "https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll"
 # URL for arc extras
 $extras_url = "https://www.deltaconnected.com/arcdps/x64/extras/d3d9_arcdps_extras.dll"
-# URL for the table plugin for Arc DPS
-$table_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll"
-# URL for the MD5 sum of the table dll
-$table_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll.md5sum"
+# URL for the mechanics plugin for Arc DPS
+$mechanics_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll"
+# URL for the MD5 sum of the mechanics dll
+$mechanics_md5_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_mechanics.dll.md5sum"
 # URL for the table plugin for Arc DPS
 $table_url = "http://martionlabs.com/wp-content/uploads/d3d9_arcdps_table.dll"
 # URL for the MD5 sum of the table dll
@@ -205,14 +205,14 @@ if ($run_update -eq $false) {
 }
 
 $run_update = $false
-Write-Host "Checking d3d9_arcdps_table.dll MD5 Hash for changes"
-if (X-Test-Path $table_path) {
-    $current_md5 = (Get-FileHash $table_path -Algorithm MD5).Hash
-    Write-Host "table: Current MD5 Hash: $current_md5"
-    $web_md5 = Invoke-WebRequest -URI $table_md5_url -UseBasicParsing
+Write-Host "Checking d3d9_arcdps_mechanics.dll MD5 Hash for changes"
+if (X-Test-Path $mechanics_path) {
+    $current_md5 = (Get-FileHash $mechanics_path -Algorithm MD5).Hash
+    Write-Host "mechanics: Current MD5 Hash: $current_md5"
+    $web_md5 = Invoke-WebRequest -URI $mechanics_md5_url -UseBasicParsing
     # file is just the md5sum, without a filename
     $web_md5 = $web_md5.toString().trim().toUpper()
-    Write-Host "table: Online MD5 Hash:  $web_md5"
+    Write-Host "mechanics: Online MD5 Hash:  $web_md5"
 
     if ($current_md5 -ne $web_md5) {
         $run_update = $true
@@ -222,24 +222,24 @@ if (X-Test-Path $table_path) {
 }
 
 if ($run_update -eq $false) {
-    Write-Host "Current d3d9_arcdps_table.dll version is up to date"
+    Write-Host "Current d3d9_arcdps_mechanics.dll version is up to date"
 } else {
-    # If we have a copy of the table dll, make a new backup before overwriting
-    if (X-Test-Path $table_path) {
-        if (X-Test-Path $table_backup) {
-            Remove-Item $table_backup
+    # If we have a copy of the mechanics dll, make a new backup before overwriting
+    if (X-Test-Path $mechanics_path) {
+        if (X-Test-Path $mechanics_backup) {
+            Remove-Item $mechanics_backup
         }
-        Move-Item $table_path $table_backup
+        Move-Item $mechanics_path $mechanics_backup
     }
 
     # Remove the copy in bin64 as well
-    if (X-Test-Path $table_bin_path) {
-        Remove-Item $table_bin_path
+    if (X-Test-Path $mechanics_bin_path) {
+        Remove-Item $mechanics_bin_path
     }
 
-    Write-Host "Downloading new d3d9_arcdps_table.dll"
-    Invoke-WebRequest -Uri $table_url -UseBasicParsing -OutFile $table_path
-    Copy-Item $table_path $table_bin_path
+    Write-Host "Downloading new d3d9_arcdps_mechanics.dll"
+    Invoke-WebRequest -Uri $mechanics_url -UseBasicParsing -OutFile $mechanics_path
+    Copy-Item $mechanics_path $mechanics_bin_path
 }
 
 $run_update = $false
@@ -282,8 +282,8 @@ if ($run_update -eq $false) {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUWiApjup1/JLWHbnTv3Vbim+f
-# mKagggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUBF9qJZgF0ApfervIVfYgyVaE
+# fBCgggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -303,11 +303,11 @@ if ($run_update -eq $false) {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUxkXRObktx05JZCSSdbBmUCB+pXUwDQYJKoZIhvcN
-# AQEBBQAEggEAY3usW8tygjm2xUOQlkxeLyICZuNQ21h2adfPps231rA92oBeDUZK
-# 8ZK7U5mBXMxlPPJlpeWdr2mWLGi/qaj000tDpG3/ILLfhZqxJr88Qu4S54QosmUU
-# tYUbVmBtL3TG6Jmc6iTzvPuKgmoDiutfW3fiq4+SD4iNZJG3cKFf6AqLRwJarnKx
-# 8ilnPOeHnfvHDc43mw4w307IpAz36llVPKjVVONPXq1tvAu3U7w6TP11nDjHjSL2
-# m/V1w/P2aALDnxkVMTN61YFGLx2PaXg1KXTKeTVwcXLvfjJ/rUKsLT46uuJ1e5VW
-# XDv/vrzGVc9iHGhAnBIQm/1fodf4sFOHyg==
+# FTAjBgkqhkiG9w0BCQQxFgQU7+0vF21uf/BM4rJdxwnVJIiTrkUwDQYJKoZIhvcN
+# AQEBBQAEggEAri21yeigbFU+3Xyry0it/gz59fUZl9XyPEGr1pzi3B0ytfmF1pc+
+# z9EcO6rlhTDYmz5MYHNHTw2ah9nAKtvzZGvLFwlN8yBiiQbhc04IfOTDGh6ZT12B
+# tFPRMBJ+JsQFpFP0B5TiM8GQF3RcRTUAm7ki5XeUz+u2mtW/nbdcLmcryw88PjJ5
+# 0hqwQ2Kid2DGVHvOWo7+GHUOmcZufUe73ORtkld4Yd1K2119nwNxNCp2Mlk2DNpk
+# /CUAbwk0nHC2yiIM0RQsZMLF/ZJg7ompasuQJ7jEz3E+sdpOisXLixyl8Lc4rtHw
+# hZj86pI+k37LnZUxuYtucp7adzUB4azoQQ==
 # SIG # End signature block
