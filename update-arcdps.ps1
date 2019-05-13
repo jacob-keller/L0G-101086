@@ -110,14 +110,14 @@ ForEach ($f in $files) {
         Log-And-Write-Output "$($f.dll): needs to be updated"
         $f.update = $true
 
-        ForEach ($child in $files.where($_.updatewith -eq $f.dll)) {
+        ForEach ($child in $files.where({$_.updatewith -eq $f.dll})) {
             Log-And-Write-Output "$($child.dll): needs to be updated"
             $child.update = $true
         }
     }
 }
 
-ForEach ($f in $files.where{$_.update -eq $true}) {
+ForEach ($f in $files.where({$_.update -eq $true})) {
     Log-And-Write-Output "$($f.dll): downloading new copy"
 
     # Make a back up of the current dll before overwriting it
