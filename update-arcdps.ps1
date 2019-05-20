@@ -55,13 +55,13 @@ $files = @(
         dll = 'd3d9_arcdps_extras.dll'
         backup = 'extension-d3d9_arcdps_extras.dll.back'
         url = 'https://www.deltaconnected.com/arcdps/x64/extras/d3d9_arcdps_extras.dll'
-        updatewith = 'ArcDPS'
+        updatewith = 'd3d9.dll'
     },
     @{
         dll = 'd3d9_arcdps_buildtemplates.dll'
         backup = 'extension-d3d9_arcdps_buildtemplates.dll.back'
         url = 'https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll'
-        updatewith = 'ArcDPS'
+        updatewith = 'd3d9.dll'
     },
     @{
         dll = 'd3d9_arcdps_mechanics.dll'
