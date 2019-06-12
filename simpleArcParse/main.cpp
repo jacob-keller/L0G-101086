@@ -423,6 +423,11 @@ static const uint16_t nikare_id                = 21105;
 static const uint16_t kenut_id                 = 21089;
 static const uint16_t qadim_id                 = 20934;
 
+/* Wing 7 IDs */
+static const uint16_t adina_id                 = 22006;
+static const uint16_t sabir_id                 = 21964;
+static const uint16_t qadim_two_id             = 22000;
+
 /* Wintersday Freezie encounter */
 static const uint16_t freezie_id               = 21333;
 
@@ -653,6 +658,15 @@ parse_header(parsed_details& details, ifstream& file)
     case qadim_id:
         details.boss_name = "Qadim";
         break;
+	case adina_id:
+		details.boss_name = "Cardinal Adina";
+		break;
+	case sabir_id:
+		details.boss_name = "Cardinal Sabir";
+		break;
+	case qadim_two_id:
+		details.boss_name = "Qadim the Peerless";
+		break;
     case freezie_id:
         details.boss_name = "Freezie";
         break;
@@ -1108,6 +1122,15 @@ detect_challenge_mote(parsed_details& details, ifstream& file)
     } else if (details.boss_id == conjured_amalgamate_id) {
         /* Conjured Amalgamate is checking for a specific buff */
         details.is_cm = CM_UNKNOWN;
+	} else if (details.boss_id == adina_id) {
+		/* Not sure how CM is checked yet */
+		details.is_cm = CM_UNKNOWN;
+	} else if (details.boss_id == sabir_id) {
+		/* Not sure how CM is checked yet */
+		details.is_cm = CM_UNKNOWN;
+	} else if (details.boss_id == qadim_two_id) {
+		/* Not sure how CM is checked yet */
+		details.is_cm = CM_UNKNOWN;
     } else {
         /* Other encounters do not have challenge motes */
         details.is_cm = CM_NO;
