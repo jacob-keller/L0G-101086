@@ -272,7 +272,7 @@ Function Check-SimpleArcParse-Version {
     param([Parameter(Mandatory)][string]$version)
 
     $expected_major_ver = 2
-    $expected_minor_ver = 0
+    $expected_minor_ver = 2
     $expected_patch_ver = 0
 
     $expected_version = "v${expected_major_ver}.${expected_minor_ver}.${expected_patch_ver}"
@@ -2262,8 +2262,8 @@ Function Complete-UploadTo-DpsReport {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUldnkz2MGOjUsX/plKAitynPo
-# F+2gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUwoedKGXrVA+7I3B2DYfDmhIr
+# F7egggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -2283,11 +2283,11 @@ Function Complete-UploadTo-DpsReport {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUZoftOKmdoJibbE5b401ZRIzRQCYwDQYJKoZIhvcN
-# AQEBBQAEggEAM9EEj32VVTgnEcMwkHbLhFFKNKaRDUTUc6sVENwPwwEJXm/Sy36/
-# YFYqdyr+7cSYznfchY7fMlOGamu4VUT007wYuDzQaWaiooMTtx/J3AMwup6Vks/D
-# PnW9l2nIchlgIW4tYUR4DM5whJEEvt4kZZ3JUcu9mO1OaPXUeg07F1N+Ia6Pcwgw
-# ABorCUUdwM+bPZqG1os789AJ0Sy9VUqFQuNZYlLUmfGRxkv/t1ptJLrDlITJcayG
-# Z1vZlHzI1Z8mathXRRGItxUaWhB/HC+BvjMlRNcF1XPYrcSTUdWPya9wJ2tNyjfe
-# y4+T35hGQwUZxgOIUBN4Aihf4IgWdnbjBg==
+# FTAjBgkqhkiG9w0BCQQxFgQUUik3+BYqKkaEIJ9vtQG6kodp/kgwDQYJKoZIhvcN
+# AQEBBQAEggEAc1cqTMq2lijZQVu5ZGtGBsIe3aoajGHu5zStL+j11kY6ojXY1zSg
+# qcjDcdqv6hjItKfdwDkGjECPjTg95SXiqYY1CXWMa3gZ2xHQm7nEWNtUJuwINe65
+# DKbZlP74jodzaYLqQUNQvFIPhcFwuqxsa7Jp8TfuedmBf3ARNTpsZV0XE17Kwn8K
+# pjhGMNyj3l939RUzq8fumoBSygccuJ+QHLGMQFo9vpPSLNAY7q0iMIUzMFMWhv7h
+# BjvXRy6X/z2pcs2uuo4U3FS250JlBR5x9ELq5qxs4nXEQGvBS9+q5F4gDu5Ckehe
+# atXeHbE3NLoyC6Bw67e0VjoNALvCnWctHg==
 # SIG # End signature block
