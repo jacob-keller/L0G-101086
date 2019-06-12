@@ -1377,6 +1377,9 @@ Function Convert-Boss-To-Wing {
                "Conjured Amalgamate"=6;
                "Largos Twins"=6;
                "Qadim"=6;
+               "Cardinal Adina"=7;
+               "Cardinal Sabir"=7;
+               "Qadim the Peerless"=7;
                "MAMA (CM)"="99cm";
                "Siax (CM)"="99cm";
                "Ensolyss (CM)"="99cm";
@@ -1410,6 +1413,10 @@ Function Get-Abbreviated-Name {
 
     if ($boss_name -eq "Conjured Amalgamate") {
         return "Amalgamate"
+    }
+
+    if ($boss_name -eq "Qadim the Peerless") {
+        return "Qadim 2"
     }
 
     if ($boss_name -eq "Skorvald the Shattered (CM)") {
@@ -2255,8 +2262,8 @@ Function Complete-UploadTo-DpsReport {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU6Qtqgk3fgl8seLCJ+3OIJtAt
-# DAygggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUldnkz2MGOjUsX/plKAitynPo
+# F+2gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -2276,11 +2283,11 @@ Function Complete-UploadTo-DpsReport {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUuGnIkzdg14H1uSZljt9ByIN3nnUwDQYJKoZIhvcN
-# AQEBBQAEggEAlycJeUziTG9/DIC9ToP7REiyBlytO6N+8VxqYOrLHL2MIuds4kPc
-# CnguVRihXJ5+ZjkLQWCFNPWoERuGiz1xlDB7wmwZwTfTiO8DB5Kans1dWHveim0q
-# I+xC1HcjOXxPw+4u5iQB7CUBlyTPbA8C0+ZVCjWh82eHf931uLa7EOv3/90h6mc+
-# R3IKhyKj8FncUAJ3OnMpN0XmQiRiHTkupgVwxZOnlAqWSvBNRzW0qo1nX1mFcCm1
-# YLSmsgm/pF45WO0EEymF3wMUh8vP1Z915jMoXkcnanweMTU4oe931YGw0VPbAwfr
-# 1PrJaP8ea6/a3qlqFcJ4i0SgqInjDB1lyg==
+# FTAjBgkqhkiG9w0BCQQxFgQUZoftOKmdoJibbE5b401ZRIzRQCYwDQYJKoZIhvcN
+# AQEBBQAEggEAM9EEj32VVTgnEcMwkHbLhFFKNKaRDUTUc6sVENwPwwEJXm/Sy36/
+# YFYqdyr+7cSYznfchY7fMlOGamu4VUT007wYuDzQaWaiooMTtx/J3AMwup6Vks/D
+# PnW9l2nIchlgIW4tYUR4DM5whJEEvt4kZZ3JUcu9mO1OaPXUeg07F1N+Ia6Pcwgw
+# ABorCUUdwM+bPZqG1os789AJ0Sy9VUqFQuNZYlLUmfGRxkv/t1ptJLrDlITJcayG
+# Z1vZlHzI1Z8mathXRRGItxUaWhB/HC+BvjMlRNcF1XPYrcSTUdWPya9wJ2tNyjfe
+# y4+T35hGQwUZxgOIUBN4Aihf4IgWdnbjBg==
 # SIG # End signature block
