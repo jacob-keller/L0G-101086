@@ -20,7 +20,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-static const string version = "v2.1.0";
+static const string version = "v2.2.0";
 
 /*
  * The following enumeration definitions were taken from the
