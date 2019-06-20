@@ -1415,10 +1415,6 @@ Function Get-Abbreviated-Name {
         return "Amalgamate"
     }
 
-    if ($boss_name -eq "Qadim the Peerless") {
-        return "Qadim 2"
-    }
-
     if ($boss_name -eq "Skorvald the Shattered (CM)") {
         return "Skorvald (CM)"
     }
@@ -2262,8 +2258,8 @@ Function Complete-UploadTo-DpsReport {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUwoedKGXrVA+7I3B2DYfDmhIr
-# F7egggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUgiaOpmIqgovcC/z0WFkvD+oZ
+# sO6gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -2283,11 +2279,11 @@ Function Complete-UploadTo-DpsReport {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUUik3+BYqKkaEIJ9vtQG6kodp/kgwDQYJKoZIhvcN
-# AQEBBQAEggEAc1cqTMq2lijZQVu5ZGtGBsIe3aoajGHu5zStL+j11kY6ojXY1zSg
-# qcjDcdqv6hjItKfdwDkGjECPjTg95SXiqYY1CXWMa3gZ2xHQm7nEWNtUJuwINe65
-# DKbZlP74jodzaYLqQUNQvFIPhcFwuqxsa7Jp8TfuedmBf3ARNTpsZV0XE17Kwn8K
-# pjhGMNyj3l939RUzq8fumoBSygccuJ+QHLGMQFo9vpPSLNAY7q0iMIUzMFMWhv7h
-# BjvXRy6X/z2pcs2uuo4U3FS250JlBR5x9ELq5qxs4nXEQGvBS9+q5F4gDu5Ckehe
-# atXeHbE3NLoyC6Bw67e0VjoNALvCnWctHg==
+# FTAjBgkqhkiG9w0BCQQxFgQULDIODyydVIB8BM3s0EsYQzI2FWAwDQYJKoZIhvcN
+# AQEBBQAEggEAfmjYT7AjAM1mIQ4/ZXCHr3Z5ohm+PEhKm9WT4xyRc91Oj46RJMuf
+# V6Ll8Mqf80n9cecJrCqiEdUPIE29Y4Q0C6Mcl4fkj8hnDs0VAQDSrhzq18qkGKus
+# bW+5Q2bSfMQNFVTWMqYS6jeH9JVNAuacdg/RzUKUXuNNvCEssrJh39dZSmZ77tiX
+# cd+oxyhnMFNipaeseehhbKvEpASR24FyfQG6MjLv7NiGd8PQg+I1yMiAPwWZYcqk
+# sPokrajktAExApzJvL7wFwnfRiCAjrtwC+s29wSiLIdBKSu8zjjxoOpHpAZtL7V1
+# 7T6GvqfEO13S2zDUEsV9x0CYZgdTW0cdXg==
 # SIG # End signature block
