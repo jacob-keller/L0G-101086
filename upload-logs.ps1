@@ -127,6 +127,8 @@ if ($total -gt 0 ) {
     Log-And-Write-Output "Found ${total} EVTC files to upload"
 }
 
+$failed_uploads = [System.Collections.ArrayList]@()
+
 # Main loop to generate and upload logs to dps.report
 ForEach($f in $files) {
     $done++
@@ -266,31 +268,40 @@ ForEach($f in $files) {
     try {
         Maybe-UploadTo-DpsReport $config $f $dir $success
     } catch {
-        Write-Exception $_
-        Log-Output "Upload to dps.report failed..."
+        Log-And-Write-Output "Upload to dps.report failed..."
 
-        # The set of files is sorted in ascending order by its last write time. This
-        # means, if we exit at the first failed file, that all files with an upload time prior
-        # to this file must have succeeded. Thus, we'll save the "last upload time" as the
-        # last update time of this file minus a little bit to ensure we attempt re-uploading it
-        # on the next run. This avoids re-uploading lots of files if we fail in the middle of
-        # a large sequence.
-        (Get-Item $f).LastWriteTime.AddSeconds(-1) | Select-Object -Property DateTime | ConvertTo-Json | Out-File -Force $last_upload_file
-        Write-Output "!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        Write-Output "Upload to dps.report failed"
-        Write-Output "!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        Read-Host -Prompt "Press enter to exit."
-        exit
+        # Update the last write time so that this file will be postponed until our next upload attempt.
+        (Get-Item $f).LastWriteTime = (Get-Date)
+
+        $failed_uploads.Add($f)
     }
 }
 
 # Save the current time as
 $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File -Force $last_upload_file
+
+if ($failed_uploads.Count -gt 0) {
+    Log-And-Write-Output "The following log files failed to upload to dps.report:"
+
+
+    # Log all of the failed uploads
+    ForEach ($f in $failed_uploads) {
+        Log-And-Write-Output "* ${f}"
+    }
+
+    Log-And-Write-Output "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    Log-And-Write-Output "This may require further inspection"
+    Log-And-Write-Output "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+
+    Read-Host -Prompt "Press enter to exit."
+    exit
+}
+
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU6HIKMYt8oQr9iwwnNEMBgH5K
-# H1qgggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUAF7/2RPpDC6dWe4KepltltJd
+# bZSgggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -310,11 +321,11 @@ $next_upload_time | Select-Object -Property DateTime| ConvertTo-Json | Out-File 
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUMZKUixdrxSYV9PCJ8MRYjAvwKKAwDQYJKoZIhvcN
-# AQEBBQAEggEAfCAVTgEyutOWPlQhtUTbsZ6qrUGATXFYSk5FyYsc4jjH+kbNSCDX
-# tp0g8QBnZja9zVeLG0Yuvk15wXUFxTgzHrHL8cU1az6UMR3oqdw4ot1wN7mJynkR
-# uBtpu6W5DSjpdQdBH9RStM4KgUJFVysTCTAV2Qn4jv5FB3i+FDmZE9xV96rYDK5D
-# Dhtht2uRKC+WM2rP56ZT2M24MIFtU4DDCJaFM4cUNQIz1qJpFsxdGbkh64cyfReO
-# kWOwSDFUXnegePr91ORT3vPq+/3Zmo70Yy/iTryKXIxsIOjyjV1Uw6v4wHBQ5SLr
-# qHNUIPH25hLosLRTs6yGzwQq19TiKcdbsw==
+# FTAjBgkqhkiG9w0BCQQxFgQUbHPTieu/eY/sL+Tp4DhMOOp/e+4wDQYJKoZIhvcN
+# AQEBBQAEggEAGaUxahayAoiXTu/VSzdhJNZdHTZy4Ce0Z5wDfE2ct9IaVNHEuwlz
+# PkVR85ol5GPLNwG8VegXqCh8M7NwqcDhA9iMV86ThY4c+H2S2JW82GAGhlsUCoY2
+# bXCl9SxU8syxwH5Ty812WpAXO6LrqhAvCVAvnuPpBLh1NdkOlTzHuGTk3N/XA3AV
+# /xkWZaMWjCPJ3CMKwHsVuWmk1NgNHWn7bhyxPn9ttzhOGcctW6Hw4JHg2AXifXZN
+# TK2gwpJlT6KgzMgsV4aACsFF9aPx+1KpUus9V8bQVNkLz+zYUVoP49qSHoLkeRj7
+# 9JXbXKtZ4h+2O28BjhEVK8fbahfDIbFlTQ==
 # SIG # End signature block
