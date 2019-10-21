@@ -57,12 +57,12 @@ $files = @(
         url = 'https://www.deltaconnected.com/arcdps/x64/extras/d3d9_arcdps_extras.dll'
         updatewith = 'd3d9.dll'
     },
-    @{
-        dll = 'd3d9_arcdps_buildtemplates.dll'
-        backup = 'extension-d3d9_arcdps_buildtemplates.dll.back'
-        url = 'https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll'
-        updatewith = 'd3d9.dll'
-    },
+#    @{
+#        dll = 'd3d9_arcdps_buildtemplates.dll'
+#        backup = 'extension-d3d9_arcdps_buildtemplates.dll.back'
+#        url = 'https://www.deltaconnected.com/arcdps/x64/buildtemplates/d3d9_arcdps_buildtemplates.dll'
+#        updatewith = 'd3d9.dll'
+#    },
     @{
         dll = 'd3d9_arcdps_mechanics.dll'
         backup = 'extension-d3d9_arcdps_mechanics.dll.back'
@@ -140,8 +140,8 @@ ForEach ($f in $files.where{$_.update -eq $true}) {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUPGGn/cTmg9lpnGzbFPHX4OD+
-# DrKgggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1rUls4H8jS1F83knkpivlzOq
+# Qh2gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -161,11 +161,11 @@ ForEach ($f in $files.where{$_.update -eq $true}) {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUVjOA2lUg1TylRdAcdmhXvUKGHxUwDQYJKoZIhvcN
-# AQEBBQAEggEAk22L8QgwKoL0k5BuuAWzQ2+1TwP6R5GGvJl/QE1ZkSlm2/0d0boO
-# 2Xq+6YnjINE39tKbwGbhJQgS6erjcwLEwfYBPLTnenJf3Ieudhzd+JEIj1vj5c++
-# SlfFjfrSD3+JtrG6UFR1lXIa10ZxmXdmcNvjvfJanea2fWMTiKxxB9/Z/qfZxLsr
-# NCgZZi0MXwd/2jHphAR5Tq6y/4pjg/fNxu1aLcQltoW5anysC12SkQnDGxrZabNS
-# d+WyfOPdhfZVq5OoydJW02vpnwaiRLuHEWD4K4YG99rd1HVrxQiq3Z9w5j2LhZ1h
-# Bq6xNUJlYuo6rYBcRQL0v1SiuGpD7fUiwg==
+# FTAjBgkqhkiG9w0BCQQxFgQUvJRU6A5I8VJp6g2YZ9x5pDsx2R4wDQYJKoZIhvcN
+# AQEBBQAEggEADi5YOwqTDlHZrConxQVsy2CQ/VLAZjlIBcYYWHW5pCBYJ0WiKRTJ
+# OvXbssQUcQdv8wXC/vJRBMCo6L5Xg/T6DEArmgxL5fXrLe9pAeB2Abro4LgHRZun
+# /LFYn6Yhbpt/YCLS+2XeOrWwNyE3Ji8jkeTs4BhTcS0F34rV7ellDArmd/FzyU8J
+# apsgA8rB61nYkmzRywkMzac512BHqdVV88UursU7S6EOgsWXdMgjWb54l3ya7i9/
+# 0GspQk6+A4Amg6p1NnfsPujyzfhqg5SCEgxbvdIYpl1Lk/eHilcYljLq1T1hJ9kD
+# vaduYIbuGQHuIx1BWcB045MyiaXJir3Hqg==
 # SIG # End signature block
