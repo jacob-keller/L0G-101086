@@ -1648,7 +1648,7 @@ Function Publish-Discord-Embed {
           [Parameter(Mandatory)][string]$embed_string)
 
     # Send this request to the discord webhook
-    Invoke-RestMethod -Uri $guild.webhook_url -Method Post -Body $embed_string
+    Invoke-RestMethod -Uri $guild.webhook_url -Method Post -Body $embed_string -ContentType 'application/json'
 }
 
 <#
