@@ -1366,32 +1366,84 @@ Function Convert-Boss-To-Wing {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$boss_name)
 
-    $wings = @{"Vale Guardian"=1;
+    $wings = @{### Raids
+               # Wing 1
+               "Vale Guardian"=1;
                "Gorseval"=1;
                "Sabetha"=1;
+               # Wing 2
                "Slothasor"=2;
                "Bandit Trio"=2;
                "Matthias"=2;
+               # Wing 3
                "Keep Construct"=3;
                "Xera"=3;
+               # Wing 4
                "Cairn"=4;
                "Mursaat Overseer"=4;
                "Samarog"=4;
                "Deimos"=4;
+               # Wing 5
                "Soulless Horror"=5;
                "Dhuum"=5;
+               # Wing 6
                "Conjured Amalgamate"=6;
                "Largos Twins"=6;
                "Qadim"=6;
+               # Wing 7
                "Cardinal Adina"=7;
                "Cardinal Sabir"=7;
                "Qadim the Peerless"=7;
+               ### Fractal names
+               # 99 CM
                "MAMA (CM)"="99cm";
                "Siax (CM)"="99cm";
                "Ensolyss (CM)"="99cm";
+               # 100 CM
                "Skorvald (CM)"="100cm";
                "Artsariiv (CM)"="100cm";
-               "Arkk (CM)"="100cm";}
+               "Arkk (CM)"="100cm";
+               # Aquatic Ruins
+               "Jellyfish Beast"="Aquatic Ruins";
+               # Mai Trin Boss
+               "Inquest Technician"="Mai Trin Boss";
+               "Mai Trin"="Mai Trin Boss";
+               # Chaos Isles
+               "Brazen Gladiator"="Chaos Isles";
+               # Cliffside
+               "Archdiviner"="Cliffside";
+               # Molten Boss
+               "Molten Effigy"="Molten Boss";
+               # Nightmare
+               "MAMA"="Nightmare";
+               "Siax the Unclean"="Nightmare";
+               "Ensolyss"="Nightmare";
+               # Shattered Observatory
+               "Skorvald the Shattered"="Shattered Observatory";
+               # Snowblind
+               "Svanir Shaman"="Snowblind";
+               # Solid Ocean
+               "The Jade Maw"="Solid Ocean";
+               # Swampland
+               "Mossman"="Swampland";
+               "Bloomhunger"="Swampland";
+               # Thaumanova Reactor
+               "Subject 6"="Thaumanova Reactor";
+               "Thaumanova Anomaly"="Thaumanova Reactor";
+               # Underground Facility
+               "Rabsovich"="Underground Facility";
+               "Rampaging Ice Elemental"="Underground Facility";
+               "Dredge Powersuit"="Underground Facility";
+               # Urban Battleground
+               "Seigemaster Dulfy"="Urban Battleground";
+               "Captain Ashym"="Urban Battleground";
+               # Volcanic
+               "Grawl Shaman"="Volcanic";
+               "Imbued Shaman"="Volcanic";
+               # Uncategorized
+               "Uncategorized Champions"="Uncategorized";
+               "Old Tom"   ="Uncategorized";
+               "Raving Asura"  ="Uncategorized";}
 
     try {
         return $wings[$boss_name];
