@@ -387,73 +387,78 @@ static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision)
     return cbtevent_sizes[revision];
 }
 
-/* Wing 1  IDs */
-static const uint16_t vale_guardian_id         = 0x3C4E;
-static const uint16_t gorseval_id              = 0x3C45;
-static const uint16_t sabetha_id               = 0x3C0F;
+enum cm_type {
+    CM_UNKNOWN,
+    CM_HEALTH_BASED,
+    CM_NO,
+    CM_YES,
+};
 
-/* Wing 2 IDs */
-static const uint16_t slothasor_id             = 0x3EFB;
-static const uint16_t trio_id1                 = 0x3ED8;
-static const uint16_t trio_id2                 = 0x3F09;
-static const uint16_t trio_id3                 = 0x3EFD;
-static const uint16_t matthias_id              = 0x3EF3;
+struct encounter_info {
+    const char *name;
+    enum cm_type cm;
+    uint64_t health_threshold;
+};
 
-/* Wing 3 IDs */
-static const uint16_t keep_construct_id        = 0x3F6B;
-static const uint16_t xera_id1                 = 0x3F76;
-static const uint16_t xera_id2                 = 0x3F9E;
-
-/* Wing 4 IDs */
-static const uint16_t cairn_id                 = 0x432A;
-static const uint16_t overseer_id              = 0x4314;
-static const uint16_t samarog_id               = 0x4324;
-static const uint16_t deimos_id                = 0x4302;
-
-/* Wing 5 IDs */
-static const uint16_t horror_id                = 0x4d37;
-static const uint16_t rainbow_road_id          = 0x4d74;
-static const uint16_t broken_king_id           = 0x4ceb;
-static const uint16_t soul_eater_id            = 0x4c50;
-static const uint16_t eye_of_judgement_id      = 0x4cc3;
-static const uint16_t eye_of_fate_id           = 0x4d84;
-static const uint16_t dhuum_id                 = 0x4bfa;
-
-/* Wing 6 IDs */
-static const uint16_t conjured_amalgamate_id   = 43974;
-static const uint16_t nikare_id                = 21105;
-static const uint16_t kenut_id                 = 21089;
-static const uint16_t qadim_id                 = 20934;
-
-/* Wing 7 IDs */
-static const uint16_t adina_id                 = 22006;
-static const uint16_t sabir_id                 = 21964;
-static const uint16_t qadim_two_id             = 22000;
-
-/* Wintersday Freezie encounter */
-static const uint16_t freezie_id               = 21333;
-
-/* Fractal 99 CM boss encounters */
-static const uint16_t mama_cm_id               = 0x427d;
-static const uint16_t siax_cm_id               = 0x4284;
-static const uint16_t ensolyss_cm_id           = 0x4234;
-
-/* Fractal 100 CM boss encounters */
-static const uint16_t skorvald_cm_id           = 0x44e0;
-static const uint16_t artsariiv_cm_id          = 0x461d;
-static const uint16_t arkk_cm_id               = 0x455f;
-
-/* Training Golem NPCs */
-static const uint16_t vital_kitty_id           = 0x3f46;
-static const uint16_t average_kitty_id         = 0x3f31;
-static const uint16_t standard_kitty_id        = 0x3f47;
-static const uint16_t vital_massive_kitty_id   = 0x3f29;
-static const uint16_t average_massive_kitty_id = 0x3f4a;
-static const uint16_t weak_massive_kitty_id    = 0x3f32;
-static const uint16_t tough_kitty_id           = 0x3f2e;
-static const uint16_t resistant_kitty_id       = 0x3f30;
-static const uint16_t average_large_kitty_id   = 0x4cdc;
-static const uint16_t average_medium_kitty_id  = 0x4cbd;
+static const std::map<uint16_t, struct encounter_info> all_encounter_info = {
+    /* Raid Wing 1 */
+    {0x3C4E, {"Vale Guardian", CM_NO, 0}},
+    {0x3C45, {"Gorseval", CM_NO, 0}},
+    {0x3C0F, {"Sabetha", CM_NO, 0}},
+    /* Raid Wing 2 */
+    {0x3EFB, {"Slothasor", CM_NO, 0}},
+    {0x3ED8, {"Bandit Trio", CM_NO, 0}},
+    {0x3F09, {"Bandit Trio", CM_NO, 0}},
+    {0x3EFD, {"Bandit Trio", CM_NO, 0}},
+    {0x3EF3, {"Matthias", CM_NO, 0}},
+    /* Raid Wing 3 */
+    {0x3F6B, {"Keep Construct", CM_NO, 0}},
+    {0x3F76, {"Xera", CM_NO, 0}},
+    {0x3F9E, {"Xera", CM_NO, 0}},
+    /* Raid Wing 4 */
+    {0x432A, {"Cairn", CM_UNKNOWN, 0}},
+    {0x4314, {"Mursaat Overseer", CM_HEALTH_BASED, 25000000}},
+    {0x4324, {"Samarog", CM_HEALTH_BASED, 35000000}},
+    {0x4302, {"Deimos", CM_HEALTH_BASED, 40000000}},
+    /* Raid Wing 5 */
+    {0x4d37, {"Soulless Horror", CM_UNKNOWN, 0}},
+    {0x4d74, {"Rainbow Road", CM_NO, 0}},
+    {0x4ceb, {"Broken King", CM_NO, 0}},
+    {0x4c50, {"Soul Eater", CM_NO, 0}},
+    {0x4cc3, {"Eye of Judgement", CM_NO, 0}},
+    {0x4d84, {"Eye of Fate", CM_NO, 0}},
+    {0x4bfa, {"Dhuum", CM_HEALTH_BASED, 35000000}},
+    /* Raid Wing 6 */
+    {0xabc6, {"Conured Amalgamate"}},
+    {0x5271, {"Largos Twins", CM_HEALTH_BASED, 18000000}},
+    {0x5261, {"Largos Twins", CM_HEALTH_BASED, 18000000}},
+    {0x51c6, {"Qadim", CM_HEALTH_BASED, 21000000}},
+    /* Raid Wing 7 */
+    {0x55f6, {"Cardinal Adina", CM_UNKNOWN, 0}},
+    {0x55cc, {"Cardinal Sabir", CM_UNKNOWN, 0}},
+    {0x55f0, {"Qadim the Peerless", CM_UNKNOWN, 0}},
+    /* Winter Strike Mission */
+    {0x5355, {"Freezie", CM_NO, 0}},
+    /* Fractal 99 CM */
+    {0x427d, {"MAMA (CM)", CM_NO, 0}},
+    {0x4284, {"Siax (CM)", CM_NO, 0}},
+    {0x4234, {"Ensolyss (CM)", CM_NO, 0}},
+    /* Fractal 100 CM */
+    {0x44e0, {"Skorvald the Shattered (CM)", CM_NO, 0}},
+    {0x461d, {"Artsariiv (CM)", CM_NO, 0}},
+    {0x455f, {"Arkk (CM)", CM_NO, 0}},
+    /* Training Golems */
+    {0x3f46, {"Vital Kitty Golem (10m HP)", CM_NO, 0}},
+    {0x3f31, {"Average Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x3f47, {"Standard Kitty Golem (1m HP)", CM_NO, 0}},
+    {0x3f29, {"Massive Kitty Golem (10m HP)", CM_NO, 0}},
+    {0x3f4a, {"Massive Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x3f32, {"Massive Kitty Golem (1m HP)", CM_NO, 0}},
+    {0x3f2e, {"Tough Kitty Golem", CM_NO, 0}},
+    {0x3f30, {"Resistant Kitty Golem", CM_NO, 0}},
+    {0x4cdc, {"Large Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x4cbd, {"Medium Kitty Golem (4m HP)", CM_NO, 0}},
+};
 
 static const uint64_t arcdps_src_agent = 0x637261;
 
@@ -478,12 +483,6 @@ struct player_details {
     struct evtc_guid guid;
 };
 
-enum is_boss_cm {
-    CM_UNKNOWN,
-    CM_NO,
-    CM_YES,
-};
-
 struct parsed_details {
     /* Metadata */
     uint32_t agent_count;
@@ -495,10 +494,9 @@ struct parsed_details {
     char arc_header[13];
     uint8_t revision;
     uint16_t boss_id;
-    string boss_name;
+    struct encounter_info boss_info;
     uint64_t boss_src_agent;
     uint64_t boss_maxhealth;
-    enum is_boss_cm is_cm;
     uint32_t server_start;
     uint32_t server_end;
     uint64_t precise_last_event;
@@ -564,147 +562,16 @@ parse_header(parsed_details& details, ifstream& file)
 
     /* extract the area id */
     memcpy(&details.boss_id, &raw_header[13], sizeof(uint16_t));
+    auto iter = all_encounter_info.find(details.boss_id);
 
-    switch (details.boss_id) {
-    case vale_guardian_id:
-        details.boss_name = "Vale Guardian";
-        break;
-    case gorseval_id:
-        details.boss_name = "Gorseval";
-        break;
-    case sabetha_id:
-        details.boss_name = "Sabetha";
-        break;
-    case slothasor_id:
-        details.boss_name = "Slothasor";
-        break;
-    case trio_id1:
-    case trio_id2:
-    case trio_id3:
-        details.boss_name = "Bandit Trio";
-        break;
-    case matthias_id:
-        details.boss_name = "Matthias";
-        break;
-    case keep_construct_id:
-        details.boss_name = "Keep Construct";
-        break;
-    case xera_id1:
-    case xera_id2:
-        details.boss_name = "Xera";
-        break;
-    case cairn_id:
-        details.boss_name = "Cairn";
-        break;
-    case overseer_id:
-        details.boss_name = "Mursaat Overseer";
-        break;
-    case samarog_id:
-        details.boss_name = "Samarog";
-        break;
-    case deimos_id:
-        details.boss_name = "Deimos";
-        break;
-    case horror_id:
-        details.boss_name = "Soulless Horror";
-        break;
-    case rainbow_road_id:
-        details.boss_name = "Rainbow Road";
-        break;
-    case broken_king_id:
-        details.boss_name = "Broken King";
-        break;
-    case soul_eater_id:
-        details.boss_name = "Soul Eater";
-        break;
-    case eye_of_fate_id:
-        details.boss_name = "Eye of Fate";
-        break;
-    case eye_of_judgement_id:
-        details.boss_name = "Eye of Judgement";
-        break;
-    case dhuum_id:
-        details.boss_name = "Dhuum";
-        break;
-    case mama_cm_id:
-        details.boss_name = "MAMA (CM)";
-        break;
-    case siax_cm_id:
-        details.boss_name = "Siax (CM)";
-        break;
-    case ensolyss_cm_id:
-        details.boss_name = "Ensolyss (CM)";
-        break;
-    case skorvald_cm_id:
-        details.boss_name = "Skorvald the Shattered (CM)";
-        break;
-    case artsariiv_cm_id:
-        details.boss_name = "Artsariiv (CM)";
-        break;
-    case arkk_cm_id:
-        details.boss_name = "Arkk (CM)";
-        break;
-    case conjured_amalgamate_id:
-        details.boss_name = "Conjured Amalgamate";
-        break;
-    case nikare_id:
-        details.boss_name = "Largos Twins";
-        break;
-    case kenut_id:
-        /* This shouldn't end up in a real evtc file, but for completeness sake... */
-        details.boss_id = nikare_id;
-        details.boss_name = "Largos Twins";
-        break;
-    case qadim_id:
-        details.boss_name = "Qadim";
-        break;
-	case adina_id:
-		details.boss_name = "Cardinal Adina";
-		break;
-	case sabir_id:
-		details.boss_name = "Cardinal Sabir";
-		break;
-	case qadim_two_id:
-		details.boss_name = "Qadim the Peerless";
-		break;
-    case freezie_id:
-        details.boss_name = "Freezie";
-        break;
-    case vital_kitty_id:
-        details.boss_name = "Vital Kitty Golem (10m HP)";
-        break;
-    case average_kitty_id:
-        details.boss_name = "Average Kitty Golem (4m HP)";
-        break;
-    case standard_kitty_id:
-        details.boss_name = "Standard Kitty Golem (1m HP)";
-        break;
-    case vital_massive_kitty_id:
-        details.boss_name = "Massive Kitty Golem (10m HP)";
-        break;
-    case average_massive_kitty_id:
-        details.boss_name = "Massive Kitty Golem (4m HP)";
-        break;
-    case weak_massive_kitty_id:
-        details.boss_name = "Massive Kitty Golem (1m HP)";
-        break;
-    case average_large_kitty_id:
-        details.boss_name = "Large Kitty Golem (4m HP)";
-        break;
-    case average_medium_kitty_id:
-        details.boss_name = "Medium Kitty Golem (4m HP)";
-    case tough_kitty_id:
-        details.boss_name = "Tough Kitty Golem";
-        break;
-    case resistant_kitty_id:
-        details.boss_name = "Resistant Kitty Golem";
-        break;
-
-    default:
+    if (iter != all_encounter_info.end()) {
+        details.boss_info = iter->second;
+    } else {
         std::stringstream ss;
         ss << "Unknown encounter " << details.boss_id;
-        details.boss_name = std::move(ss.str().c_str());
-        break;
+        details.boss_info.name = std::move(ss.str().c_str());
+        details.boss_info.cm = CM_UNKNOWN;
+        details.boss_info.health_threshold = 0;
     }
 
     return 0;
@@ -1066,74 +933,21 @@ parse_all_cbt_events(parsed_details& details, ifstream& file)
 }
 
 /**
- * detect_challenge_mote: Detect if the encounter was a challenge mote
+ * detect_health_based_cm - Detect CM status based on maximum health
  * @details: structure to store EVTC data
- * @file: the file to scan
  *
- * Using data already scanned about the encounter, determine if the evtc
- * file represents a challenge mote encounter or not. If we are unable
- * to determine this accurately, set is_cm to CM_UNKNOWN.
+ * Using the maximum health data and boss info already gathered, update
+ * the CM status depending on the maximum health found.
  */
 static void
-detect_challenge_mote(parsed_details& details, ifstream& file)
+detect_health_based_cm(parsed_details& details)
 {
-    if (details.boss_id == nikare_id) {
-        if (details.boss_maxhealth > 18000000) {
-            details.is_cm = CM_YES;
+    if (details.boss_info.cm == CM_HEALTH_BASED) {
+        if (details.boss_maxhealth < details.boss_info.health_threshold) {
+            details.boss_info.cm = CM_NO;
         } else {
-            details.is_cm = CM_NO;
+            details.boss_info.cm = CM_YES;
         }
-    } else if (details.boss_id == overseer_id) {
-        if (details.boss_maxhealth > 25000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == deimos_id) {
-        if (details.boss_maxhealth > 40000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == samarog_id) {
-        if (details.boss_maxhealth > 30000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == dhuum_id) {
-        if (details.boss_maxhealth > 35000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == qadim_id) {
-        if (details.boss_maxhealth > 21000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == cairn_id) {
-        /* Cairn CM is detected by checking for a specific skill */
-        details.is_cm = CM_UNKNOWN;
-    } else if (details.boss_id == horror_id) {
-        /* Soulless Horor CM is detected by checking the necrosis debuff */
-        details.is_cm = CM_UNKNOWN;
-    } else if (details.boss_id == conjured_amalgamate_id) {
-        /* Conjured Amalgamate is checking for a specific buff */
-        details.is_cm = CM_UNKNOWN;
-	} else if (details.boss_id == adina_id) {
-		/* Not sure how CM is checked yet */
-		details.is_cm = CM_UNKNOWN;
-	} else if (details.boss_id == sabir_id) {
-		/* Not sure how CM is checked yet */
-		details.is_cm = CM_UNKNOWN;
-	} else if (details.boss_id == qadim_two_id) {
-		/* Not sure how CM is checked yet */
-		details.is_cm = CM_UNKNOWN;
-    } else {
-        /* Other encounters do not have challenge motes */
-        details.is_cm = CM_NO;
     }
 }
 
@@ -1157,9 +971,10 @@ output_json(parsed_details& details)
     data["header"]["revision"] = details.revision;
 
     /* Boss information */
-    data["boss"]["name"] = details.boss_name;
+    data["boss"]["name"] = details.boss_info.name;
     data["boss"]["id"] = details.boss_id;
-    switch (details.is_cm) {
+
+    switch (details.boss_info.cm) {
     case CM_NO:
         data["boss"]["is_cm"] = "NO";
         break;
@@ -1168,6 +983,9 @@ output_json(parsed_details& details)
         break;
     case CM_UNKNOWN:
         data["boss"]["is_cm"] = "UNKNOWN";
+        break;
+    case CM_HEALTH_BASED:
+        data["boss"]["is_cm"] = "INVALID";
         break;
     }
 
@@ -1299,8 +1117,8 @@ int main(int argc, char *argv[])
                                                 details.cbt_event_count - 1);
     details.precise_last_event = event_details.time();
 
-    /* Extract the boss maximum health */
-    detect_challenge_mote(details, evtc_file);
+    /* Detect CM status based on health */
+    detect_health_based_cm(details);
 
     /* Use the most appropriate ending time available */
     if (details.precise_reward_time) {
@@ -1314,7 +1132,7 @@ int main(int argc, char *argv[])
     /* Handle the various output requests */
     if (type == "header") {
         cout << details.arc_header << endl;
-        cout << details.boss_name << endl;
+        cout << details.boss_info.name << endl;
         cout << details.boss_id << endl;
     } else if (type == "revision") {
         cout << +details.revision << endl;
@@ -1336,7 +1154,7 @@ int main(int argc, char *argv[])
     } else if (type == "boss_maxhealth") {
         cout << details.boss_maxhealth << endl;
     } else if (type == "is_cm") {
-        switch (details.is_cm) {
+        switch (details.boss_info.cm) {
         case CM_NO:
             cout << "NO" << endl;
             break;
@@ -1344,6 +1162,7 @@ int main(int argc, char *argv[])
             cout << "YES" << endl;
             break;
         case CM_UNKNOWN:
+        case CM_HEALTH_BASED:
         default:
             cout << "UNKNOWN" << endl;
             break;
