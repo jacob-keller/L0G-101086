@@ -1796,7 +1796,7 @@ Function Format-And-Publish-Some {
     # Add a final field as the set of players.
     if ($participants) {
         $fields += [PSCustomObject]@{
-            name = "@EMDASH@ Raiders @EMDASH@"
+            name = "@EMDASH@ Players @EMDASH@"
             value = "${participants}"
         }
     }
