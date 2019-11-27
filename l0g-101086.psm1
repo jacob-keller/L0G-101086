@@ -1695,8 +1695,6 @@ Function Format-And-Publish-Some {
 
     $emoji_map = $guild.emoji_map
 
-    Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
-
     # Calculate total duration timespan for this set of bosses
     $some_bosses = $some_bosses | Sort-Object -Property {$_.start_time}
     $span = New-TimeSpan -Start $some_bosses[0].start_time -End $some_bosses[-1].end_time
@@ -1724,6 +1722,8 @@ Function Format-And-Publish-Some {
     if ($some_bosses.Count -eq 0) {
         return
     }
+
+    Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
 
     # Determine if we want to add durations. By default we will, unless they are
     # explicitely disabled in the guild configuration.
