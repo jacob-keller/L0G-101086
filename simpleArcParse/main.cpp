@@ -20,7 +20,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-static const string version = "v2.2.0";
+static const string version = "v2.3.0";
 
 /*
  * The following enumeration definitions were taken from the
@@ -447,6 +447,52 @@ static const std::map<uint16_t, struct encounter_info> all_encounter_info = {
     {0x44e0, {"Skorvald the Shattered (CM)", CM_NO, 0}},
     {0x461d, {"Artsariiv (CM)", CM_NO, 0}},
     {0x455f, {"Arkk (CM)", CM_NO, 0}},
+    /* Aquatic Ruins Fractal */
+    {0x2C8A, {"Jellyfish Beast", CM_NO, 0}},
+    /* Captain Mai Trin Boss */
+    {0x4263, {"Champion Inquest Technician", CM_NO, 0}},
+    {0x2fea, {"Mai Trin", CM_NO, 0}},
+    /* Chaos Isles Fractal */
+    {0x40E9, {"Brazen Gladiator", CM_NO, 0}},
+    /* Cliffside Fractal */
+    {0x2C20, {"Archdiviner", CM_NO, 0}},
+    /* Molten Boss */
+    {0x325E, {"Molten Effigy", CM_NO, 0}},
+    /* Nightmare */
+    {0x4268, {"MAMA", CM_NO, 0}},
+    {0x4215, {"Siax the Unclean", CM_NO, 0}},
+    {0x429B, {"Ensolyss", CM_NO, 0}},
+    /* Shattered Observatory */
+    {0x44E0, {"Skorvald the Shattered", CM_NO, 0}},
+    /* Snowblind */
+    {0x2C45, {"Svanir Shaman", CM_NO, 0}},
+    /* Solid Ocean */
+    {0x2BF6, {"The Jade Maw", CM_NO, 0}},
+    /* Swampland */
+    {0x2C00, {"Mossman", CM_NO, 0}},
+    {0x2C01, {"Bloomhunger", CM_NO, 0}},
+    /* Thaumanova Reactor */
+    {0x3268, {"Subject 6", CM_NO, 0}},
+    {0x326A, {"Thaumanova Anomaly", CM_NO, 0}},
+    /* Underground Facility */
+    {0x2BE9, {"Rabsovich", CM_NO, 0}},
+    {0x2BE8, {"Rampaging Ice Elemental", CM_NO, 0}},
+    {0x2BE7, {"Dredge Powersuit", CM_NO, 0}},
+    /* Urban Battleground */
+    {0x2C9D, {"Siegemaster Dulfy", CM_NO, 0}},
+    {0x2C90, {"Captain Ashym", CM_NO, 0}},
+    /* Volcanic */
+    {0x2CDC, {"Grawl Shaman", CM_NO, 0}},
+    {0x2CDD, {"Imbued Shaman", CM_NO, 0}},
+    /* Uncategorized */
+    {0x2C41, {"Uncategorized Champions", CM_NO, 0}},
+    {0x2C44, {"Uncategorized Champions", CM_NO, 0}},
+    {0x2C43, {"Uncategorized Champions", CM_NO, 0}},
+    {0x2C3A, {"Old Tom", CM_NO, 0}},
+    {0x2C3D, {"Raving Asura", CM_NO, 0}},
+    {0x2C3C, {"Raving Asura", CM_NO, 0}},
+    {0x2C3E, {"Raving Asura", CM_NO, 0}},
+    {0x2C3F, {"Raving Asura", CM_NO, 0}},
     /* Training Golems */
     {0x3f46, {"Vital Kitty Golem (10m HP)", CM_NO, 0}},
     {0x3f31, {"Average Kitty Golem (4m HP)", CM_NO, 0}},
