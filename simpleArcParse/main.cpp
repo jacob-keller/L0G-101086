@@ -20,7 +20,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-static const string version = "v2.2.0";
+static const string version = "v2.3.0";
 
 /*
  * The following enumeration definitions were taken from the
@@ -40,66 +40,66 @@ enum iff {
 
 /* combat result (physical) */
 enum cbtresult {
-    CBTR_NORMAL, // good physical hit
-    CBTR_CRIT, // physical hit was crit
-    CBTR_GLANCE, // physical hit was glance
-    CBTR_BLOCK, // physical hit was blocked eg. mesmer shield 4
-    CBTR_EVADE, // physical hit was evaded, eg. dodge or mesmer sword 2
-    CBTR_INTERRUPT, // physical hit interrupted something
-    CBTR_ABSORB, // physical hit was "invlun" or absorbed eg. guardian elite
-    CBTR_BLIND, // physical hit missed
+    CBTR_NORMAL,      // good physical hit
+    CBTR_CRIT,        // physical hit was crit
+    CBTR_GLANCE,      // physical hit was glance
+    CBTR_BLOCK,       // physical hit was blocked eg. mesmer shield 4
+    CBTR_EVADE,       // physical hit was evaded, eg. dodge or mesmer sword 2
+    CBTR_INTERRUPT,   // physical hit interrupted something
+    CBTR_ABSORB,      // physical hit was "invlun" or absorbed eg. guardian elite
+    CBTR_BLIND,       // physical hit missed
     CBTR_KILLINGBLOW, // hit was killing hit
-    CBTR_DOWNED, // hit was downing hit
+    CBTR_DOWNED,      // hit was downing hit
 };
 
 /* combat activation */
 enum cbtactivation {
-    ACTV_NONE, // not used - not this kind of event
-    ACTV_NORMAL, // started skill activation without quickness
-    ACTV_QUICKNESS, // started skill activation with quickness
-    ACTV_CANCEL_FIRE, // stopped skill activation with reaching tooltip time
+    ACTV_NONE,          // not used - not this kind of event
+    ACTV_NORMAL,        // started skill activation without quickness
+    ACTV_QUICKNESS,     // started skill activation with quickness
+    ACTV_CANCEL_FIRE,   // stopped skill activation with reaching tooltip time
     ACTV_CANCEL_CANCEL, // stopped skill activation without reaching tooltip time
-    ACTV_RESET // animation completed fully
+    ACTV_RESET          // animation completed fully
 };
 
 /* combat state change */
 enum cbtstatechange {
-    CBTS_NONE, // not used - not this kind of event
-    CBTS_ENTERCOMBAT, // src_agent entered combat, dst_agent is subgroup
-    CBTS_EXITCOMBAT, // src_agent left combat
-    CBTS_CHANGEUP, // src_agent is now alive
-    CBTS_CHANGEDEAD, // src_agent is now dead
-    CBTS_CHANGEDOWN, // src_agent is now downed
-    CBTS_SPAWN, // src_agent is now in game tracking range (not in realtime api)
-    CBTS_DESPAWN, // src_agent is no longer being tracked (not in realtime api)
-    CBTS_HEALTHUPDATE, // src_agent has reached a health marker. dst_agent = percent * 10000 (eg. 99.5% will be 9950) (not in realtime api)
-    CBTS_LOGSTART, // log start. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
-    CBTS_LOGEND, // log end. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
-    CBTS_WEAPSWAP, // src_agent swapped weapon set. dst_agent = current set id (0/1 water, 4/5 land)
+    CBTS_NONE,            // not used - not this kind of event
+    CBTS_ENTERCOMBAT,     // src_agent entered combat, dst_agent is subgroup
+    CBTS_EXITCOMBAT,      // src_agent left combat
+    CBTS_CHANGEUP,        // src_agent is now alive
+    CBTS_CHANGEDEAD,      // src_agent is now dead
+    CBTS_CHANGEDOWN,      // src_agent is now downed
+    CBTS_SPAWN,           // src_agent is now in game tracking range (not in realtime api)
+    CBTS_DESPAWN,         // src_agent is no longer being tracked (not in realtime api)
+    CBTS_HEALTHUPDATE,    // src_agent has reached a health marker. dst_agent = percent * 10000 (eg. 99.5% will be 9950) (not in realtime api)
+    CBTS_LOGSTART,        // log start. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
+    CBTS_LOGEND,          // log end. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = 0x637261 (arcdps id)
+    CBTS_WEAPSWAP,        // src_agent swapped weapon set. dst_agent = current set id (0/1 water, 4/5 land)
     CBTS_MAXHEALTHUPDATE, // src_agent has had it's maximum health changed. dst_agent = new max health (not in realtime api)
-    CBTS_POINTOFVIEW, // src_agent is agent of "recording" player
-    CBTS_LANGUAGE, // src_agent is text language
-    CBTS_GWBUILD, // src_agent is game build
-    CBTS_SHARDID, // src_agent is sever shard id
-    CBTS_REWARD, // src_agent is self, dst_agent is reward id, value is reward type. these are the wiggly boxes that you get
-    CBTS_BUFFINITIAL, // combat event that will appear once per buff per agent on logging start (statechange==18, buff==18, normal cbtevent otherwise)
-    CBTS_POSITION, // src_agent changed, cast float* p = (float*)&dst_agent, access as x/y/z (float[3]) (not in realtime api)
-    CBTS_VELOCITY, // src_agent changed, cast float* v = (float*)&dst_agent, access as x/y/z (float[3]) (not in realtime api)
-    CBTS_FACING, // src_agent changed, cast float* f = (float*)&dst_agent, access as x/y (float[2]) (not in realtime api)
-    CBTS_TEAMCHANGE, // src_agent change, dst_agent new team id
-    CBTS_ATTACKTARGET, // src_agent is an attacktarget, dst_agent is the parent agent (gadget type), value is the current targetable state (not in realtime api)
-    CBTS_TARGETABLE, // dst_agent is new target-able state (0 = no, 1 = yes. default yes) (not in realtime api)
-    CBTS_MAPID, // src_agent is map id
-    CBTS_REPLINFO, // internal use, won't see anywhere
-    CBTS_STACKACTIVE, // src_agent is agent with buff, dst_agent is the stackid marked active
-    CBTS_STACKRESET, // src_agent is agent with buff, value is the duration to reset to (also marks inactive), pad61- is the stackid
-    CBTS_GUILD // src_agent is agent, dst_agent through buff_dmg is 16 byte guid (client form, needs minor rearrange for api form)
+    CBTS_POINTOFVIEW,     // src_agent is agent of "recording" player
+    CBTS_LANGUAGE,        // src_agent is text language
+    CBTS_GWBUILD,         // src_agent is game build
+    CBTS_SHARDID,         // src_agent is sever shard id
+    CBTS_REWARD,          // src_agent is self, dst_agent is reward id, value is reward type. these are the wiggly boxes that you get
+    CBTS_BUFFINITIAL,     // combat event that will appear once per buff per agent on logging start (statechange==18, buff==18, normal cbtevent otherwise)
+    CBTS_POSITION,        // src_agent changed, cast float* p = (float*)&dst_agent, access as x/y/z (float[3]) (not in realtime api)
+    CBTS_VELOCITY,        // src_agent changed, cast float* v = (float*)&dst_agent, access as x/y/z (float[3]) (not in realtime api)
+    CBTS_FACING,          // src_agent changed, cast float* f = (float*)&dst_agent, access as x/y (float[2]) (not in realtime api)
+    CBTS_TEAMCHANGE,      // src_agent change, dst_agent new team id
+    CBTS_ATTACKTARGET,    // src_agent is an attacktarget, dst_agent is the parent agent (gadget type), value is the current targetable state (not in realtime api)
+    CBTS_TARGETABLE,      // dst_agent is new target-able state (0 = no, 1 = yes. default yes) (not in realtime api)
+    CBTS_MAPID,           // src_agent is map id
+    CBTS_REPLINFO,        // internal use, won't see anywhere
+    CBTS_STACKACTIVE,     // src_agent is agent with buff, dst_agent is the stackid marked active
+    CBTS_STACKRESET,      // src_agent is agent with buff, value is the duration to reset to (also marks inactive), pad61- is the stackid
+    CBTS_GUILD            // src_agent is agent, dst_agent through buff_dmg is 16 byte guid (client form, needs minor rearrange for api form)
 };
 
 /* combat buff remove type */
 enum cbtbuffremove {
-    CBTB_NONE, // not used - not this kind of event
-    CBTB_ALL, // last/all stacks removed (sent by server)
+    CBTB_NONE,   // not used - not this kind of event
+    CBTB_ALL,    // last/all stacks removed (sent by server)
     CBTB_SINGLE, // single stack removed (sent by server). will happen for each stack on cleanse
     CBTB_MANUAL, // single stack removed (auto by arc on ooc or all stack, ignore for strip/cleanse calc, use for in/out volume)
 };
@@ -107,8 +107,8 @@ enum cbtbuffremove {
 /* custom skill ids */
 enum cbtcustomskill {
     CSK_RESURRECT = 1066, // not custom but important and unnamed
-    CSK_BANDAGE = 1175, // personal healing only
-    CSK_DODGE = 65001 // will occur in is_activation==normal event
+    CSK_BANDAGE = 1175,   // personal healing only
+    CSK_DODGE = 65001     // will occur in is_activation==normal event
 };
 
 /* language */
@@ -141,38 +141,38 @@ struct evtc_skill {
 
 /* combat event (old, when header[12] == 0) */
 struct evtc_cbtevent_v0 {
-    uint64_t time; /* timegettime() at time of event */
-    uint64_t src_agent; /* unique identifier */
-    uint64_t dst_agent; /* unique identifier */
-    int32_t value; /* event-specific */
-    int32_t buff_dmg; /* estimated buff damage. zero on application event */
-    uint16_t overstack_value; /* estimated overwritten stack duration for buff application */
-    uint16_t skillid; /* skill id */
-    uint16_t src_instid; /* agent map instance id */
-    uint16_t dst_instid; /* agent map instance id */
-    uint16_t src_master_instid; /* master source agent map instance id if source is a minion/pet */
-    uint8_t iss_offset; /* internal tracking. garbage */
-    uint8_t iss_offset_target; /* internal tracking. garbage */
-    uint8_t iss_bd_offset; /* internal tracking. garbage */
-    uint8_t iss_bd_offset_target; /* internal tracking. garbage */
-    uint8_t iss_alt_offset; /* internal tracking. garbage */
+    uint64_t time;                 /* timegettime() at time of event */
+    uint64_t src_agent;            /* unique identifier */
+    uint64_t dst_agent;            /* unique identifier */
+    int32_t value;                 /* event-specific */
+    int32_t buff_dmg;              /* estimated buff damage. zero on application event */
+    uint16_t overstack_value;      /* estimated overwritten stack duration for buff application */
+    uint16_t skillid;              /* skill id */
+    uint16_t src_instid;           /* agent map instance id */
+    uint16_t dst_instid;           /* agent map instance id */
+    uint16_t src_master_instid;    /* master source agent map instance id if source is a minion/pet */
+    uint8_t iss_offset;            /* internal tracking. garbage */
+    uint8_t iss_offset_target;     /* internal tracking. garbage */
+    uint8_t iss_bd_offset;         /* internal tracking. garbage */
+    uint8_t iss_bd_offset_target;  /* internal tracking. garbage */
+    uint8_t iss_alt_offset;        /* internal tracking. garbage */
     uint8_t iss_alt_offset_target; /* internal tracking. garbage */
-    uint8_t skar; /* internal tracking. garbage */
-    uint8_t skar_alt; /* internal tracking. garbage */
-    uint8_t skar_use_alt; /* internal tracking. garbage */
-    uint8_t iff; /* from iff enum */
-    uint8_t buff; /* buff application, removal, or damage event */
-    uint8_t result; /* from cbtresult enum */
-    uint8_t is_activation; /* from cbtactivation enum */
-    uint8_t is_buffremove; /* buff removed. src=relevant, dst=caused it (for strips/cleanses). from cbtr enum */
-    uint8_t is_ninety; /* source agent health was over 90% */
-    uint8_t is_fifty; /* target agent health was under 50% */
-    uint8_t is_moving; /* source agent was moving */
-    uint8_t is_statechange; /* from cbtstatechange enum */
-    uint8_t is_flanking; /* target agent was not facing source */
-    uint8_t is_shields; /* all or part damage was vs barrier/shield */
-    uint8_t is_offcycle; /* zero if buff dmg happened during tick, non-zero otherwise */
-    uint8_t pad64; /* internal tracking. garbage */
+    uint8_t skar;                  /* internal tracking. garbage */
+    uint8_t skar_alt;              /* internal tracking. garbage */
+    uint8_t skar_use_alt;          /* internal tracking. garbage */
+    uint8_t iff;                   /* from iff enum */
+    uint8_t buff;                  /* buff application, removal, or damage event */
+    uint8_t result;                /* from cbtresult enum */
+    uint8_t is_activation;         /* from cbtactivation enum */
+    uint8_t is_buffremove;         /* buff removed. src=relevant, dst=caused it (for strips/cleanses). from cbtr enum */
+    uint8_t is_ninety;             /* source agent health was over 90% */
+    uint8_t is_fifty;              /* target agent health was under 50% */
+    uint8_t is_moving;             /* source agent was moving */
+    uint8_t is_statechange;        /* from cbtstatechange enum */
+    uint8_t is_flanking;           /* target agent was not facing source */
+    uint8_t is_shields;            /* all or part damage was vs barrier/shield */
+    uint8_t is_offcycle;           /* zero if buff dmg happened during tick, non-zero otherwise */
+    uint8_t pad64;                 /* internal tracking. garbage */
 };
 
 /* Guild UIDs are 16byte values which are stored over the dst_agent, value,
@@ -241,22 +241,25 @@ static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision);
  * every field has the same name. A few fields have different sizes, but can be
  * easily type-casted up to the larger size.
  *
- * This macro is provided as a convenient way to define accessors for the most common
- * fields that do not need any special handling between versions. Otherwise
- * we would end up duplicating this boiler plate revision version check many times.
+ * This macro is provided as a convenient way to define accessors for the most
+ * common fields that do not need any special handling between versions.
+ * Otherwise we would end up duplicating this boiler plate revision version
+ * check many times.
  */
-#define CBTEVENT_ACCESSOR(type, field)                          \
-    type field() {                                              \
-        if (revision == cbtevent_revision_v0)                   \
-            return (type)(raw.v0.field);                        \
-        else if (revision == cbtevent_revision_v1)              \
-            return (type)(raw.v1.field);                        \
-        else                                                    \
-            throw "Invalid cbtevent revision";                  \
-    }
+#define CBTEVENT_ACCESSOR(type, field)                                         \
+  type field()                                                                 \
+  {                                                                            \
+    if (revision == cbtevent_revision_v0)                                      \
+      return (type)(raw.v0.field);                                             \
+    else if (revision == cbtevent_revision_v1)                                 \
+      return (type)(raw.v1.field);                                             \
+    else                                                                       \
+      throw "Invalid cbtevent revision";                                       \
+  }
 
 /* Abstraction of the various evtc_cbtevent versions */
-class evtc_cbtevent {
+class evtc_cbtevent
+{
 private:
     union {
         evtc_cbtevent_v0 v0;
@@ -274,7 +277,8 @@ public:
     CBTEVENT_ACCESSOR(uint32_t, value)
     CBTEVENT_ACCESSOR(uint64_t, time)
 
-    struct evtc_guid guid() {
+    struct evtc_guid guid()
+    {
         struct evtc_guid guid = {};
 
         if (revision == cbtevent_revision_v0) {
@@ -315,14 +319,13 @@ public:
  *
  * Construct an evtc_cbtevent item by reading from the given file.
  */
-evtc_cbtevent::evtc_cbtevent(ifstream& file, uint8_t revision,
+evtc_cbtevent::evtc_cbtevent(ifstream& file,
+                             uint8_t revision,
                              streampos cbt_event_start,
                              uint32_t cbtevent)
 {
     streampos event_index = cbt_event_start;
-
     event_index += cbtevent * EVTC_CBTEVENT_SIZE(revision);
-
     file.seekg(event_index);
     file.read((char *)&this->raw, EVTC_CBTEVENT_SIZE(revision));
     this->revision = revision;
@@ -382,76 +385,126 @@ static const uint32_t EVTC_CBTEVENT_SIZE(uint8_t revision)
         throw "Invalid EVTC cbtevent revision";
 
     return cbtevent_sizes[revision];
-
 }
 
-/* Wing 1  IDs */
-static const uint16_t vale_guardian_id         = 0x3C4E;
-static const uint16_t gorseval_id              = 0x3C45;
-static const uint16_t sabetha_id               = 0x3C0F;
+enum cm_type {
+    CM_UNKNOWN,
+    CM_HEALTH_BASED,
+    CM_NO,
+    CM_YES,
+};
 
-/* Wing 2 IDs */
-static const uint16_t slothasor_id             = 0x3EFB;
-static const uint16_t trio_id1                 = 0x3ED8;
-static const uint16_t trio_id2                 = 0x3F09;
-static const uint16_t trio_id3                 = 0x3EFD;
-static const uint16_t matthias_id              = 0x3EF3;
+struct encounter_info {
+    const char *name;
+    enum cm_type cm;
+    uint64_t health_threshold;
+};
 
-/* Wing 3 IDs */
-static const uint16_t keep_construct_id        = 0x3F6B;
-static const uint16_t xera_id1                 = 0x3F76;
-static const uint16_t xera_id2                 = 0x3F9E;
-
-/* Wing 4 IDs */
-static const uint16_t cairn_id                 = 0x432A;
-static const uint16_t overseer_id              = 0x4314;
-static const uint16_t samarog_id               = 0x4324;
-static const uint16_t deimos_id                = 0x4302;
-
-/* Wing 5 IDs */
-static const uint16_t horror_id                = 0x4d37;
-static const uint16_t rainbow_road_id          = 0x4d74;
-static const uint16_t broken_king_id           = 0x4ceb;
-static const uint16_t soul_eater_id            = 0x4c50;
-static const uint16_t eye_of_judgement_id      = 0x4cc3;
-static const uint16_t eye_of_fate_id           = 0x4d84;
-static const uint16_t dhuum_id                 = 0x4bfa;
-
-/* Wing 6 IDs */
-static const uint16_t conjured_amalgamate_id   = 43974;
-static const uint16_t nikare_id                = 21105;
-static const uint16_t kenut_id                 = 21089;
-static const uint16_t qadim_id                 = 20934;
-
-/* Wing 7 IDs */
-static const uint16_t adina_id                 = 22006;
-static const uint16_t sabir_id                 = 21964;
-static const uint16_t qadim_two_id             = 22000;
-
-/* Wintersday Freezie encounter */
-static const uint16_t freezie_id               = 21333;
-
-/* Fractal 99 CM boss encounters */
-static const uint16_t mama_cm_id               = 0x427d;
-static const uint16_t siax_cm_id               = 0x4284;
-static const uint16_t ensolyss_cm_id           = 0x4234;
-
-/* Fractal 100 CM boss encounters */
-static const uint16_t skorvald_cm_id           = 0x44e0;
-static const uint16_t artsariiv_cm_id          = 0x461d;
-static const uint16_t arkk_cm_id               = 0x455f;
-
-/* Training Golem NPCs */
-static const uint16_t vital_kitty_id           = 0x3f46;
-static const uint16_t average_kitty_id         = 0x3f31;
-static const uint16_t standard_kitty_id        = 0x3f47;
-static const uint16_t vital_massive_kitty_id   = 0x3f29;
-static const uint16_t average_massive_kitty_id = 0x3f4a;
-static const uint16_t weak_massive_kitty_id    = 0x3f32;
-static const uint16_t tough_kitty_id           = 0x3f2e;
-static const uint16_t resistant_kitty_id       = 0x3f30;
-static const uint16_t average_large_kitty_id   = 0x4cdc;
-static const uint16_t average_medium_kitty_id  = 0x4cbd;
+static const std::map<uint16_t, struct encounter_info> all_encounter_info = {
+    /* Raid Wing 1 */
+    {0x3C4E, {"Vale Guardian", CM_NO, 0}},
+    {0x3C45, {"Gorseval", CM_NO, 0}},
+    {0x3C0F, {"Sabetha", CM_NO, 0}},
+    /* Raid Wing 2 */
+    {0x3EFB, {"Slothasor", CM_NO, 0}},
+    {0x3ED8, {"Bandit Trio", CM_NO, 0}},
+    {0x3F09, {"Bandit Trio", CM_NO, 0}},
+    {0x3EFD, {"Bandit Trio", CM_NO, 0}},
+    {0x3EF3, {"Matthias", CM_NO, 0}},
+    /* Raid Wing 3 */
+    {0x3F6B, {"Keep Construct", CM_NO, 0}},
+    {0x3F76, {"Xera", CM_NO, 0}},
+    {0x3F9E, {"Xera", CM_NO, 0}},
+    /* Raid Wing 4 */
+    {0x432A, {"Cairn", CM_UNKNOWN, 0}},
+    {0x4314, {"Mursaat Overseer", CM_HEALTH_BASED, 25000000}},
+    {0x4324, {"Samarog", CM_HEALTH_BASED, 35000000}},
+    {0x4302, {"Deimos", CM_HEALTH_BASED, 40000000}},
+    /* Raid Wing 5 */
+    {0x4d37, {"Soulless Horror", CM_UNKNOWN, 0}},
+    {0x4d74, {"Rainbow Road", CM_NO, 0}},
+    {0x4ceb, {"Broken King", CM_NO, 0}},
+    {0x4c50, {"Soul Eater", CM_NO, 0}},
+    {0x4cc3, {"Eye of Judgement", CM_NO, 0}},
+    {0x4d84, {"Eye of Fate", CM_NO, 0}},
+    {0x4bfa, {"Dhuum", CM_HEALTH_BASED, 35000000}},
+    /* Raid Wing 6 */
+    {0xabc6, {"Conured Amalgamate"}},
+    {0x5271, {"Largos Twins", CM_HEALTH_BASED, 18000000}},
+    {0x5261, {"Largos Twins", CM_HEALTH_BASED, 18000000}},
+    {0x51c6, {"Qadim", CM_HEALTH_BASED, 21000000}},
+    /* Raid Wing 7 */
+    {0x55f6, {"Cardinal Adina", CM_UNKNOWN, 0}},
+    {0x55cc, {"Cardinal Sabir", CM_UNKNOWN, 0}},
+    {0x55f0, {"Qadim the Peerless", CM_UNKNOWN, 0}},
+    /* Winter Strike Mission */
+    {0x5355, {"Freezie", CM_NO, 0}},
+    /* Fractal 99 CM */
+    {0x427d, {"MAMA (CM)", CM_NO, 0}},
+    {0x4284, {"Siax (CM)", CM_NO, 0}},
+    {0x4234, {"Ensolyss (CM)", CM_NO, 0}},
+    /* Fractal 100 CM */
+    {0x44e0, {"Skorvald the Shattered (CM)", CM_NO, 0}},
+    {0x461d, {"Artsariiv (CM)", CM_NO, 0}},
+    {0x455f, {"Arkk (CM)", CM_NO, 0}},
+    /* Aquatic Ruins Fractal */
+    {0x2C8A, {"Jellyfish Beast", CM_NO, 0}},
+    /* Captain Mai Trin Boss */
+    {0x4263, {"Champion Inquest Technician", CM_NO, 0}},
+    {0x2fea, {"Mai Trin", CM_NO, 0}},
+    /* Chaos Isles Fractal */
+    {0x40E9, {"Brazen Gladiator", CM_NO, 0}},
+    /* Cliffside Fractal */
+    {0x2C20, {"Archdiviner", CM_NO, 0}},
+    /* Molten Boss */
+    {0x325E, {"Molten Effigy", CM_NO, 0}},
+    /* Nightmare */
+    {0x4268, {"MAMA", CM_NO, 0}},
+    {0x4215, {"Siax the Unclean", CM_NO, 0}},
+    {0x429B, {"Ensolyss", CM_NO, 0}},
+    /* Shattered Observatory */
+    {0x44E0, {"Skorvald the Shattered", CM_NO, 0}},
+    /* Snowblind */
+    {0x2C45, {"Svanir Shaman", CM_NO, 0}},
+    /* Solid Ocean */
+    {0x2BF6, {"The Jade Maw", CM_NO, 0}},
+    /* Swampland */
+    {0x2C00, {"Mossman", CM_NO, 0}},
+    {0x2C01, {"Bloomhunger", CM_NO, 0}},
+    /* Thaumanova Reactor */
+    {0x3268, {"Subject 6", CM_NO, 0}},
+    {0x326A, {"Thaumanova Anomaly", CM_NO, 0}},
+    /* Underground Facility */
+    {0x2BE9, {"Rabsovich", CM_NO, 0}},
+    {0x2BE8, {"Rampaging Ice Elemental", CM_NO, 0}},
+    {0x2BE7, {"Dredge Powersuit", CM_NO, 0}},
+    /* Urban Battleground */
+    {0x2C9D, {"Siegemaster Dulfy", CM_NO, 0}},
+    {0x2C90, {"Captain Ashym", CM_NO, 0}},
+    /* Volcanic */
+    {0x2CDC, {"Grawl Shaman", CM_NO, 0}},
+    {0x2CDD, {"Imbued Shaman", CM_NO, 0}},
+    /* Uncategorized */
+    {0x2C41, {"Uncategorized Champions", CM_NO, 0}},
+    {0x2C44, {"Uncategorized Champions", CM_NO, 0}},
+    {0x2C43, {"Uncategorized Champions", CM_NO, 0}},
+    {0x2C3A, {"Old Tom", CM_NO, 0}},
+    {0x2C3D, {"Raving Asura", CM_NO, 0}},
+    {0x2C3C, {"Raving Asura", CM_NO, 0}},
+    {0x2C3E, {"Raving Asura", CM_NO, 0}},
+    {0x2C3F, {"Raving Asura", CM_NO, 0}},
+    /* Training Golems */
+    {0x3f46, {"Vital Kitty Golem (10m HP)", CM_NO, 0}},
+    {0x3f31, {"Average Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x3f47, {"Standard Kitty Golem (1m HP)", CM_NO, 0}},
+    {0x3f29, {"Massive Kitty Golem (10m HP)", CM_NO, 0}},
+    {0x3f4a, {"Massive Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x3f32, {"Massive Kitty Golem (1m HP)", CM_NO, 0}},
+    {0x3f2e, {"Tough Kitty Golem", CM_NO, 0}},
+    {0x3f30, {"Resistant Kitty Golem", CM_NO, 0}},
+    {0x4cdc, {"Large Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x4cbd, {"Medium Kitty Golem (4m HP)", CM_NO, 0}},
+};
 
 static const uint64_t arcdps_src_agent = 0x637261;
 
@@ -463,8 +516,6 @@ static const uint32_t EVTC_AGENT_GADGET_AGENT = 0xffff0000;
 
 /* lower bits of profession indicating species id of this agent */
 static const uint32_t EVTC_AGENT_SPECIES_ID_MASK = 0x0000ffff;
-
-
 
 struct player_details {
     string character;
@@ -478,12 +529,6 @@ struct player_details {
     struct evtc_guid guid;
 };
 
-enum is_boss_cm {
-    CM_UNKNOWN,
-    CM_NO,
-    CM_YES,
-};
-
 struct parsed_details {
     /* Metadata */
     uint32_t agent_count;
@@ -495,10 +540,9 @@ struct parsed_details {
     char arc_header[13];
     uint8_t revision;
     uint16_t boss_id;
-    string boss_name;
+    struct encounter_info boss_info;
     uint64_t boss_src_agent;
     uint64_t boss_maxhealth;
-    enum is_boss_cm is_cm;
     uint32_t server_start;
     uint32_t server_end;
     uint64_t precise_last_event;
@@ -523,13 +567,13 @@ static int
 parse_header(parsed_details& details, ifstream& file)
 {
     char raw_header[16];
+
     /* The evtc file has a 16 byte header. It consists of
      * 4 bytes containing "EVTC", followed by 8 bytes
      * with a YYYYMMDD representing the arcdps build,
      * followed by a NUL byte, followed by 2 bytes holding
      * the area encounter id, followed by another NUL
      */
-
     file.seekg(SEEKG_EVTC_HEADER);
     file.read(raw_header, 16);
 
@@ -564,147 +608,16 @@ parse_header(parsed_details& details, ifstream& file)
 
     /* extract the area id */
     memcpy(&details.boss_id, &raw_header[13], sizeof(uint16_t));
+    auto iter = all_encounter_info.find(details.boss_id);
 
-    switch (details.boss_id) {
-    case vale_guardian_id:
-        details.boss_name = "Vale Guardian";
-        break;
-    case gorseval_id:
-        details.boss_name = "Gorseval";
-        break;
-    case sabetha_id:
-        details.boss_name = "Sabetha";
-        break;
-    case slothasor_id:
-        details.boss_name = "Slothasor";
-        break;
-    case trio_id1:
-    case trio_id2:
-    case trio_id3:
-        details.boss_name = "Bandit Trio";
-        break;
-    case matthias_id:
-        details.boss_name = "Matthias";
-        break;
-    case keep_construct_id:
-        details.boss_name = "Keep Construct";
-        break;
-    case xera_id1:
-    case xera_id2:
-        details.boss_name = "Xera";
-        break;
-    case cairn_id:
-        details.boss_name = "Cairn";
-        break;
-    case overseer_id:
-        details.boss_name = "Mursaat Overseer";
-        break;
-    case samarog_id:
-        details.boss_name = "Samarog";
-        break;
-    case deimos_id:
-        details.boss_name = "Deimos";
-        break;
-    case horror_id:
-        details.boss_name = "Soulless Horror";
-        break;
-    case rainbow_road_id:
-        details.boss_name = "Rainbow Road";
-        break;
-    case broken_king_id:
-        details.boss_name = "Broken King";
-        break;
-    case soul_eater_id:
-        details.boss_name = "Soul Eater";
-        break;
-    case eye_of_fate_id:
-        details.boss_name = "Eye of Fate";
-        break;
-    case eye_of_judgement_id:
-        details.boss_name = "Eye of Judgement";
-        break;
-    case dhuum_id:
-        details.boss_name = "Dhuum";
-        break;
-    case mama_cm_id:
-        details.boss_name = "MAMA (CM)";
-        break;
-    case siax_cm_id:
-        details.boss_name = "Siax (CM)";
-        break;
-    case ensolyss_cm_id:
-        details.boss_name = "Ensolyss (CM)";
-        break;
-    case skorvald_cm_id:
-        details.boss_name = "Skorvald the Shattered (CM)";
-        break;
-    case artsariiv_cm_id:
-        details.boss_name = "Artsariiv (CM)";
-        break;
-    case arkk_cm_id:
-        details.boss_name = "Arkk (CM)";
-        break;
-    case conjured_amalgamate_id:
-        details.boss_name = "Conjured Amalgamate";
-        break;
-    case nikare_id:
-        details.boss_name = "Largos Twins";
-        break;
-    case kenut_id:
-        /* This shouldn't end up in a real evtc file, but for completeness sake... */
-        details.boss_id = nikare_id;
-        details.boss_name = "Largos Twins";
-        break;
-    case qadim_id:
-        details.boss_name = "Qadim";
-        break;
-	case adina_id:
-		details.boss_name = "Cardinal Adina";
-		break;
-	case sabir_id:
-		details.boss_name = "Cardinal Sabir";
-		break;
-	case qadim_two_id:
-		details.boss_name = "Qadim the Peerless";
-		break;
-    case freezie_id:
-        details.boss_name = "Freezie";
-        break;
-    case vital_kitty_id:
-        details.boss_name = "Vital Kitty Golem (10m HP)";
-        break;
-    case average_kitty_id:
-        details.boss_name = "Average Kitty Golem (4m HP)";
-        break;
-    case standard_kitty_id:
-        details.boss_name = "Standard Kitty Golem (1m HP)";
-        break;
-    case vital_massive_kitty_id:
-        details.boss_name = "Massive Kitty Golem (10m HP)";
-        break;
-    case average_massive_kitty_id:
-        details.boss_name = "Massive Kitty Golem (4m HP)";
-        break;
-    case weak_massive_kitty_id:
-        details.boss_name = "Massive Kitty Golem (1m HP)";
-        break;
-    case average_large_kitty_id:
-        details.boss_name = "Large Kitty Golem (4m HP)";
-        break;
-    case average_medium_kitty_id:
-        details.boss_name = "Medium Kitty Golem (4m HP)";
-    case tough_kitty_id:
-        details.boss_name = "Tough Kitty Golem";
-        break;
-    case resistant_kitty_id:
-        details.boss_name = "Resistant Kitty Golem";
-        break;
-
-    default:
+    if (iter != all_encounter_info.end()) {
+        details.boss_info = iter->second;
+    } else {
         std::stringstream ss;
         ss << "Unknown encounter " << details.boss_id;
-        details.boss_name = std::move(ss.str().c_str());
-        break;
+        details.boss_info.name = std::move(ss.str().c_str());
+        details.boss_info.cm = CM_UNKNOWN;
+        details.boss_info.health_threshold = 0;
     }
 
     return 0;
@@ -1066,74 +979,21 @@ parse_all_cbt_events(parsed_details& details, ifstream& file)
 }
 
 /**
- * detect_challenge_mote: Detect if the encounter was a challenge mote
+ * detect_health_based_cm - Detect CM status based on maximum health
  * @details: structure to store EVTC data
- * @file: the file to scan
  *
- * Using data already scanned about the encounter, determine if the evtc
- * file represents a challenge mote encounter or not. If we are unable
- * to determine this accurately, set is_cm to CM_UNKNOWN.
+ * Using the maximum health data and boss info already gathered, update
+ * the CM status depending on the maximum health found.
  */
 static void
-detect_challenge_mote(parsed_details& details, ifstream& file)
+detect_health_based_cm(parsed_details& details)
 {
-    if (details.boss_id == nikare_id) {
-        if (details.boss_maxhealth > 18000000) {
-            details.is_cm = CM_YES;
+    if (details.boss_info.cm == CM_HEALTH_BASED) {
+        if (details.boss_maxhealth < details.boss_info.health_threshold) {
+            details.boss_info.cm = CM_NO;
         } else {
-            details.is_cm = CM_NO;
+            details.boss_info.cm = CM_YES;
         }
-    } else if (details.boss_id == overseer_id) {
-        if (details.boss_maxhealth > 25000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == deimos_id) {
-        if (details.boss_maxhealth > 40000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == samarog_id) {
-        if (details.boss_maxhealth > 30000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == dhuum_id) {
-        if (details.boss_maxhealth > 35000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == qadim_id) {
-        if (details.boss_maxhealth > 21000000) {
-            details.is_cm = CM_YES;
-        } else {
-            details.is_cm = CM_NO;
-        }
-    } else if (details.boss_id == cairn_id) {
-        /* Cairn CM is detected by checking for a specific skill */
-        details.is_cm = CM_UNKNOWN;
-    } else if (details.boss_id == horror_id) {
-        /* Soulless Horor CM is detected by checking the necrosis debuff */
-        details.is_cm = CM_UNKNOWN;
-    } else if (details.boss_id == conjured_amalgamate_id) {
-        /* Conjured Amalgamate is checking for a specific buff */
-        details.is_cm = CM_UNKNOWN;
-	} else if (details.boss_id == adina_id) {
-		/* Not sure how CM is checked yet */
-		details.is_cm = CM_UNKNOWN;
-	} else if (details.boss_id == sabir_id) {
-		/* Not sure how CM is checked yet */
-		details.is_cm = CM_UNKNOWN;
-	} else if (details.boss_id == qadim_two_id) {
-		/* Not sure how CM is checked yet */
-		details.is_cm = CM_UNKNOWN;
-    } else {
-        /* Other encounters do not have challenge motes */
-        details.is_cm = CM_NO;
     }
 }
 
@@ -1157,9 +1017,10 @@ output_json(parsed_details& details)
     data["header"]["revision"] = details.revision;
 
     /* Boss information */
-    data["boss"]["name"] = details.boss_name;
+    data["boss"]["name"] = details.boss_info.name;
     data["boss"]["id"] = details.boss_id;
-    switch (details.is_cm) {
+
+    switch (details.boss_info.cm) {
     case CM_NO:
         data["boss"]["is_cm"] = "NO";
         break;
@@ -1169,11 +1030,14 @@ output_json(parsed_details& details)
     case CM_UNKNOWN:
         data["boss"]["is_cm"] = "UNKNOWN";
         break;
+    case CM_HEALTH_BASED:
+        data["boss"]["is_cm"] = "INVALID";
+        break;
     }
+
     data["boss"]["maxhealth"] = details.boss_maxhealth;
     data["boss"]["success"] = details.encounter_success;
     data["boss"]["duration"] = (details.precise_end - details.precise_start);
-
 
     /* Local timestamps */
     data["local_time"]["start"] = details.precise_start;
@@ -1183,6 +1047,7 @@ output_json(parsed_details& details)
     if (details.precise_reward_time) {
         data["local_time"]["reward"] = details.precise_reward_time;
     }
+
     if (details.precise_logend_time) {
         data["local_time"]["log_end"] = details.precise_logend_time;
     }
@@ -1271,11 +1136,12 @@ int main(int argc, char *argv[])
 
     err = parse_header(details, evtc_file);
     if (err) {
-            return err;
+        return err;
     }
 
     /* We must parse agent count first */
     parse_agent_count(details, evtc_file);
+
     /* Followed by the skill count */
     parse_skill_count(details, evtc_file);
 
@@ -1297,8 +1163,8 @@ int main(int argc, char *argv[])
                                                 details.cbt_event_count - 1);
     details.precise_last_event = event_details.time();
 
-    /* Extract the boss maximum health */
-    detect_challenge_mote(details, evtc_file);
+    /* Detect CM status based on health */
+    detect_health_based_cm(details);
 
     /* Use the most appropriate ending time available */
     if (details.precise_reward_time) {
@@ -1312,7 +1178,7 @@ int main(int argc, char *argv[])
     /* Handle the various output requests */
     if (type == "header") {
         cout << details.arc_header << endl;
-        cout << details.boss_name << endl;
+        cout << details.boss_info.name << endl;
         cout << details.boss_id << endl;
     } else if (type == "revision") {
         cout << +details.revision << endl;
@@ -1334,7 +1200,7 @@ int main(int argc, char *argv[])
     } else if (type == "boss_maxhealth") {
         cout << details.boss_maxhealth << endl;
     } else if (type == "is_cm") {
-        switch (details.is_cm) {
+        switch (details.boss_info.cm) {
         case CM_NO:
             cout << "NO" << endl;
             break;
@@ -1342,6 +1208,7 @@ int main(int argc, char *argv[])
             cout << "YES" << endl;
             break;
         case CM_UNKNOWN:
+        case CM_HEALTH_BASED:
         default:
             cout << "UNKNOWN" << endl;
             break;

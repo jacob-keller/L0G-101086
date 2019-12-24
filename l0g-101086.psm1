@@ -1052,7 +1052,13 @@ Function Is-Fractal-Encounter {
     param([Parameter(Mandatory)][int]$id)
 
     # 99CM and 100CM encounter IDs
-    $FractalIds = @(0x427d, 0x4284, 0x4234, 0x44e0, 0x461d, 0x455f)
+    $FractalIds = @(0x427d, 0x4284, 0x4234, 0x44e0, 0x461d, 0x455f,
+                    0x2C8A, 0x4263, 0x2FEA, 0x40E9, 0x2C20, 0x325E,
+                    0x4268, 0x4215, 0x429B, 0x44E0, 0x2C45, 0x2BF6,
+                    0x2C00, 0x2C01, 0x3268, 0x326A, 0x2C41, 0x2C44,
+                    0x2C43, 0x2C3A, 0x2C3D, 0x2C3C, 0x2C3E, 0x2C3F,
+                    0x2BE9, 0x2BE8, 0x2BE7, 0x2C9D, 0x2C90, 0x2CDC,
+                    0x2CDD)
 
     return [bool]($id -in $FractalIds)
 }
@@ -1360,32 +1366,84 @@ Function Convert-Boss-To-Wing {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$boss_name)
 
-    $wings = @{"Vale Guardian"=1;
+    $wings = @{### Raids
+               # Wing 1
+               "Vale Guardian"=1;
                "Gorseval"=1;
                "Sabetha"=1;
+               # Wing 2
                "Slothasor"=2;
                "Bandit Trio"=2;
                "Matthias"=2;
+               # Wing 3
                "Keep Construct"=3;
                "Xera"=3;
+               # Wing 4
                "Cairn"=4;
                "Mursaat Overseer"=4;
                "Samarog"=4;
                "Deimos"=4;
+               # Wing 5
                "Soulless Horror"=5;
                "Dhuum"=5;
+               # Wing 6
                "Conjured Amalgamate"=6;
                "Largos Twins"=6;
                "Qadim"=6;
+               # Wing 7
                "Cardinal Adina"=7;
                "Cardinal Sabir"=7;
                "Qadim the Peerless"=7;
+               ### Fractal names
+               # 99 CM
                "MAMA (CM)"="99cm";
                "Siax (CM)"="99cm";
                "Ensolyss (CM)"="99cm";
+               # 100 CM
                "Skorvald (CM)"="100cm";
                "Artsariiv (CM)"="100cm";
-               "Arkk (CM)"="100cm";}
+               "Arkk (CM)"="100cm";
+               # Aquatic Ruins
+               "Jellyfish Beast"="Aquatic Ruins";
+               # Mai Trin Boss
+               "Inquest Technician"="Mai Trin Boss";
+               "Mai Trin"="Mai Trin Boss";
+               # Chaos Isles
+               "Brazen Gladiator"="Chaos Isles";
+               # Cliffside
+               "Archdiviner"="Cliffside";
+               # Molten Boss
+               "Molten Effigy"="Molten Boss";
+               # Nightmare
+               "MAMA"="Nightmare";
+               "Siax the Unclean"="Nightmare";
+               "Ensolyss"="Nightmare";
+               # Shattered Observatory
+               "Skorvald the Shattered"="Shattered Observatory";
+               # Snowblind
+               "Svanir Shaman"="Snowblind";
+               # Solid Ocean
+               "The Jade Maw"="Solid Ocean";
+               # Swampland
+               "Mossman"="Swampland";
+               "Bloomhunger"="Swampland";
+               # Thaumanova Reactor
+               "Subject 6"="Thaumanova Reactor";
+               "Thaumanova Anomaly"="Thaumanova Reactor";
+               # Underground Facility
+               "Rabsovich"="Underground Facility";
+               "Rampaging Ice Elemental"="Underground Facility";
+               "Dredge Powersuit"="Underground Facility";
+               # Urban Battleground
+               "Seigemaster Dulfy"="Urban Battleground";
+               "Captain Ashym"="Urban Battleground";
+               # Volcanic
+               "Grawl Shaman"="Volcanic";
+               "Imbued Shaman"="Volcanic";
+               # Uncategorized
+               "Uncategorized Champions"="Uncategorized";
+               "Old Tom"   ="Uncategorized";
+               "Raving Asura"  ="Uncategorized";}
 
     try {
         return $wings[$boss_name];
@@ -1695,8 +1753,6 @@ Function Format-And-Publish-Some {
 
     $emoji_map = $guild.emoji_map
 
-    Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
-
     # Calculate total duration timespan for this set of bosses
     $some_bosses = $some_bosses | Sort-Object -Property {$_.start_time}
     $span = New-TimeSpan -Start $some_bosses[0].start_time -End $some_bosses[-1].end_time
@@ -1724,6 +1780,8 @@ Function Format-And-Publish-Some {
     if ($some_bosses.Count -eq 0) {
         return
     }
+
+    Log-And-Write-Output "Publishing $($some_bosses.Length) encounters to $($guild.name)'s discord"
 
     # Determine if we want to add durations. By default we will, unless they are
     # explicitely disabled in the guild configuration.
@@ -1796,7 +1854,7 @@ Function Format-And-Publish-Some {
     # Add a final field as the set of players.
     if ($participants) {
         $fields += [PSCustomObject]@{
-            name = "@EMDASH@ Raiders @EMDASH@"
+            name = "@EMDASH@ Players @EMDASH@"
             value = "${participants}"
         }
     }
