@@ -413,6 +413,7 @@ static const std::map<uint16_t, struct encounter_info> all_encounter_info = {
     {0x3EF3, {"Matthias", CM_NO, 0}},
     /* Raid Wing 3 */
     {0x3F6B, {"Keep Construct", CM_NO, 0}},
+    {0x3F77, {"Twisted Castle", CM_NO, 0}},
     {0x3F76, {"Xera", CM_NO, 0}},
     {0x3F9E, {"Xera", CM_NO, 0}},
     /* Raid Wing 4 */

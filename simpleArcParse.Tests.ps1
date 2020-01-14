@@ -170,6 +170,24 @@ $testEncounters = @(
         local_last_event=1553016887
         duration=36190
     }
+    @{
+        name='20200113-205726-twisted-castle.evtc'
+        version='EVTC20200109'
+        boss_name='Twisted Castle'
+        boss_id=16247
+        boss_maxhealth=1892880
+        is_cm="NO"
+        players=@('Hobo.8563', 'Guaka.7853', 'noobism.8420', 'Serena Sedai.3064', 'HiggsBoson.2648', 'rasputyn.8316', 'vanRijn.8749', 'Phyrekios.7945', 'Nil.6289', 'mrflea.5739')
+        success=$true
+        start_time=1578977692
+        end_time=1578977844
+        local_start_time=11409796
+        local_end_time=11557012
+        local_reward_time=11557012
+        local_log_end=11561702
+        local_last_event=11561702
+        duration=147216
+    }
 )
 
 ForEach ($encounter in $testEncounters) {
