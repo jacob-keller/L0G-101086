@@ -272,8 +272,8 @@ Function Check-SimpleArcParse-Version {
     param([Parameter(Mandatory)][string]$version)
 
     $expected_major_ver = 2
-    $expected_minor_ver = 2
-    $expected_patch_ver = 0
+    $expected_minor_ver = 4
+    $expected_patch_ver = 1
 
     $expected_version = "v${expected_major_ver}.${expected_minor_ver}.${expected_patch_ver}"
 
@@ -1353,108 +1353,6 @@ Function Get-Discord-Players {
 
 <#
  .Synopsis
-  Given a boss name, look up the associated raid wing or fractal CM
-
- .Description
-  Convert the boss name into the equivalent wing. Additionally, convert the
-  fractal bosses into their respective CMs as well.
-
- .Parameter boss_name
-  The boss name to lookup
-#>
-Function Convert-Boss-To-Wing {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$boss_name)
-
-    $wings = @{### Raids
-               # Wing 1
-               "Vale Guardian"=1;
-               "Gorseval"=1;
-               "Sabetha"=1;
-               # Wing 2
-               "Slothasor"=2;
-               "Bandit Trio"=2;
-               "Matthias"=2;
-               # Wing 3
-               "Keep Construct"=3;
-               "Twisted Castle"=3;
-               "Xera"=3;
-               # Wing 4
-               "Cairn"=4;
-               "Mursaat Overseer"=4;
-               "Samarog"=4;
-               "Deimos"=4;
-               # Wing 5
-               "Soulless Horror"=5;
-               "Dhuum"=5;
-               # Wing 6
-               "Conjured Amalgamate"=6;
-               "Largos Twins"=6;
-               "Qadim"=6;
-               # Wing 7
-               "Cardinal Adina"=7;
-               "Cardinal Sabir"=7;
-               "Qadim the Peerless"=7;
-               ### Fractal names
-               # 99 CM
-               "MAMA (CM)"="99cm";
-               "Siax (CM)"="99cm";
-               "Ensolyss (CM)"="99cm";
-               # 100 CM
-               "Skorvald (CM)"="100cm";
-               "Artsariiv (CM)"="100cm";
-               "Arkk (CM)"="100cm";
-               # Aquatic Ruins
-               "Jellyfish Beast"="Aquatic Ruins";
-               # Mai Trin Boss
-               "Inquest Technician"="Mai Trin Boss";
-               "Mai Trin"="Mai Trin Boss";
-               # Chaos Isles
-               "Brazen Gladiator"="Chaos Isles";
-               # Cliffside
-               "Archdiviner"="Cliffside";
-               # Molten Boss
-               "Molten Effigy"="Molten Boss";
-               # Nightmare
-               "MAMA"="Nightmare";
-               "Siax the Unclean"="Nightmare";
-               "Ensolyss"="Nightmare";
-               # Shattered Observatory
-               "Skorvald the Shattered"="Shattered Observatory";
-               # Snowblind
-               "Svanir Shaman"="Snowblind";
-               # Solid Ocean
-               "The Jade Maw"="Solid Ocean";
-               # Swampland
-               "Mossman"="Swampland";
-               "Bloomhunger"="Swampland";
-               # Thaumanova Reactor
-               "Subject 6"="Thaumanova Reactor";
-               "Thaumanova Anomaly"="Thaumanova Reactor";
-               # Underground Facility
-               "Rabsovich"="Underground Facility";
-               "Rampaging Ice Elemental"="Underground Facility";
-               "Dredge Powersuit"="Underground Facility";
-               # Urban Battleground
-               "Seigemaster Dulfy"="Urban Battleground";
-               "Captain Ashym"="Urban Battleground";
-               # Volcanic
-               "Grawl Shaman"="Volcanic";
-               "Imbued Shaman"="Volcanic";
-               # Uncategorized
-               "Uncategorized Champions"="Uncategorized";
-               "Old Tom"   ="Uncategorized";
-               "Raving Asura"  ="Uncategorized";}
-
-    try {
-        return $wings[$boss_name];
-    } catch {
-        return $null
-    }
-}
-
-<#
- .Synopsis
   Get the abbreviated name for a boss, if there is one
 
  .Description
@@ -1646,6 +1544,9 @@ Function Load-From-EVTC {
 
         # Get whether the encounter is a Challenge Mote
         $boss["is_cm"] = ($evtc_info.boss.is_cm -eq "YES")
+
+        # Get the encounter location
+        $boss["location"] = $evtc_info.boss.location
     } else {
         # Extract data from the old format
         Load-From-Old-EVTC $config $extras_path
@@ -1665,9 +1566,6 @@ Function Load-From-EVTC {
 
     # Get an abbreviated name, if there is one
     $boss["shortname"] = Get-Abbreviated-Name $boss["name"]
-
-    # Get the wing for this encounter
-    $boss["wing"] = Convert-Boss-To-Wing $boss["name"]
 
     # Get whether this encounter is a fracal
     if (Is-Fractal-Encounter $boss["id"]) {
@@ -1860,8 +1758,8 @@ Function Format-And-Publish-Some {
         }
     }
 
-    # Determine which wings we did
-    $wings = $($some_bosses | ForEach-Object {$_.wing} | Get-Unique) -join ", "
+    # Determine which locations we have encounters for
+    $locations = $($some_bosses | ForEach-Object {$_.location} | Get-Unique) -join ", "
 
     # Get the date based on the first boss in the list, since we assume all bosses were run on the same date
     $date = Get-Date -Format "MMM d, yyyy" -Date $some_bosses[0].start_time
@@ -1876,11 +1774,11 @@ Function Format-And-Publish-Some {
 
     # Print "Fractals" if this is a set of fractals, otherwise print "Wings", determined from the first encounter
     if ($some_bosses[0].encounter_type -eq "fractal") {
-        $prefix = "Fractals: ${wings}"
+        $prefix = "Fractals: ${locations}"
     } elseif ($some_bosses[0].encounter_type -eq "golem") {
         $prefix = "Training Golems"
     } else {
-        $prefix = "Wings : ${wings}"
+        $prefix = "Wings : ${locations}"
     }
 
     # Create the data object
@@ -2317,8 +2215,8 @@ Function Complete-UploadTo-DpsReport {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU+5UYBcZn+VlRBThpZG1vt6VZ
-# ew2gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/GhSVzu0l2h0n1d1K04F2dQx
+# /O2gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -2338,11 +2236,11 @@ Function Complete-UploadTo-DpsReport {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQUUktKg8EmXtMtgAjVGpPPhpuswfcwDQYJKoZIhvcN
-# AQEBBQAEggEAMLI0RK9zejI1IWC4RHBGkuDx0qWVqvuqfdEpmgBWqEbZy8O0DUiO
-# DK5fyn7gQwBuXBDLVa+OXLjcIy+2AamhJmvAusxTc3OiIdTGBXxuYi6mZZUtWlG+
-# 9rWk7pBzLw7j7iSzCqSHNvaKHVO+3IUq1Sg0j73YTUao0vS6gE31IpAsGad3uNHF
-# 2cm6ybkWX/Ky80+wYx84EBLXvJa5ci/Z6qunDJjvCe+ISjQAEzsQEigaW2KHSip+
-# u6oCT81TBTE0PaoOxjyok0J7kGM85WmL8LUF7xDvG3fwQ1AbeFmuIlvRM/VqmuS+
-# oDEQBFXp1rtsQ4x3wYA0Fe+QpgkGII42rA==
+# FTAjBgkqhkiG9w0BCQQxFgQU3qdKcVd70q59H/hVQmI5kRD53ZwwDQYJKoZIhvcN
+# AQEBBQAEggEAHE+NfqKwzqlyKhAYhpX9nFFKlIBU13WifiBIsF1PT2bDpd1Tyicb
+# czZomilvsRZHXpac7E+g1PGeR20QGIV87h7DROvDUF/llDnX4UbkeuDYLKunU30H
+# EUCfGtAI9Og6Qd5NIwNfBfXw/lkSs+ugNr3b0JZY5NbyxuZkPSL/2P3M9XaxBbMX
+# lFWNah06xw8ctccPFJrq3KhD0KnWc7FecaIRjAPqpWvvfORuRnEJ0nrofBL9LX2J
+# pjpZpukZ6bH7vLQfQVF6XqqMAO3BREWEt7K8IIRVEna8abp9RkqaYrMJPmYMOWTO
+# ocnJCJj5/iJ6jCquRurpxfPCHF37jXbMbg==
 # SIG # End signature block
