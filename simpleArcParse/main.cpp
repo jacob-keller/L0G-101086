@@ -20,7 +20,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-static const string version = "v2.4.0";
+static const string version = "v2.4.1";
 
 /*
  * The following enumeration definitions were taken from the
@@ -455,13 +455,13 @@ static const std::map<uint16_t, struct encounter_info> all_encounter_info = {
     /* Winter Strike Mission */
     {0x5355, {"Freezie", "Wintersday", CM_NO, 0}},
     /* Fractal 99 CM */
-    {0x427d, {"MAMA (CM)", "99cm", CM_NO, 0}},
-    {0x4284, {"Siax (CM)", "99cm", CM_NO, 0}},
-    {0x4234, {"Ensolyss (CM)", "99cm", CM_NO, 0}},
+    {0x427d, {"MAMA", "99cm", CM_YES, 0}},
+    {0x4284, {"Siax", "99cm", CM_YES, 0}},
+    {0x4234, {"Ensolyss", "99cm", CM_YES, 0}},
     /* Fractal 100 CM */
-    {0x44e0, {"Skorvald the Shattered (CM)", "100cm", CM_NO, 0}},
-    {0x461d, {"Artsariiv (CM)", "100cm", CM_NO, 0}},
-    {0x455f, {"Arkk (CM)", "100cm", CM_NO, 0}},
+    {0x44e0, {"Skorvald the Shattered", "100cm", CM_YES, 0}},
+    {0x461d, {"Artsariiv", "100cm", CM_YES, 0}},
+    {0x455f, {"Arkk", "100cm", CM_YES, 0}},
     /* Aquatic Ruins Fractal */
     {0x2C8A, {"Jellyfish Beast", "Aquatic Ruins", CM_NO, 0}},
     /* Captain Mai Trin Boss */

@@ -25,8 +25,8 @@ $simpleArcParse = $config.simple_arc_parse_path
 describe 'simpleArcParse version' {
     $version = (& $simpleArcParse version)
 
-    it 'version should be v2.4.0' {
-        $version | Should BeExactly 'v2.4.0'
+    it 'version should be v2.4.1' {
+        $version | Should BeExactly 'v2.4.1'
     }
 }
 
@@ -55,10 +55,10 @@ $testEncounters = @(
     @{
         name='siax-cm100-test-log-1.evtc'
         version='EVTC20180526'
-        boss_name='Siax (CM)'
+        boss_name='Siax'
         boss_id=17028
         boss_maxhealth=6138797
-        is_cm="NO"
+        is_cm="YES"
         players=@('reapex.8546','Serena Sedai.3064','Hexus.8207',
                   'Draykrah.1980','grimfare.4319')
         success=$true
@@ -137,10 +137,10 @@ $testEncounters = @(
     @{
         name='invalid-precise-duration.evtc'
         version='EVTC20190103'
-        boss_name='Artsariiv (CM)'
+        boss_name='Artsariiv'
         boss_id='17949'
         boss_maxhealth=5962266
-        is_cm="NO"
+        is_cm="YES"
         players=@('Jerry Charrcia.7068', 'nightfally.2187', 'Serena Sedai.3064', 'Ryiah.9546', 'eMJay.3154')
         success=$false
         start_time=1546579480
