@@ -20,7 +20,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-static const string version = "v2.3.0";
+static const string version = "v2.4.0";
 
 /*
  * The following enumeration definitions were taken from the
@@ -345,6 +345,7 @@ static const string valid_types[] = {
     "boss_maxhealth",
     "is_cm",
     "duration",
+    "location",
 };
 
 static const int valid_types_size = extent<decltype(valid_types)>::value;
@@ -394,117 +395,130 @@ enum cm_type {
     CM_YES,
 };
 
+/*
+ * @struct encounter_info
+ * @brief Encounter data determined based on encounter ID
+ *
+ * Structure which represents encounter data based on the EVTC encounter ID.
+ * This includes the human readable name and location (wing) that the encounter
+ * belongs in.
+ *
+ * @note By convention, raid wings will have their location set as a number
+ * based on the release order of the raid wing. Fractals and other encounters
+ * will set their location based on the name of the area in game.
+ */
 struct encounter_info {
     const char *name;
+    const char *location;
     enum cm_type cm;
     uint64_t health_threshold;
 };
 
 static const std::map<uint16_t, struct encounter_info> all_encounter_info = {
     /* Raid Wing 1 */
-    {0x3C4E, {"Vale Guardian", CM_NO, 0}},
-    {0x3C45, {"Gorseval", CM_NO, 0}},
-    {0x3C0F, {"Sabetha", CM_NO, 0}},
+    {0x3C4E, {"Vale Guardian", "1", CM_NO, 0}},
+    {0x3C45, {"Gorseval", "1", CM_NO, 0}},
+    {0x3C0F, {"Sabetha", "1", CM_NO, 0}},
     /* Raid Wing 2 */
-    {0x3EFB, {"Slothasor", CM_NO, 0}},
-    {0x3ED8, {"Bandit Trio", CM_NO, 0}},
-    {0x3F09, {"Bandit Trio", CM_NO, 0}},
-    {0x3EFD, {"Bandit Trio", CM_NO, 0}},
-    {0x3EF3, {"Matthias", CM_NO, 0}},
+    {0x3EFB, {"Slothasor", "2", CM_NO, 0}},
+    {0x3ED8, {"Bandit Trio", "2", CM_NO, 0}},
+    {0x3F09, {"Bandit Trio", "2", CM_NO, 0}},
+    {0x3EFD, {"Bandit Trio", "2", CM_NO, 0}},
+    {0x3EF3, {"Matthias", "2", CM_NO, 0}},
     /* Raid Wing 3 */
-    {0x3F6B, {"Keep Construct", CM_NO, 0}},
-    {0x3F77, {"Twisted Castle", CM_NO, 0}},
-    {0x3F76, {"Xera", CM_NO, 0}},
-    {0x3F9E, {"Xera", CM_NO, 0}},
+    {0x3F6B, {"Keep Construct", "3", CM_NO, 0}},
+    {0x3F77, {"Twisted Castle", "3", CM_NO, 0}},
+    {0x3F76, {"Xera", "3", CM_NO, 0}},
+    {0x3F9E, {"Xera", "3", CM_NO, 0}},
     /* Raid Wing 4 */
-    {0x432A, {"Cairn", CM_UNKNOWN, 0}},
-    {0x4314, {"Mursaat Overseer", CM_HEALTH_BASED, 25000000}},
-    {0x4324, {"Samarog", CM_HEALTH_BASED, 35000000}},
-    {0x4302, {"Deimos", CM_HEALTH_BASED, 40000000}},
+    {0x432A, {"Cairn", "4", CM_UNKNOWN, 0}},
+    {0x4314, {"Mursaat Overseer", "4", CM_HEALTH_BASED, 25000000}},
+    {0x4324, {"Samarog", "4", CM_HEALTH_BASED, 35000000}},
+    {0x4302, {"Deimos", "4", CM_HEALTH_BASED, 40000000}},
     /* Raid Wing 5 */
-    {0x4d37, {"Soulless Horror", CM_UNKNOWN, 0}},
-    {0x4d74, {"Rainbow Road", CM_NO, 0}},
-    {0x4ceb, {"Broken King", CM_NO, 0}},
-    {0x4c50, {"Soul Eater", CM_NO, 0}},
-    {0x4cc3, {"Eye of Judgement", CM_NO, 0}},
-    {0x4d84, {"Eye of Fate", CM_NO, 0}},
-    {0x4bfa, {"Dhuum", CM_HEALTH_BASED, 35000000}},
+    {0x4d37, {"Soulless Horror", "5", CM_UNKNOWN, 0}},
+    {0x4d74, {"Rainbow Road", "5", CM_NO, 0}},
+    {0x4ceb, {"Broken King", "5", CM_NO, 0}},
+    {0x4c50, {"Soul Eater", "5", CM_NO, 0}},
+    {0x4cc3, {"Eye of Judgement", "5", CM_NO, 0}},
+    {0x4d84, {"Eye of Fate", "5", CM_NO, 0}},
+    {0x4bfa, {"Dhuum", "5", CM_HEALTH_BASED, 35000000}},
     /* Raid Wing 6 */
-    {0xabc6, {"Conured Amalgamate"}},
-    {0x5271, {"Largos Twins", CM_HEALTH_BASED, 18000000}},
-    {0x5261, {"Largos Twins", CM_HEALTH_BASED, 18000000}},
-    {0x51c6, {"Qadim", CM_HEALTH_BASED, 21000000}},
+    {0xabc6, {"Conured Amalgamate", "6", CM_UNKNOWN, 0}},
+    {0x5271, {"Largos Twins", "6", CM_HEALTH_BASED, 18000000}},
+    {0x5261, {"Largos Twins", "6", CM_HEALTH_BASED, 18000000}},
+    {0x51c6, {"Qadim", "6", CM_HEALTH_BASED, 21000000}},
     /* Raid Wing 7 */
-    {0x55f6, {"Cardinal Adina", CM_UNKNOWN, 0}},
-    {0x55cc, {"Cardinal Sabir", CM_UNKNOWN, 0}},
-    {0x55f0, {"Qadim the Peerless", CM_UNKNOWN, 0}},
+    {0x55f6, {"Cardinal Adina", "7", CM_UNKNOWN, 0}},
+    {0x55cc, {"Cardinal Sabir", "7", CM_UNKNOWN, 0}},
+    {0x55f0, {"Qadim the Peerless", "7", CM_UNKNOWN, 0}},
     /* Winter Strike Mission */
-    {0x5355, {"Freezie", CM_NO, 0}},
+    {0x5355, {"Freezie", "Wintersday", CM_NO, 0}},
     /* Fractal 99 CM */
-    {0x427d, {"MAMA (CM)", CM_NO, 0}},
-    {0x4284, {"Siax (CM)", CM_NO, 0}},
-    {0x4234, {"Ensolyss (CM)", CM_NO, 0}},
+    {0x427d, {"MAMA (CM)", "99cm", CM_NO, 0}},
+    {0x4284, {"Siax (CM)", "99cm", CM_NO, 0}},
+    {0x4234, {"Ensolyss (CM)", "99cm", CM_NO, 0}},
     /* Fractal 100 CM */
-    {0x44e0, {"Skorvald the Shattered (CM)", CM_NO, 0}},
-    {0x461d, {"Artsariiv (CM)", CM_NO, 0}},
-    {0x455f, {"Arkk (CM)", CM_NO, 0}},
+    {0x44e0, {"Skorvald the Shattered (CM)", "100cm", CM_NO, 0}},
+    {0x461d, {"Artsariiv (CM)", "100cm", CM_NO, 0}},
+    {0x455f, {"Arkk (CM)", "100cm", CM_NO, 0}},
     /* Aquatic Ruins Fractal */
-    {0x2C8A, {"Jellyfish Beast", CM_NO, 0}},
+    {0x2C8A, {"Jellyfish Beast", "Aquatic Ruins", CM_NO, 0}},
     /* Captain Mai Trin Boss */
-    {0x4263, {"Champion Inquest Technician", CM_NO, 0}},
-    {0x2fea, {"Mai Trin", CM_NO, 0}},
+    {0x4263, {"Champion Inquest Technician", "Mai Trin Boss", CM_NO, 0}},
+    {0x2fea, {"Mai Trin", "Mai Trin Boss", CM_NO, 0}},
     /* Chaos Isles Fractal */
-    {0x40E9, {"Brazen Gladiator", CM_NO, 0}},
+    {0x40E9, {"Brazen Gladiator", "Chaos Isles", CM_NO, 0}},
     /* Cliffside Fractal */
-    {0x2C20, {"Archdiviner", CM_NO, 0}},
+    {0x2C20, {"Archdiviner", "Cliffside", CM_NO, 0}},
     /* Molten Boss */
-    {0x325E, {"Molten Effigy", CM_NO, 0}},
+    {0x325E, {"Molten Effigy", "Molten Boss", CM_NO, 0}},
     /* Nightmare */
-    {0x4268, {"MAMA", CM_NO, 0}},
-    {0x4215, {"Siax the Unclean", CM_NO, 0}},
-    {0x429B, {"Ensolyss", CM_NO, 0}},
+    {0x4268, {"MAMA", "Nightmare", CM_NO, 0}},
+    {0x4215, {"Siax the Unclean", "Nightmare", CM_NO, 0}},
+    {0x429B, {"Ensolyss", "Nightmare", CM_NO, 0}},
     /* Shattered Observatory */
-    {0x44E0, {"Skorvald the Shattered", CM_NO, 0}},
+    {0x44E0, {"Skorvald the Shattered", "Shattered Observatory", CM_NO, 0}},
     /* Snowblind */
-    {0x2C45, {"Svanir Shaman", CM_NO, 0}},
+    {0x2C45, {"Svanir Shaman", "Snowblind", CM_NO, 0}},
     /* Solid Ocean */
-    {0x2BF6, {"The Jade Maw", CM_NO, 0}},
+    {0x2BF6, {"The Jade Maw", "Solid Ocean", CM_NO, 0}},
     /* Swampland */
-    {0x2C00, {"Mossman", CM_NO, 0}},
-    {0x2C01, {"Bloomhunger", CM_NO, 0}},
+    {0x2C00, {"Mossman", "Swampland", CM_NO, 0}},
+    {0x2C01, {"Bloomhunger", "Swampland", CM_NO, 0}},
     /* Thaumanova Reactor */
-    {0x3268, {"Subject 6", CM_NO, 0}},
-    {0x326A, {"Thaumanova Anomaly", CM_NO, 0}},
+    {0x3268, {"Subject 6", "Thaumanova", CM_NO, 0}},
+    {0x326A, {"Thaumanova Anomaly", "Thaumanova", CM_NO, 0}},
     /* Underground Facility */
-    {0x2BE9, {"Rabsovich", CM_NO, 0}},
-    {0x2BE8, {"Rampaging Ice Elemental", CM_NO, 0}},
-    {0x2BE7, {"Dredge Powersuit", CM_NO, 0}},
+    {0x2BE9, {"Rabsovich", "Underground Facility", CM_NO, 0}},
+    {0x2BE8, {"Rampaging Ice Elemental", "Underground Facility", CM_NO, 0}},
+    {0x2BE7, {"Dredge Powersuit", "Underground Facility", CM_NO, 0}},
     /* Urban Battleground */
-    {0x2C9D, {"Siegemaster Dulfy", CM_NO, 0}},
-    {0x2C90, {"Captain Ashym", CM_NO, 0}},
+    {0x2C9D, {"Siegemaster Dulfy", "Urban Battleground", CM_NO, 0}},
+    {0x2C90, {"Captain Ashym", "Urban Battleground", CM_NO, 0}},
     /* Volcanic */
-    {0x2CDC, {"Grawl Shaman", CM_NO, 0}},
-    {0x2CDD, {"Imbued Shaman", CM_NO, 0}},
+    {0x2CDC, {"Grawl Shaman", "Volcanic", CM_NO, 0}},
+    {0x2CDD, {"Imbued Shaman", "Volcanic", CM_NO, 0}},
     /* Uncategorized */
-    {0x2C41, {"Uncategorized Champions", CM_NO, 0}},
-    {0x2C44, {"Uncategorized Champions", CM_NO, 0}},
-    {0x2C43, {"Uncategorized Champions", CM_NO, 0}},
-    {0x2C3A, {"Old Tom", CM_NO, 0}},
-    {0x2C3D, {"Raving Asura", CM_NO, 0}},
-    {0x2C3C, {"Raving Asura", CM_NO, 0}},
-    {0x2C3E, {"Raving Asura", CM_NO, 0}},
-    {0x2C3F, {"Raving Asura", CM_NO, 0}},
+    {0x2C41, {"Uncategorized Champions", "Uncategorized", CM_NO, 0}},
+    {0x2C44, {"Uncategorized Champions", "Uncategorized", CM_NO, 0}},
+    {0x2C43, {"Uncategorized Champions", "Uncategorized", CM_NO, 0}},
+    {0x2C3A, {"Old Tom", "Uncategorized", CM_NO, 0}},
+    {0x2C3D, {"Raving Asura", "Uncategorized", CM_NO, 0}},
+    {0x2C3C, {"Raving Asura", "Uncategorized", CM_NO, 0}},
+    {0x2C3E, {"Raving Asura", "Uncategorized", CM_NO, 0}},
+    {0x2C3F, {"Raving Asura", "Uncategorized", CM_NO, 0}},
     /* Training Golems */
-    {0x3f46, {"Vital Kitty Golem (10m HP)", CM_NO, 0}},
-    {0x3f31, {"Average Kitty Golem (4m HP)", CM_NO, 0}},
-    {0x3f47, {"Standard Kitty Golem (1m HP)", CM_NO, 0}},
-    {0x3f29, {"Massive Kitty Golem (10m HP)", CM_NO, 0}},
-    {0x3f4a, {"Massive Kitty Golem (4m HP)", CM_NO, 0}},
-    {0x3f32, {"Massive Kitty Golem (1m HP)", CM_NO, 0}},
-    {0x3f2e, {"Tough Kitty Golem", CM_NO, 0}},
-    {0x3f30, {"Resistant Kitty Golem", CM_NO, 0}},
-    {0x4cdc, {"Large Kitty Golem (4m HP)", CM_NO, 0}},
-    {0x4cbd, {"Medium Kitty Golem (4m HP)", CM_NO, 0}},
+    {0x3f46, {"Vital Kitty Golem (10m HP)", "Training Golem", CM_NO, 0}},
+    {0x3f31, {"Average Kitty Golem (4m HP)", "Training Golem", CM_NO, 0}},
+    {0x3f47, {"Standard Kitty Golem (1m HP)", "Training Golem", CM_NO, 0}},
+    {0x3f29, {"Massive Kitty Golem (10m HP)", "Training Golem", CM_NO, 0}},
+    {0x3f4a, {"Massive Kitty Golem (4m HP)", "Training Golem", CM_NO, 0}},
+    {0x3f32, {"Massive Kitty Golem (1m HP)", "Training Golem", CM_NO, 0}},
+    {0x3f2e, {"Tough Kitty Golem", "Training Golem", CM_NO, 0}},
+    {0x3f30, {"Resistant Kitty Golem", "Training Golem", CM_NO, 0}},
+    {0x4cdc, {"Large Kitty Golem (4m HP)", "Training Golem", CM_NO, 0}},
+    {0x4cbd, {"Medium Kitty Golem (4m HP)", "Training Golem", CM_NO, 0}},
 };
 
 static const uint64_t arcdps_src_agent = 0x637261;
@@ -1019,6 +1033,7 @@ output_json(parsed_details& details)
 
     /* Boss information */
     data["boss"]["name"] = details.boss_info.name;
+    data["boss"]["location"] = details.boss_info.location;
     data["boss"]["id"] = details.boss_id;
 
     switch (details.boss_info.cm) {
@@ -1221,6 +1236,8 @@ int main(int argc, char *argv[])
         cout << details.precise_start << endl;
     } else if (type == "local_end_time") {
         cout << details.precise_end << endl;
+    } else if (type == "location") {
+        cout << details.boss_info.location << endl;
     } else if (type == "json") {
         output_json(details);
     }
