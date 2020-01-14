@@ -29,22 +29,22 @@
                        "add_duration": true,
                        "publish_encounters":  "successful",
                        "discord_map":  {
-                                           "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
+                                           "Serena Sedai.3064":  "@119167866103791621"
                                        },
                        "emoji_map":  {
-                                         "Mursaat Overseer":  "\u003c:mo:311579053486243841\u003e",
-                                         "Samarog":  "\u003c:sam:311578871214637057\u003e",
-                                         "Slothasor":  "\u003c:sloth:311578871206117376\u003e",
-                                         "Sabetha":  "\u003c:sab:311578871122231296\u003e",
-                                         "Dhuum":  "\u003c:dhuum:399610319464431627\u003e",
-                                         "Gorseval":  "\u003c:gors:311578871013310474\u003e",
-                                         "Xera":  "\u003c:xera:311578871277289472\u003e",
-                                         "Soulless Horror":  "\u003c:horror:386645168289480715\u003e",
-                                         "Cairn":  "\u003c:cairn:311578870954590208\u003e",
-                                         "Keep Construct":  "\u003c:kc:311578870686023682\u003e",
-                                         "Matthias":  "\u003c:matt:311578871105454080\u003e",
-                                         "Deimos":  "\u003c:deimos:311578870761652225\u003e",
-                                         "Vale Guardian":  "\u003c:vg:311578870933356545\u003e",
+                                         "Mursaat Overseer":  ":mo:311579053486243841",
+                                         "Samarog":  ":sam:311578871214637057",
+                                         "Slothasor":  ":sloth:311578871206117376",
+                                         "Sabetha":  ":sab:311578871122231296",
+                                         "Dhuum":  ":dhuum:399610319464431627",
+                                         "Gorseval":  ":gors:311578871013310474",
+                                         "Xera":  ":xera:311578871277289472",
+                                         "Soulless Horror":  ":horror:386645168289480715",
+                                         "Cairn":  ":cairn:311578870954590208",
+                                         "Keep Construct":  ":kc:311578870686023682",
+                                         "Matthias":  ":matt:311578871105454080",
+                                         "Deimos":  ":deimos:311578870761652225",
+                                         "Vale Guardian":  ":vg:311578870933356545",
                                          "Conjured Amalgamate":  ":ca:",
                                          "Largos Twins":  ":twins:",
                                          "Qadim":  ":qadim:",
@@ -64,15 +64,15 @@
                        "publish_encounters":  "successful",
                        "prefix_players_text":  "",
                        "discord_map":  {
-                                           "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
+                                           "Serena Sedai.3064":  "@119167866103791621"
                                        },
                        "emoji_map":  {
-                                         "MAMA (CM)":  "\u003c:mama99:452753122469871617\u003e",
-                                         "Siax (CM)":  "\u003c:siax99:452753535566872576\u003e",
-                                         "Ensolyss (CM)":  "\u003c:ensolyss99:452753758489935892\u003e",
-                                         "Skorvald (CM)":  "\u003c:skorvald100:452754943162581003\u003e",
-                                         "Artsariiv (CM)":  "\u003c:viirastra100:452754577452957697\u003e",
-                                         "Arkk (CM)":  "\u003c:arkk100:452754735145943041\u003e"
+                                         "MAMA (CM)":  ":mama99:452753122469871617",
+                                         "Siax (CM)":  ":siax99:452753535566872576",
+                                         "Ensolyss (CM)":  ":ensolyss99:452753758489935892",
+                                         "Skorvald (CM)":  ":skorvald100:452754943162581003",
+                                         "Artsariiv (CM)":  ":viirastra100:452754577452957697",
+                                         "Arkk (CM)":  ":arkk100:452754735145943041"
                                      }
                    },
                    {
@@ -87,34 +87,34 @@
                        "everything":  true,
                        "show_players":  "discord_only",
                        "publish_encounters":  "all",
-                       "prefix_players_text":  "\u003c@526255811031465984\u003e",
+                       "prefix_players_text":  "@526255811031465984",
                        "discord_map":  {
-                                           "Serena Sedai.3064":  "\u003c@119167866103791621\u003e"
+                                           "Serena Sedai.3064":  "@119167866103791621"
                                        },
                        "emoji_map":  {
-                                                                "Mursaat Overseer":  "\u003c:mo:311579053486243841\u003e",
-                                         "Samarog":  "\u003c:sam:311578871214637057\u003e",
-                                         "Slothasor":  "\u003c:sloth:311578871206117376\u003e",
-                                         "Sabetha":  "\u003c:sab:311578871122231296\u003e",
-                                         "Dhuum":  "\u003c:dhuum:399610319464431627\u003e",
-                                         "Gorseval":  "\u003c:gors:311578871013310474\u003e",
-                                         "Xera":  "\u003c:xera:311578871277289472\u003e",
-                                         "Soulless Horror":  "\u003c:horror:386645168289480715\u003e",
-                                         "Cairn":  "\u003c:cairn:311578870954590208\u003e",
-                                         "Keep Construct":  "\u003c:kc:311578870686023682\u003e",
-                                         "Matthias":  "\u003c:matt:311578871105454080\u003e",
-                                         "Deimos":  "\u003c:deimos:311578870761652225\u003e",
-                                         "Vale Guardian":  "\u003c:vg:311578870933356545\u003e",
+                                                                "Mursaat Overseer":  ":mo:311579053486243841",
+                                         "Samarog":  ":sam:311578871214637057",
+                                         "Slothasor":  ":sloth:311578871206117376",
+                                         "Sabetha":  ":sab:311578871122231296",
+                                         "Dhuum":  ":dhuum:399610319464431627",
+                                         "Gorseval":  ":gors:311578871013310474",
+                                         "Xera":  ":xera:311578871277289472",
+                                         "Soulless Horror":  ":horror:386645168289480715",
+                                         "Cairn":  ":cairn:311578870954590208",
+                                         "Keep Construct":  ":kc:311578870686023682",
+                                         "Matthias":  ":matt:311578871105454080",
+                                         "Deimos":  ":deimos:311578870761652225",
+                                         "Vale Guardian":  ":vg:311578870933356545",
                                          "Conjured Amalgamate":  ":ca:",
                                          "Largos Twins":  ":twins:",
                                          "Qadim":  ":qadim:",
                                          "Freezie":  ":freezie:",
-                                         "MAMA (CM)":  "\u003c:mama99:452753122469871617\u003e",
-                                         "Siax (CM)":  "\u003c:siax99:452753535566872576\u003e",
-                                         "Ensolyss (CM)":  "\u003c:ensolyss99:452753758489935892\u003e",
-                                         "Skorvald (CM)":  "\u003c:skorvald100:452754943162581003\u003e",
-                                         "Artsariiv (CM)":  "\u003c:viirastra100:452754577452957697\u003e",
-                                         "Arkk (CM)":  "\u003c:arkk100:452754735145943041\u003e"
+                                         "MAMA (CM)":  ":mama99:452753122469871617",
+                                         "Siax (CM)":  ":siax99:452753535566872576",
+                                         "Ensolyss (CM)":  ":ensolyss99:452753758489935892",
+                                         "Skorvald (CM)":  ":skorvald100:452754943162581003",
+                                         "Artsariiv (CM)":  ":viirastra100:452754577452957697",
+                                         "Arkk (CM)":  ":arkk100:452754735145943041"
                                      }
                    }
                ]

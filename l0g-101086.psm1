@@ -1342,7 +1342,17 @@ Function Get-Discord-Players {
 
     ForEach ($account in ($accounts | where {$_.trim() } | Sort)) {
         if ($show_discord -and $guild.discord_map."$account") {
-            $names += @($guild.discord_map."$account")
+            $name = $guild.discord_map."$account"
+
+            # Automatically handle adding brackets if missing
+            if (-not $name.StartsWith("<")) {
+                $name = "<" + $name
+            }
+            if (-not $name.EndsWith(">")) {
+                $name = "$name" + ">"
+            }
+
+            $names += @($name)
         } elseif ($show_accounts) {
             $names += @("_${account}_")
         }
@@ -1699,6 +1709,14 @@ Function Format-And-Publish-Some {
         $emoji = $emoji_map."$($boss.name)"
         if (-not $emoji) {
             $emoji = $emoji_map."$($boss.shortname)"
+        }
+
+        # Automatically handle adding the bracket characters to the emoji
+        if (-not $emoji.StartsWith("<")) {
+            $emoji = "<" + $emoji
+        }
+        if (-not $emoji.EndsWith(">")) {
+            $emoji = "$emoji" + ">"
         }
 
         if ($boss.is_cm -eq $true) {
@@ -2215,8 +2233,8 @@ Function Complete-UploadTo-DpsReport {
 # SIG # Begin signature block
 # MIIFhQYJKoZIhvcNAQcCoIIFdjCCBXICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/GhSVzu0l2h0n1d1K04F2dQx
-# /O2gggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUN5LIPiVPBRIB6sm2TJmqO0IX
+# +UugggMYMIIDFDCCAfygAwIBAgIQLNFTiNzlwrtPtvlsLl9i3DANBgkqhkiG9w0B
 # AQsFADAiMSAwHgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZzAeFw0xOTA1
 # MTEwNjIxMjNaFw0yMDA1MTEwNjQxMjNaMCIxIDAeBgNVBAMMF0wwRy0xMDEwODYg
 # Q29kZSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8yX
@@ -2236,11 +2254,11 @@ Function Complete-UploadTo-DpsReport {
 # HgYDVQQDDBdMMEctMTAxMDg2IENvZGUgU2lnbmluZwIQLNFTiNzlwrtPtvlsLl9i
 # 3DAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
 # 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
-# FTAjBgkqhkiG9w0BCQQxFgQU3qdKcVd70q59H/hVQmI5kRD53ZwwDQYJKoZIhvcN
-# AQEBBQAEggEAHE+NfqKwzqlyKhAYhpX9nFFKlIBU13WifiBIsF1PT2bDpd1Tyicb
-# czZomilvsRZHXpac7E+g1PGeR20QGIV87h7DROvDUF/llDnX4UbkeuDYLKunU30H
-# EUCfGtAI9Og6Qd5NIwNfBfXw/lkSs+ugNr3b0JZY5NbyxuZkPSL/2P3M9XaxBbMX
-# lFWNah06xw8ctccPFJrq3KhD0KnWc7FecaIRjAPqpWvvfORuRnEJ0nrofBL9LX2J
-# pjpZpukZ6bH7vLQfQVF6XqqMAO3BREWEt7K8IIRVEna8abp9RkqaYrMJPmYMOWTO
-# ocnJCJj5/iJ6jCquRurpxfPCHF37jXbMbg==
+# FTAjBgkqhkiG9w0BCQQxFgQUK4U5fQmbj3tZ1hsCmNuEo1qSCFwwDQYJKoZIhvcN
+# AQEBBQAEggEAo08wCpA1zVit0D3hyKsZSA4bZhq4jVEL1r9Rx9VcaFEuqBQlz2wW
+# /WwTRtiOX1pI8GKbVfZqWO4JtAAiCN1rSDwXGWE0J9EqUFKfFllhFSvFRkG6OSAB
+# be6ReSXMmXua3tT64JPLGJ97lfrueS8mr689viLNiKzK3Q+xHWspGp34DpoymLzE
+# rxylmamR0GHOFV0YAiW6o9tpx3DjL/Nbb6kkLgxO0DZw5nvAWBb/bFYRU5w2eEFo
+# nSh3n2efduuKpi34ymenX+jmvLxHe3yBAWAYti+Gi/WYAR/FwZ2gCvysc57IWMjE
+# rICyyeV1ozt1EdvQ2YVkKUlNB6XdvfCIeg==
 # SIG # End signature block

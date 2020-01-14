@@ -308,7 +308,7 @@ names. The default value (and older script behavior) is
 ##### prefix_players_text
 
 Can be set to a string which will prefix the player list. For example, it
-could be set to \u003c@526255792958078987\u003e to add an "@here" ping.
+could be set to @526255792958078987 to add an "@here" ping.
 Similar to discord names, you must use the ID from discord in the ping for
 it to be displayed properly. If show_players is set to "none", then only the
 prefix will be displayed.
@@ -589,8 +589,10 @@ This should show some text similar to
 ```
 
 For each boss you want an icon, you must generate the id text and place it
-within the emoji map. It is possible you may need to unicode escape the '<'
-and '>' characters.
+within the emoji map without the surrounding angle brackets. Previous
+versions of the scripts required unicode-escaped variants of '<' and '>',
+'\u003c' and '\u003e' respectivaly. Newer versions of the script will
+automatically insert the angle brackets for you.
 
 ##### configuring gw2 & discord accounts
 
@@ -619,7 +621,12 @@ into a discord channel. It should return text similar to
 ```
 
 This text is the id of the particular mention. You should include this in the
-discord map hash table as the value for the matching gw2 account name.
+discord map hash table as the value for the matching gw2 account name. Do
+not include the surrounding angle brackets. Due to the way that
+configuration data is stored in JSON, this would require you to encode the
+brackets using unicode escape sequences. Newer versions of the script will
+automatically add missing angle brackets for you, preventing the need from
+using the escape sequences.
 
 ## Questions?
 
